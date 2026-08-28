@@ -1,0 +1,199 @@
+/* POLARIS DIGITAL TWIN - Scientific Futurism Design System */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  --color-surface: #0b1326;
+  --color-surface-dim: #0b1326;
+  --color-surface-bright: #31394d;
+  --color-surface-container-lowest: #060e20;
+  --color-surface-container-low: #131b2e;
+  --color-surface-container: #171f33;
+  --color-surface-container-high: #222a3d;
+  --color-surface-container-highest: #2d3449;
+  --color-on-surface: #dae2fd;
+  --color-on-surface-variant: #bec8ca;
+  --color-outline: #889394;
+  --color-outline-variant: #3f494a;
+  --color-surface-tint: #85d3dc;
+  --color-primary: #ffffff;
+  --color-primary-container: #a1eff8;
+  --color-secondary: #a4d64c;
+  --color-tertiary: #ffdcc5;
+  --color-error: #ffb4ab;
+  --color-warning: #ffb783;
+}
+
+body {
+  background-color: var(--color-surface-dim);
+  color: var(--color-on-surface);
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Glassmorphism Panels */
+.glass-panel {
+  background-color: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(165, 243, 252, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-panel-interactive {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.glass-panel-interactive:hover {
+  border-color: rgba(165, 243, 252, 0.4);
+  background-color: rgba(15, 23, 42, 0.8);
+}
+
+/* Custom Glow Effects */
+.active-glow {
+  box-shadow: inset 0 0 6px rgba(165, 243, 252, 0.8), 0 0 12px rgba(165, 243, 252, 0.4);
+}
+
+.cyber-lime-glow {
+  text-shadow: 0 0 8px rgba(164, 214, 76, 0.6);
+}
+
+.cyber-lime-box-glow {
+  box-shadow: 0 0 10px rgba(164, 214, 76, 0.4);
+}
+
+.warning-glow {
+  box-shadow: 0 0 12px rgba(255, 180, 171, 0.4);
+  border-color: rgba(255, 180, 171, 0.6) !important;
+}
+
+.storm-glow {
+  box-shadow: 0 0 15px rgba(255, 114, 114, 0.6);
+  border-color: rgba(255, 114, 114, 0.8) !important;
+}
+
+/* Scanning Line Animation */
+.scanning-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(165, 243, 252, 0.6);
+  box-shadow: 0 0 8px rgba(165, 243, 252, 0.9);
+  animation: scan 4s linear infinite;
+  z-index: 10;
+  pointer-events: none;
+}
+
+@keyframes scan {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Custom Range Slider */
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  background: transparent;
+}
+
+input[type=range]:focus {
+  outline: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 18px;
+  width: 10px;
+  background: #a4d64c;
+  cursor: pointer;
+  border-radius: 0;
+  box-shadow: 0 0 6px #a4d64c;
+  border: 1px solid #ffffff;
+  margin-top: -8px;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 3px;
+  cursor: pointer;
+  background: rgba(165, 243, 252, 0.3);
+  border-radius: 1px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(6, 14, 32, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(136, 147, 148, 0.4);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(165, 243, 252, 0.6);
+}
+
+/* Vector Path Dash Animation */
+.vector-path {
+  stroke-dasharray: 6;
+  animation: dash 15s linear infinite;
+}
+
+@keyframes dash {
+  to { stroke-dashoffset: -120; }
+}
+
+/* Pulsing Danger Indicator */
+.pulse-danger {
+  animation: pulse-danger-anim 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-danger-anim {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.05); }
+}
+
+/* Compass Dial */
+.compass-dial {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 1px solid rgba(165, 243, 252, 0.3);
+  background: rgba(11, 19, 38, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compass-needle {
+  position: absolute;
+  width: 2px;
+  height: 28px;
+  background: linear-gradient(to top, #ffb4ab 50%, #a4d64c 50%);
+  transform-origin: center center;
+  transition: transform 0.2s ease;
+}
+
+/* Storm Background Canvas FX */
+#storm-canvas-overlay {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+}

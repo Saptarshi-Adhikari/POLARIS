@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>POLARIS // DIGITAL TWIN</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&amp;family=JetBrains+Mono:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#ffdcc5",
+                        "on-surface": "#dae2fd",
+                        "on-error-container": "#ffdad6",
+                        "primary": "#ffffff",
+                        "surface-bright": "#31394d",
+                        "on-tertiary-fixed": "#301400",
+                        "on-secondary-container": "#1e2f00",
+                        "on-primary-container": "#126f77",
+                        "outline": "#889394",
+                        "surface-container-lowest": "#060e20",
+                        "outline-variant": "#3f494a",
+                        "tertiary": "#ffffff",
+                        "surface-container-low": "#131b2e",
+                        "surface-container": "#171f33",
+                        "surface-dim": "#0b1326",
+                        "primary-container": "#a1eff8",
+                        "surface-variant": "#2d3449",
+                        "on-secondary-fixed-variant": "#354e00",
+                        "on-surface-variant": "#bec8ca",
+                        "inverse-primary": "#026971",
+                        "surface-container-highest": "#2d3449",
+                        "surface-container-high": "#222a3d",
+                        "inverse-surface": "#dae2fd",
+                        "surface": "#0b1326",
+                        "secondary": "#a4d64c",
+                        "on-tertiary-container": "#9d4f00",
+                        "secondary-container": "#719e13",
+                        "primary-fixed": "#a1eff8",
+                        "on-secondary": "#233600",
+                        "on-background": "#dae2fd",
+                        "on-primary": "#00363b",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "on-primary-fixed-variant": "#004f55",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed-variant": "#713700",
+                        "on-primary-fixed": "#002023",
+                        "surface-tint": "#85d3dc",
+                        "error": "#ffb4ab",
+                        "secondary-fixed-dim": "#a4d64c",
+                        "secondary-fixed": "#bff365",
+                        "error-container": "#93000a",
+                        "tertiary-container": "#ffdcc5",
+                        "on-secondary-fixed": "#131f00",
+                        "background": "#0b1326",
+                        "primary-fixed-dim": "#85d3dc",
+                        "inverse-on-surface": "#283044",
+                        "on-tertiary": "#4f2500"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "gutter": "8px",
+                        "touch-target": "44px",
+                        "container-padding": "12px",
+                        "panel-gap": "4px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["JetBrains Mono"],
+                        "body-sm": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "body-md": ["Inter"],
+                        "mono-data": ["JetBrains Mono"],
+                        "display-data": ["JetBrains Mono"],
+                        "headline-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["20px", { "lineHeight": "28px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "body-sm": ["12px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "label-caps": ["10px", { "lineHeight": "12px", "letterSpacing": "0.1em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "mono-data": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "display-data": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(165, 243, 252, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .active-glow {
+            box-shadow: inset 0 0 4px rgba(165, 243, 252, 0.8), 0 0 8px rgba(165, 243, 252, 0.4);
+        }
+
+        .cyber-lime-glow {
+            text-shadow: 0 0 8px rgba(164, 214, 76, 0.6);
+        }
+        
+        .warning-glow {
+            box-shadow: 0 0 12px rgba(255, 180, 171, 0.4);
+            border-color: rgba(255, 180, 171, 0.6);
+        }
+
+        .scanning-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(165, 243, 252, 0.5);
+            box-shadow: 0 0 8px rgba(165, 243, 252, 0.8);
+            animation: scan 4s linear infinite;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 8px;
+            background: #a4d64c;
+            cursor: pointer;
+            border-radius: 0;
+            box-shadow: 0 0 4px #a4d64c;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 2px;
+            cursor: pointer;
+            background: rgba(165, 243, 252, 0.3);
+        }
+        
+        /* Map Vector Styles */
+        .vector-path {
+            stroke-dasharray: 4;
+            animation: dash 20s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -100; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-screen w-screen overflow-hidden font-body-md select-none">
+<!-- Base Simulation Layer (Map) -->
+<div class="absolute inset-0 z-0">
+<!-- Placeholder for map background, replacing with an image to simulate vector field -->
+<div class="w-full h-full bg-cover bg-center opacity-40" data-alt="A dark, high-contrast digital map interface showing an ocean region. The style is strictly 'Scientific Futurism' with deep navy blues, charcoal blacks, and stark ice blue and cyber lime vector lines. Topography is suggested by minimal contour lines. The image should look like a high-tech naval radar or digital twin simulation screen." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCWulkJmkYbKKJHxmaL07BKa2VLyFJBSCG9N6NJ0uup8n8q9cCmZzTKTeiLjjEy648htcbF_kKlWOtpl-jSXi3xO3rPB3aT5FdcCyULPhheKLjNRqay08D_pGNu9ZbZNnZt_kKzckFZH5XeIUY19ETismGY-3caq5KLctzlumiuAHfB1ygWXLwPBANaTLjG7Uu_WkbL5eoT4-GughFVZgkiV5GSaouyPTEY-fgvCmbSNpE6ZDGPggXdDQ')"></div>
+<!-- Overlay Vectors (Simulated) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="40" id="grid" patternunits="userSpaceOnUse" width="40">
+<path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(165, 243, 252, 0.05)" stroke-width="1"></path>
+</pattern>
+</defs>
+<rect fill="url(#grid)" height="100%" width="100%"></rect>
+<!-- Ship V-Alpha -->
+<g transform="translate(450, 300)">
+<polygon fill="#a4d64c" points="0,-15 10,10 -10,10"></polygon>
+<path class="vector-path" d="M 0,-15 L 60,-80" fill="none" stroke="#a4d64c" stroke-width="2"></path>
+<text class="font-mono-data text-mono-data cyber-lime-glow" fill="#a4d64c" x="15" y="0">V-ALPHA</text>
+</g>
+<!-- Iceberg Markers -->
+<g transform="translate(600, 200)">
+<rect fill="transparent" height="16" stroke="#ffb4ab" stroke-width="1.5" width="16" x="-8" y="-8"></rect>
+<circle cx="0" cy="0" fill="#ffb4ab" r="2"></circle>
+<path d="M 0,0 L -30,40" fill="none" stroke="#ffb4ab" stroke-dasharray="2" stroke-width="1"></path>
+<text class="font-mono-data text-[10px]" fill="#ffb4ab" x="12" y="4">IB-01</text>
+</g>
+<g transform="translate(520, 450)">
+<rect fill="transparent" height="12" stroke="rgba(165, 243, 252, 0.8)" stroke-width="1" width="12" x="-6" y="-6"></rect>
+<circle cx="0" cy="0" fill="rgba(165, 243, 252, 0.8)" r="1.5"></circle>
+<path d="M 0,0 L 20,20" fill="none" stroke="rgba(165, 243, 252, 0.5)" stroke-dasharray="2" stroke-width="1"></path>
+<text class="font-mono-data text-[10px]" fill="rgba(165, 243, 252, 0.8)" x="10" y="4">IB-02</text>
+</g>
+</svg>
+</div>
+<!-- Top Navigation Bar (Generated from JSON) -->
+<nav class="fixed top-0 left-0 w-full z-50 bg-surface/60 backdrop-blur-xl border-b border-outline-variant/20 flex justify-between items-center px-container-padding h-touch-target">
+<div class="font-headline-lg text-headline-lg tracking-tighter text-primary">ASTRALIS NAV-OS <span class="text-secondary opacity-70 ml-2 font-label-caps text-label-caps">POLARIS // DIGITAL TWIN</span></div>
+<div class="flex space-x-6">
+<!-- Active state logic mapped: "Simulate" equivalent for a digital twin -->
+<div class="text-primary border-b-2 border-primary h-touch-target flex items-center px-2 cursor-default">
+<span class="font-label-caps text-label-caps">SIMULATE</span>
+</div>
+<div class="text-on-surface-variant hover:bg-surface-variant/30 transition-colors h-touch-target flex items-center px-2 cursor-pointer">
+<span class="font-label-caps text-label-caps">LIVE</span>
+</div>
+<div class="text-on-surface-variant hover:bg-surface-variant/30 transition-colors h-touch-target flex items-center px-2 cursor-pointer">
+<span class="font-label-caps text-label-caps">SYSTEM</span>
+</div>
+</div>
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-primary cursor-pointer hover:bg-surface-variant/30 transition-colors p-1" style="font-variation-settings: 'FILL' 0;">settings_input_antenna</span>
+<span class="material-symbols-outlined text-primary cursor-pointer hover:bg-surface-variant/30 transition-colors p-1" style="font-variation-settings: 'FILL' 0;">security</span>
+<span class="material-symbols-outlined text-primary cursor-pointer hover:bg-surface-variant/30 transition-colors p-1" style="font-variation-settings: 'FILL' 0;">account_circle</span>
+</div>
+</nav>
+<!-- SideNavBar (Generated from JSON, adapted for left sidebar controls) -->
+<aside class="fixed left-0 top-touch-target h-[calc(100vh-touch-target-100px)] w-64 z-40 bg-surface-container-low/60 backdrop-blur-2xl border-r border-outline-variant/10 flex flex-col py-gutter">
+<div class="px-container-padding mb-6 mt-4">
+<h2 class="font-headline-sm text-headline-sm text-primary mb-1">ENVIRONMENTAL</h2>
+<p class="font-label-caps text-label-caps text-secondary opacity-80">CONTROLS // OVERRIDE</p>
+</div>
+<div class="flex-1 px-container-padding space-y-6 overflow-y-auto">
+<!-- Wind Speed -->
+<div class="glass-panel p-3 relative overflow-hidden">
+<div class="flex justify-between items-end mb-2">
+<span class="font-label-caps text-label-caps text-on-surface-variant">WIND SPEED</span>
+<span class="font-mono-data text-mono-data text-primary">45.2 <span class="text-[10px] text-on-surface-variant">km/h</span></span>
+</div>
+<input class="w-full mt-2" max="100" min="0" type="range" value="45"/>
+<div class="flex justify-between mt-1">
+<span class="font-mono-data text-[9px] text-outline">0</span>
+<span class="font-mono-data text-[9px] text-outline">100</span>
+</div>
+</div>
+<!-- Current Speed -->
+<div class="glass-panel p-3 relative overflow-hidden">
+<div class="flex justify-between items-end mb-2">
+<span class="font-label-caps text-label-caps text-on-surface-variant">CURRENT SPEED</span>
+<span class="font-mono-data text-mono-data text-primary">1.8 <span class="text-[10px] text-on-surface-variant">m/s</span></span>
+</div>
+<input class="w-full mt-2" max="50" min="0" type="range" value="18"/>
+<div class="flex justify-between mt-1">
+<span class="font-mono-data text-[9px] text-outline">0</span>
+<span class="font-mono-data text-[9px] text-outline">5.0</span>
+</div>
+</div>
+<!-- Tidal Period -->
+<div class="glass-panel p-3 relative overflow-hidden">
+<div class="flex justify-between items-end mb-2">
+<span class="font-label-caps text-label-caps text-on-surface-variant">TIDAL PERIOD</span>
+<span class="font-mono-data text-mono-data text-primary">12.4 <span class="text-[10px] text-on-surface-variant">hrs</span></span>
+</div>
+<input class="w-full mt-2" max="240" min="0" type="range" value="124"/>
+<div class="flex justify-between mt-1">
+<span class="font-mono-data text-[9px] text-outline">0</span>
+<span class="font-mono-data text-[9px] text-outline">24</span>
+</div>
+</div>
+<button class="w-full py-2 border border-primary-container/30 text-primary-container font-label-caps text-label-caps hover:bg-primary-container/10 transition-colors mt-4">
+                RE-CALIBRATE
+            </button>
+</div>
+</aside>
+<!-- Right Sidebar (AI Navigator) -->
+<aside class="fixed right-0 top-touch-target h-[calc(100vh-touch-target-100px)] w-72 z-40 bg-surface-container-low/60 backdrop-blur-2xl border-l border-outline-variant/10 flex flex-col py-gutter">
+<div class="px-container-padding mb-6 mt-4">
+<h2 class="font-headline-sm text-headline-sm text-primary mb-1 flex items-center">
+<span class="material-symbols-outlined mr-2 text-[18px]">memory</span>
+                AI NAVIGATOR
+            </h2>
+<p class="font-label-caps text-label-caps text-on-surface-variant">TELEMETRY DATA LINK</p>
+</div>
+<div class="flex-1 px-container-padding space-y-4">
+<!-- Risk Level -->
+<div class="glass-panel p-3 relative overflow-hidden border-secondary/30">
+<div class="scanning-line"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-caps text-label-caps text-on-surface-variant">SYS_RISK</span>
+<span class="font-label-caps text-label-caps text-secondary bg-secondary/10 px-2 py-0.5 rounded-sm">LOW</span>
+</div>
+<div class="mt-3 flex justify-between items-end">
+<span class="font-mono-data text-display-data text-primary leading-none">0.14</span>
+<span class="material-symbols-outlined text-secondary">check_circle</span>
+</div>
+</div>
+<!-- Route Confidence -->
+<div class="glass-panel p-3">
+<span class="font-label-caps text-label-caps text-on-surface-variant block mb-2">ROUTE CONFIDENCE</span>
+<div class="flex items-end justify-between mb-1">
+<span class="font-mono-data text-[24px] font-bold text-primary leading-none">92.4%</span>
+<span class="font-mono-data text-[10px] text-primary-container">+1.2%</span>
+</div>
+<div class="w-full bg-surface-variant h-1 mt-2">
+<div class="bg-primary-container h-full w-[92%] shadow-[0_0_8px_rgba(165,243,252,0.8)]"></div>
+</div>
+</div>
+<!-- Fuel Efficiency -->
+<div class="glass-panel p-3">
+<span class="font-label-caps text-label-caps text-on-surface-variant block mb-2">FUEL EFFICIENCY (PROJ)</span>
+<div class="grid grid-cols-2 gap-2 mt-2">
+<div>
+<span class="font-label-caps text-[9px] text-outline block">CURRENT</span>
+<span class="font-mono-data text-mono-data text-primary block">14.2 t/d</span>
+</div>
+<div>
+<span class="font-label-caps text-[9px] text-outline block">OPTIMAL</span>
+<span class="font-mono-data text-mono-data text-secondary block">12.8 t/d</span>
+</div>
+</div>
+</div>
+<!-- Vector Status List -->
+<div class="mt-4 pt-4 border-t border-outline-variant/30">
+<span class="font-label-caps text-label-caps text-on-surface-variant block mb-2">TRACKED ENTITIES</span>
+<div class="space-y-2">
+<div class="flex justify-between text-[11px] font-mono-data bg-surface-variant/30 px-2 py-1">
+<span class="text-secondary">V-ALPHA</span>
+<span class="text-primary">14.2kts</span>
+</div>
+<div class="flex justify-between text-[11px] font-mono-data bg-surface-variant/30 px-2 py-1">
+<span class="text-error">IB-01</span>
+<span class="text-primary">0.4kts</span>
+</div>
+<div class="flex justify-between text-[11px] font-mono-data bg-surface-variant/30 px-2 py-1">
+<span class="text-primary-container">IB-02</span>
+<span class="text-primary">0.2kts</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Bottom Control Bar -->
+<div class="fixed bottom-0 left-0 w-full z-50 h-24 bg-surface-dim/80 backdrop-blur-md border-t border-primary/20 shadow-[0_-4px_24px_rgba(133,211,220,0.1)] px-container-padding flex items-center justify-between pb-safe">
+<div class="flex items-center space-x-6 w-64 pl-4">
+<div class="font-mono-data text-mono-data">
+<div class="text-outline text-[10px]">SIM TIME</div>
+<div class="text-primary tracking-widest mt-1">2042.11.04_14:00Z</div>
+</div>
+</div>
+<!-- Main Controls -->
+<div class="flex items-center space-x-4 bg-surface-variant/40 rounded-full p-2 border border-outline-variant/30">
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">skip_previous</span>
+</button>
+<button class="w-14 h-14 rounded-full bg-surface flex items-center justify-center border border-primary-container text-primary-container active-glow transition-all">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">skip_next</span>
+</button>
+</div>
+<!-- Right Controls -->
+<div class="flex items-center space-x-4 w-64 justify-end pr-4">
+<!-- Time Warp -->
+<div class="flex border border-outline-variant/50 rounded-sm overflow-hidden">
+<button class="px-3 py-1 font-mono-data text-[11px] bg-primary-container/20 text-primary-container border-r border-outline-variant/50">1X</button>
+<button class="px-3 py-1 font-mono-data text-[11px] text-on-surface-variant hover:bg-surface-variant border-r border-outline-variant/50">10X</button>
+<button class="px-3 py-1 font-mono-data text-[11px] text-on-surface-variant hover:bg-surface-variant">100X</button>
+</div>
+<!-- Storm Mode Toggle -->
+<button class="glass-panel px-4 py-1.5 flex items-center group hover:bg-error/10 transition-colors">
+<span class="material-symbols-outlined text-error mr-2 text-[16px] group-hover:animate-pulse">thunderstorm</span>
+<span class="font-label-caps text-label-caps text-error">STORM</span>
+</button>
+</div>
+</div>
+</body></html>
