@@ -14,8 +14,8 @@ ASTRALIS is a browser-based, interactive digital twin and simulation console for
   - **Language**: Vanilla JavaScript (ES6 Modules)
   - **Styling**: Vanilla CSS with Tailwind CSS for layout
   - **Rendering**: Canvas HTML5 API (2D Context)
-  - **Backend**: None (pure client-side execution)
-  - **APIs/Datasets**: None (deterministic mathematical models and local procedural generators)
+  - **Backend**: Python FastAPI service
+  - **APIs/Datasets**: Dynamic ML endpoints (scikit-learn Random Forest model for iceberg prediction, sea-ice concentration forecasting, and Ollama-based natural language explainability copilot)
 
 ---
 
