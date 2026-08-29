@@ -2,7 +2,9 @@
   "services": {
     "frontend": {
       "root": ".",
-      "framework": "vite"
+      "framework": "vite",
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist"
     },
     "backend": {
       "root": "backend",
