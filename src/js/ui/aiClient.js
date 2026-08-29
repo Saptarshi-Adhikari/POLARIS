@@ -3,7 +3,9 @@ export class AIClient {
     this.engine = engine;
     this.status = 'OFFLINE';
     this.copilotStatus = 'OFFLINE';
-    this.baseUrl = 'http://127.0.0.1:8000';
+    this.baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://127.0.0.1:8000'
+      : '/api';
     this.lastPredictTime = 0;
     this.confidence = 0;
     this.forecastCount = 0;
