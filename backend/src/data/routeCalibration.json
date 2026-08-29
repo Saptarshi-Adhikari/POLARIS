@@ -1,0 +1,10 @@
+{
+  "icebergWeight": 5.38,
+  "seaIceWeight": 3.2,
+  "currentWeight": 0.25,
+  "crossCurrentWeight": 0.11,
+  "riskWeight": 5.93,
+  "turnPenalty": 0.26,
+  "heuristicWeight": 1.0,
+  "smoothingTolerance": 15
+}

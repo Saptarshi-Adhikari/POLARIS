@@ -1,9 +1,4 @@
-/**
- * POLARIS DIGITAL TWIN - AI Navigation & Dynamic Risk Engine
- *
- * COORDINATE SYSTEM: All coordinates are WORLD coordinates (0..WORLD_W x 0..WORLD_H).
- * The A* grid maps world space into cells. Waypoints are emitted in world coordinates.
- */
+import routeCalibration from '../../data/routeCalibration.json';
 
 export class AINavigator {
   constructor(width = 3600, height = 2400) {
@@ -19,6 +14,7 @@ export class AINavigator {
     this.rerouteMessage = '';
 
     this.optimalRoute = [];
+    this.lastValidRoute = [];
     this.hazardZones = [];
     this.riskGrid = [];
 
@@ -139,7 +135,7 @@ export class AINavigator {
     if (isNavigating && this.optimalRoute.length === 0) needsReroute = true;
 
     if (needsReroute && timeSinceLastRoute > 500) {
-      this.generateOptimalRouteAStar(ship, icebergs, vectorField, dest, mode, state);
+      this.generateOptimalRouteAStar(ship, icebergs, vectorField, dest, mode, state, ship);
       this.lastRouteTime = currentTime;
       this.lastMode = mode;
       this.lastDest = { x: dest.x, y: dest.y };
@@ -223,7 +219,7 @@ export class AINavigator {
             cost += 100000; // IMPASSABLE - strictly avoid safety radius
           } else if (dist < avoidanceR + 150) {
             const t = 1 - (dist - avoidanceR) / 150;
-            cost += t * t * 50 * icebergCostMult;
+            cost += t * t * (routeCalibration.icebergWeight || 10.0) * 10 * icebergCostMult;
           }
         }
 
@@ -237,13 +233,13 @@ export class AINavigator {
               iceConc = maxForecasted;
             }
           }
-          if (iceConc > 0.1) cost += iceConc * 10 * seaIceCostMult;
+          if (iceConc > 0.1) cost += iceConc * (routeCalibration.seaIceWeight || 5.0) * 2 * seaIceCostMult;
         }
 
         if (window.simEngine && window.simEngine.riskIntelligenceEngine) {
           const cellRiskObj = window.simEngine.riskIntelligenceEngine.getRiskAt(cx, cy);
           if (cellRiskObj) {
-            cost += cellRiskObj.risk * 8.0 * icebergCostMult;
+            cost += cellRiskObj.risk * (routeCalibration.riskWeight || 6.0) * icebergCostMult;
           }
         }
 
@@ -290,13 +286,47 @@ export class AINavigator {
 
         const neighborKey  = nodeKey(nr, nc);
         const moveDist     = (dir[0] !== 0 && dir[1] !== 0) ? 1.414 : 1.0;
-        const traverseCost = moveDist * costGrid[nr][nc];
+        
+        // Directional environmental penalty
+        const cx = nc * cellW + cellW / 2;
+        const cy = nr * cellH + cellH / 2;
+        let envPenalty = 0.0;
+        if (vectorField && vectorField.getVelocityAt) {
+          const oceanTime = state?.simulation?.simTimeHours || 0;
+          const oceanVel = vectorField.getVelocityAt(cx, cy, oceanTime, state);
+          const angle = Math.atan2(dir[0] * cellH, dir[1] * cellW);
+          const moveUnitX = Math.cos(angle);
+          const moveUnitY = Math.sin(angle);
+          const dot = oceanVel.u * moveUnitX + oceanVel.v * moveUnitY;
+          const crossProduct = Math.abs(oceanVel.u * moveUnitY - oceanVel.v * moveUnitX);
+
+          if (dot > 0) {
+            envPenalty -= dot * (routeCalibration.currentWeight || 0.25);
+          } else {
+            envPenalty -= dot * (routeCalibration.currentWeight || 0.25) * 1.5;
+          }
+          envPenalty += crossProduct * (routeCalibration.crossCurrentWeight || 0.3);
+        }
+
+        // Turning penalty to discourage zig-zagging
+        let turnPenalty = 0.0;
+        const prevNode = cameFrom.get(currKey);
+        if (prevNode) {
+          const prevDirR = current.r - prevNode.r;
+          const prevDirC = current.c - prevNode.c;
+          if (prevDirR !== dir[0] || prevDirC !== dir[1]) {
+            turnPenalty = (routeCalibration.turnPenalty || 0.15);
+          }
+        }
+
+        const rawTraverseCost = moveDist * costGrid[nr][nc] + envPenalty + turnPenalty;
+        const traverseCost = Math.max(0.2 * moveDist, rawTraverseCost);
         const tentativeG   = gScore.get(currKey) + traverseCost;
 
         if (!gScore.has(neighborKey) || tentativeG < gScore.get(neighborKey)) {
           cameFrom.set(neighborKey, current);
           gScore.set(neighborKey, tentativeG);
-          const h = Math.hypot(nc - endC, nr - endR);
+          const h = Math.hypot(nc - endC, nr - endR) * (routeCalibration.heuristicWeight || 1.0);
           const f = tentativeG + h;
           fScore.set(neighborKey, f);
           if (!openSet.some(n => n.r === nr && n.c === nc)) {
@@ -360,6 +390,28 @@ export class AINavigator {
               isClear = false;
               break;
             }
+
+            // Check sea ice and risk along segment
+            const numSamples = 5;
+            for (let s = 1; s < numSamples; s++) {
+              const sx = ptA.x + (s / numSamples) * dx;
+              const sy = ptA.y + (s / numSamples) * dy;
+              if (state?.environment?.seaIce?.enabled && vectorField?.getSeaIceConcentration) {
+                const iceConc = vectorField.getSeaIceConcentration(sx, sy);
+                if (iceConc > 0.85) {
+                  isClear = false;
+                  break;
+                }
+              }
+              if (window.simEngine && window.simEngine.riskIntelligenceEngine) {
+                const riskObj = window.simEngine.riskIntelligenceEngine.getRiskAt(sx, sy);
+                if (riskObj && riskObj.risk > 0.8) {
+                  isClear = false;
+                  break;
+                }
+              }
+            }
+            if (!isClear) break;
           }
           if (isClear) {
             furthestVisible = j;
@@ -370,14 +422,105 @@ export class AINavigator {
         currentIdx = furthestVisible;
       }
     }
-    waypoints = smoothed;
-
-    this.optimalRoute = waypoints;
-
-    const target = realShip || ship;
-    if (target && target.setRouteWaypoints) {
-      target.setRouteWaypoints(this.optimalRoute);
+    
+    // Validate final waypoints path against loops and collisions
+    const valResult = this.validateRoute(smoothed, icebergs);
+    let finalPath = waypoints;
+    if (valResult.valid) {
+      finalPath = smoothed;
+    } else {
+      console.warn("A* route smoothing rejected:", valResult.reason);
+      const rawValResult = this.validateRoute(waypoints, icebergs);
+      if (rawValResult.valid) {
+        finalPath = waypoints;
+      } else if (this.lastValidRoute && this.lastValidRoute.length >= 2) {
+        console.warn("Raw grid path is also invalid. Falling back to lastValidRoute");
+        finalPath = this.lastValidRoute;
+      } else {
+        console.warn("No valid route exists. Falling back to direct line");
+        finalPath = [
+          { x: ship.x, y: ship.y },
+          { x: dest.x, y: dest.y }
+        ];
+      }
     }
+
+    this.optimalRoute = finalPath;
+    // Only update lastValidRoute when this is a real navigation route (realShip provided),
+    // not a strategy-comparison run from computeRouteStrategy.
+    if (realShip) {
+      this.lastValidRoute = finalPath;
+    }
+
+    // Only push waypoints to the actual vessel when an explicit realShip is provided.
+    // When realShip is null (e.g. called from computeRouteStrategy for comparison purposes),
+    // we must NOT overwrite ship.routeWaypoints — the first-arg `ship` is just a position object
+    // but happens to be the real vessel, and calling setRouteWaypoints on it would reset
+    // waypointIndex to 0 every second, destroying active navigation and erasing the route display.
+    if (realShip && realShip.setRouteWaypoints) {
+      realShip.setRouteWaypoints(this.optimalRoute);
+    }
+  }
+
+  validateRoute(waypoints, icebergs) {
+    if (!waypoints || waypoints.length < 2) return { valid: false, reason: "Insufficient points" };
+
+    // Validate coordinates are finite and inside world bounds
+    for (let pt of waypoints) {
+      if (!Number.isFinite(pt.x) || !Number.isFinite(pt.y)) {
+        return { valid: false, reason: "Non-finite waypoint coordinate detected" };
+      }
+      if (pt.x < 0 || pt.x > this.width || pt.y < 0 || pt.y > this.height) {
+        return { valid: false, reason: "Waypoint outside world bounds" };
+      }
+    }
+
+    // 1. Check segment collision intersection
+    for (let i = 0; i < waypoints.length - 1; i++) {
+      const ptA = waypoints[i];
+      const ptB = waypoints[i+1];
+      const dx = ptB.x - ptA.x;
+      const dy = ptB.y - ptA.y;
+      const segLen2 = dx * dx + dy * dy;
+
+      for (let ice of icebergs) {
+        let t = 0;
+        if (segLen2 > 0) t = Math.max(0, Math.min(1, ((ice.x - ptA.x) * dx + (ice.y - ptA.y) * dy) / segLen2));
+        const cx = ptA.x + t * dx;
+        const cy = ptA.y + t * dy;
+        const collisionR = ice.collisionRadius + 15;
+        if (Math.hypot(ice.x - cx, ice.y - cy) < collisionR) {
+          return { valid: false, reason: `Segment crosses critical iceberg collision zone` };
+        }
+      }
+    }
+
+    // 2. Check loops/self-intersections
+    for (let i = 0; i < waypoints.length - 1; i++) {
+      for (let j = i + 2; j < waypoints.length - 1; j++) {
+        const p0 = waypoints[i], p1 = waypoints[i+1];
+        const p2 = waypoints[j], p3 = waypoints[j+1];
+        const s1_x = p1.x - p0.x, s1_y = p1.y - p0.y;
+        const s2_x = p3.x - p2.x, s2_y = p3.y - p2.y;
+        const s = (-s1_y * (p0.x - p2.x) + s1_x * (p0.y - p2.y)) / (-s2_x * s1_y + s1_x * s2_y);
+        const t = ( s2_x * (p0.y - p2.y) - s2_y * (p0.x - p2.x)) / (-s2_x * s1_y + s1_x * s2_y);
+        if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
+          return { valid: false, reason: "Route contains self-intersecting loops" };
+        }
+      }
+    }
+
+    // 3. Length comparison
+    let totalLen = 0;
+    for (let i = 0; i < waypoints.length - 1; i++) {
+      totalLen += Math.hypot(waypoints[i+1].x - waypoints[i].x, waypoints[i+1].y - waypoints[i].y);
+    }
+    const straightLine = Math.hypot(waypoints[waypoints.length-1].x - waypoints[0].x, waypoints[waypoints.length-1].y - waypoints[0].y);
+    if (totalLen > straightLine * 2.8) {
+      return { valid: false, reason: "Route length is excessively inefficient" };
+    }
+
+    return { valid: true };
   }
 
   computeRouteStrategy(ship, dest, icebergs, vectorField, mode, state) {

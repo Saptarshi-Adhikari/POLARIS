@@ -24,6 +24,7 @@ import { ExplainabilityEngine } from './ai/explainabilityEngine.js';
 import { CounterfactualSimulator } from './ai/counterfactualSimulator.js';
 import { ConfidenceIntelligenceEngine } from './ai/confidenceIntelligenceEngine.js';
 import { DecisionIntelligenceEngine } from './ai/decisionIntelligenceEngine.js';
+import { MetricsRegistry } from './ai/metricsRegistry.js';
 
 // Canonical World Dimensions - ALL simulation entities MUST use these
 const WORLD_W = 3600;
@@ -126,6 +127,7 @@ class SimulationEngine {
     this.counterfactualSimulator = new CounterfactualSimulator(this);
     this.confidenceIntelligenceEngine = new ConfidenceIntelligenceEngine(this);
     this.decisionIntelligenceEngine = new DecisionIntelligenceEngine(this);
+    this.metricsRegistry = new MetricsRegistry(this);
 
     this.scenarioManager.saveDefaultStateCheckpoints();
 
@@ -438,28 +440,52 @@ class SimulationEngine {
       this.aiClient.updatePredictions();
     }
 
-    if (this.autonomousController) {
-      this.autonomousController.evaluate(timestamp);
+    try {
+      if (this.autonomousController) {
+        this.autonomousController.evaluate(timestamp);
+      }
+    } catch (e) {
+      console.warn("Autonomous Controller update failed", e);
     }
 
-    if (this.scenarioManager) {
-      this.scenarioManager.updateScenarioPhases();
+    try {
+      if (this.scenarioManager) {
+        this.scenarioManager.updateScenarioPhases();
+      }
+    } catch (e) {
+      console.warn("Scenario Manager update failed", e);
     }
 
-    if (this.validationEngine) {
-      this.validationEngine.evaluate(this.state.simulation.simTimeHours);
+    try {
+      if (this.validationEngine) {
+        this.validationEngine.evaluate(this.state.simulation.simTimeHours);
+      }
+    } catch (e) {
+      console.warn("Validation Engine update failed", e);
     }
 
-    if (this.confidenceIntelligenceEngine) {
-      this.confidenceIntelligenceEngine.update(timestamp);
+    try {
+      if (this.confidenceIntelligenceEngine) {
+        this.confidenceIntelligenceEngine.update(timestamp);
+      }
+    } catch (e) {
+      console.warn("Confidence Engine update failed", e);
     }
 
-    if (this.decisionIntelligenceEngine) {
-      this.decisionIntelligenceEngine.update(timestamp);
+    try {
+      if (this.decisionIntelligenceEngine) {
+        this.decisionIntelligenceEngine.update(timestamp);
+      }
+    } catch (e) {
+      console.warn("Decision Intelligence update failed", e);
     }
 
-    if (this.riskIntelligenceEngine) {
-      this.riskIntelligenceEngine.update(timestamp);
+    try {
+      if (this.riskIntelligenceEngine) {
+        this.riskIntelligenceEngine.update(timestamp);
+      }
+    } catch (e) {
+      console.warn("Risk Intelligence update failed", e);
     }
 
     this.renderer.render(
@@ -517,5 +543,9 @@ class SimulationEngine {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  window.simEngine = new SimulationEngine();
+  try {
+    window.simEngine = new SimulationEngine();
+  } catch (err) {
+    console.error("CRITICAL INITIALIZATION ERROR IN SIMULATION ENGINE:", err);
+  }
 });

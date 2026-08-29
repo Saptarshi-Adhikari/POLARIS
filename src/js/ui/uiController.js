@@ -141,6 +141,13 @@ export class UIController {
                 state.navigation.routeInvalid = true;
             });
         }
+        const sidebarNavMode = document.getElementById('sidebar-nav-mode');
+        if (sidebarNavMode) {
+            sidebarNavMode.addEventListener('change', (e) => {
+                state.navigation.mode = e.target.value;
+                state.navigation.routeInvalid = true;
+            });
+        }
 
         // Presets
         document.querySelectorAll('.preset-btn').forEach(btn => {
@@ -355,6 +362,49 @@ export class UIController {
     this.bindConfidenceControls();
     this.bindDecisionCenterControls();
 
+    // Consolidated Hackathon Top Navigation bindings
+    const toolbarBtnDemo = document.getElementById('toolbar-btn-demo');
+    if (toolbarBtnDemo) {
+      toolbarBtnDemo.addEventListener('click', () => {
+        const sm = this.engine.scenarioManager;
+        if (sm) {
+          sm.activateScenario('INTELLIGENT_Vessel_RECOVERY');
+          this.updateScenarioUI && this.updateScenarioUI();
+          this.updateNavButtons();
+        }
+      });
+    }
+
+    const toolbarBtnPlan = document.getElementById('toolbar-btn-plan');
+    if (toolbarBtnPlan) {
+      toolbarBtnPlan.addEventListener('click', () => {
+        this.engine.calculateRoute();
+      });
+    }
+
+    const toolbarBtnPlayPause = document.getElementById('toolbar-btn-play-pause');
+    if (toolbarBtnPlayPause) {
+      toolbarBtnPlayPause.addEventListener('click', () => {
+        const simState = this.engine.state && this.engine.state.simulation;
+        if (!simState) return;
+        simState.isPaused = !simState.isPaused;
+        // Mirror the bottom play-pause button icon
+        const bottomIcon = document.getElementById('play-pause-icon');
+        if (bottomIcon) {
+          bottomIcon.textContent = simState.isPaused ? 'play_arrow' : 'pause';
+        }
+        toolbarBtnPlayPause.innerText = simState.isPaused ? '▶ START' : '⏸ PAUSE';
+      });
+    }
+
+    const toolbarBtnAiInsights = document.getElementById('toolbar-btn-ai-insights');
+    const insightsPanel = document.getElementById('ai-insights-panel');
+    if (toolbarBtnAiInsights && insightsPanel) {
+      toolbarBtnAiInsights.addEventListener('click', () => {
+        insightsPanel.classList.toggle('hidden');
+      });
+    }
+
     this.updateNavStatus();
     this.updateNavButtons();
   }
@@ -481,6 +531,7 @@ export class UIController {
     setVal('ctrl-vessel-max-speed', state.vessel.maxSpeed);
     setVal('ctrl-vessel-autopilot-throttle', state.vessel.autopilotThrottle);
     setVal('ctrl-nav-mode', state.navigation.mode);
+    setVal('sidebar-nav-mode', state.navigation.mode);
   }
 
   showRerouteAlert() {
@@ -497,6 +548,7 @@ export class UIController {
   updateTelemetry(ship, aiNavigator, simTimeHours) {
     ship = ship || this.engine.ship;
     aiNavigator = aiNavigator || this.engine.aiNavigator;
+    const aiNav = aiNavigator;
     const state = this.engine.state;
     simTimeHours = simTimeHours !== undefined ? simTimeHours : state.simulation.simTimeHours;
     const client = this.engine.aiClient;
@@ -895,6 +947,139 @@ export class UIController {
 
     this.updateNavStatus();
     this.updateNavButtons();
+    this.updateMetricsAndTooltips(ship);
+  }
+
+  updateMetricsAndTooltips(ship) {
+    const mr = this.engine.metricsRegistry;
+    if (!mr) return;
+
+    const updateEl = (id, key) => {
+      const el = document.getElementById(id);
+      if (el) {
+        const metric = mr.getMetric(key);
+        el.innerText = `${metric.value}${metric.unit}`;
+        el.title = mr.getTooltip(key);
+      }
+    };
+
+    // AI Tab
+    const riskVal = mr.getMetric('risk').value;
+    const lblRisk = document.getElementById('ai-tab-lbl-risk');
+    if (lblRisk) {
+      lblRisk.innerText = `${riskVal}% ${riskVal > 60 ? 'HIGH' : (riskVal > 30 ? 'MODERATE' : 'LOW')}`;
+      lblRisk.title = mr.getTooltip('risk');
+    }
+    const barRisk = document.getElementById('ai-tab-bar-risk');
+    if (barRisk) barRisk.style.width = `${riskVal}%`;
+
+    const confVal = mr.getMetric('confidence').value;
+    const lblConf = document.getElementById('ai-tab-lbl-conf');
+    if (lblConf) {
+      lblConf.innerText = `${confVal}%`;
+      lblConf.title = mr.getTooltip('confidence');
+    }
+    const barConf = document.getElementById('ai-tab-bar-conf');
+    if (barConf) barConf.style.width = `${confVal}%`;
+
+    // Advanced Metrics inside AI Tab
+    const valErrEl = document.getElementById('ai-tab-val-err');
+    if (valErrEl) {
+      const m = mr.getMetric('validationError');
+      valErrEl.innerText = `${m.value} ${m.unit}`;
+      valErrEl.title = mr.getTooltip('validationError');
+    }
+    
+    const envStableEl = document.getElementById('ai-tab-env-stable');
+    if (envStableEl) {
+      const cie = this.engine.confidenceIntelligenceEngine;
+      const val = cie ? Math.round(cie.envStability * 100) : 100;
+      envStableEl.innerText = `${val}%`;
+      envStableEl.title = "SOURCE: ConfidenceIntelligenceEngine\nFORMULA: wind/current variance rate-of-change";
+    }
+
+    const exposureEl = document.getElementById('ai-tab-exposure');
+    if (exposureEl) {
+      const ri = this.engine.riskIntelligenceEngine;
+      const val = ri && ri.routeExposure ? Math.round(ri.routeExposure.averageRisk * 100) : 0;
+      exposureEl.innerText = `${val}%`;
+      exposureEl.title = "SOURCE: RiskIntelligenceEngine\nFORMULA: mean(routeRiskCoordinates)";
+    }
+
+    const ctrlStateEl = document.getElementById('ai-tab-ctrl-state');
+    if (ctrlStateEl) {
+      const autoCtrl = this.engine.autonomousController;
+      ctrlStateEl.innerText = autoCtrl && autoCtrl.isActive ? autoCtrl.currentCommand.mode : "STANDBY";
+      ctrlStateEl.title = "SOURCE: AutonomousController\nFORMULA: active tracking state";
+    }
+
+    // Pipeline list mapping
+    const pipeList = document.getElementById('sidebar-pipeline-list');
+    const dcPipeList = document.getElementById('dc-pipeline-list');
+    const dce = this.engine.decisionIntelligenceEngine;
+    if (dce) {
+      const pipeline = dce.getPipeline();
+      const htmlContent = pipeline.map(t => {
+        let colorClass = 'text-secondary';
+        if (t.status === 'WARNING' || t.status === 'FALLBACK') colorClass = 'text-amber-400';
+        else if (t.status === 'CRITICAL' || t.status === 'OFFLINE') colorClass = 'text-error';
+        return `
+          <div class="flex items-center space-x-2 text-[8px] leading-tight mb-1">
+            <div class="w-2.5 h-2.5 rounded-full border border-outline flex items-center justify-center text-[6px] font-bold ${colorClass}">●</div>
+            <div class="flex-1">
+              <div class="font-bold text-[8px] text-on-surface">${t.stage} — <span class="${colorClass}">${t.status}</span></div>
+              <div class="text-[7px] text-on-surface-variant opacity-85">${t.desc} <span class="font-bold text-primary">(${t.metric})</span></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      if (pipeList) pipeList.innerHTML = htmlContent;
+      if (dcPipeList) dcPipeList.innerHTML = htmlContent;
+    }
+
+    // Copilot general explanation
+    const copText = document.getElementById('sidebar-copilot-text');
+    const insCopText = document.getElementById('insights-copilot-text');
+    const ee = this.engine.explainabilityEngine;
+    if (ee && ee.currentExplanation) {
+      if (copText) copText.innerText = ee.currentExplanation;
+      if (insCopText) insCopText.innerText = ee.currentExplanation;
+    }
+
+    // TELEMETRY Tab
+    updateEl('telemetry-fuel', 'fuel');
+    updateEl('telemetry-speed', 'speed');
+    updateEl('telemetry-desired-speed', 'speed');
+    updateEl('telemetry-throttle', 'throttle');
+    updateEl('telemetry-xte', 'xte');
+    updateEl('telemetry-drift-corr', 'drift');
+    updateEl('telemetry-crab-angle', 'crab');
+    updateEl('telemetry-env-resist', 'resistance');
+
+    // Update Compact Top Status Bar
+    const csIndicator = document.getElementById('cs-ai-status-indicator');
+    const csVal = document.getElementById('cs-ai-status-val');
+    const autoCtrl = this.engine.autonomousController;
+    if (csVal) {
+      const active = autoCtrl && autoCtrl.isActive;
+      csVal.innerText = active ? "ACTIVE" : "STANDBY";
+      if (csIndicator) {
+        csIndicator.className = active ? "w-1.5 h-1.5 rounded-full bg-secondary" : "w-1.5 h-1.5 rounded-full bg-error";
+      }
+    }
+    const csDataMode = document.getElementById('cs-data-mode-val');
+    if (csDataMode) {
+      csDataMode.innerText = this.engine.state ? this.engine.state.environment.mode : 'SIMULATION';
+    }
+    const csConf = document.getElementById('cs-confidence-val');
+    if (csConf) {
+      csConf.innerText = `${confVal}%`;
+    }
+    const csAlerts = document.getElementById('cs-alerts-val');
+    if (csAlerts) {
+      const alertsCount = ship.hazards ? ship.hazards.length : 0;
+      csAlerts.innerText = alertsCount;
+    }
   }
 
   initCollapsibleDraggablePanels() {
@@ -1007,19 +1192,8 @@ export class UIController {
     };
 
     setupDraggablePanel('nav-panel', 'nav-panel-header', 'nav-panel-body', 'nav-panel-toggle');
-    setupDraggablePanel('ship-status-panel', 'ship-status-panel-header', 'ship-status-panel-body', 'ship-status-panel-toggle');
-    setupDraggablePanel('hazard-panel', 'hazard-panel-header', 'hazard-panel-body', 'hazard-panel-toggle');
-    setupDraggablePanel('ai-advisor-panel', 'ai-advisor-panel-header', 'ai-advisor-panel-body', 'ai-advisor-panel-toggle');
     setupDraggablePanel('context-panel', 'context-panel-header', 'context-panel-body', 'context-panel-toggle');
-    setupDraggablePanel('demo-scenarios-panel', 'demo-scenarios-panel-header', 'demo-scenarios-panel-body', 'demo-scenarios-panel-toggle');
-    setupDraggablePanel('ai-validation-panel', 'ai-validation-panel-header', 'ai-validation-panel-body', 'ai-validation-panel-toggle');
-    setupDraggablePanel('ai-risk-panel', 'ai-risk-panel-header', 'ai-risk-panel-body', 'ai-risk-panel-toggle');
-    setupDraggablePanel('ai-mission-panel', 'ai-mission-panel-header', 'ai-mission-panel-body', 'ai-mission-panel-toggle');
-    setupDraggablePanel('ai-data-mode-panel', 'ai-data-mode-panel-header', 'ai-data-mode-panel-body', 'ai-data-mode-panel-toggle');
-    setupDraggablePanel('ai-explain-panel', 'ai-explain-panel-header', 'ai-explain-panel-body', 'ai-explain-panel-toggle');
     setupDraggablePanel('ai-whatif-panel', 'ai-whatif-panel-header', 'ai-whatif-panel-body', 'ai-whatif-panel-toggle');
-    setupDraggablePanel('ai-confidence-panel', 'ai-confidence-panel-header', 'ai-confidence-panel-body', 'ai-confidence-panel-toggle');
-    setupDraggablePanel('ai-decision-center-panel', 'ai-decision-center-panel-header', 'ai-decision-center-panel-body', 'ai-decision-center-panel-toggle');
   }
 
   bindDemoButtons() {
@@ -1039,6 +1213,7 @@ export class UIController {
     bindBtn('demo-btn-iceberg', 'ICEBERG_CROSSING');
     bindBtn('demo-btn-seaice', 'INCREASING_SEA_ICE');
     bindBtn('demo-btn-weather', 'EXTREME_WEATHER');
+    bindBtn('demo-btn-recovery', 'INTELLIGENT_Vessel_RECOVERY');
 
     const autoBtn = document.getElementById('demo-btn-auto');
     if (autoBtn) {
@@ -1386,10 +1561,11 @@ export class UIController {
 
   bindConfidenceControls() {
     const btnConfToggle = document.getElementById('toolbar-btn-conf');
-    const panel = document.getElementById('ai-confidence-panel');
+    const panel = document.getElementById('unified-sidebar-panel');
     if (btnConfToggle && panel) {
       btnConfToggle.addEventListener('click', () => {
-        panel.classList.toggle('hidden');
+        panel.classList.remove('hidden');
+        window.switchSidebarTab('ai');
       });
     }
   }
@@ -1471,10 +1647,11 @@ export class UIController {
 
   bindDecisionCenterControls() {
     const btnDcToggle = document.getElementById('toolbar-btn-dc');
-    const panel = document.getElementById('ai-decision-center-panel');
+    const panel = document.getElementById('unified-sidebar-panel');
     if (btnDcToggle && panel) {
       btnDcToggle.addEventListener('click', () => {
-        panel.classList.toggle('hidden');
+        panel.classList.remove('hidden');
+        window.switchSidebarTab('ai');
       });
     }
   }

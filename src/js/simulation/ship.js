@@ -19,6 +19,8 @@ export class Ship {
     this.name = 'V-ALPHA';
     this.x = x;
     this.y = y;
+    this.lastValidX = x;
+    this.lastValidY = y;
     this.lat = -64.35;
     this.lon = 72.5;
 
@@ -259,11 +261,16 @@ export class Ship {
       }
     }
 
-    this.x = proposedX;
-    this.y = proposedY;
-
-    if (!Number.isFinite(this.x)) this.x = 400;
-    if (!Number.isFinite(this.y)) this.y = 1800;
+    if (Number.isFinite(proposedX) && Number.isFinite(proposedY)) {
+      this.x = proposedX;
+      this.y = proposedY;
+      this.lastValidX = proposedX;
+      this.lastValidY = proposedY;
+    } else {
+      console.warn("Invalid proposed position, falling back to last valid coordinates:", proposedX, proposedY);
+      this.x = this.lastValidX;
+      this.y = this.lastValidY;
+    }
 
     // Update display speed (convert SU/sec to approximate knots: 1.8 SU/sec ≈ 1 knot)
     this.speedKnots = Math.hypot(this.vx, this.vy) / 1.8;
@@ -402,7 +409,8 @@ export class Ship {
     const vShip = Math.max(2.0, Math.hypot(this.vx, this.vy));
     let crabAngleDeg = 0.0;
     if (driftMag > 1.5 && Math.abs(driftLateral) < vShip) {
-      const crabRad = Math.asin(-driftLateral / vShip);
+      const ratio = Math.max(-1.0, Math.min(1.0, -driftLateral / vShip));
+      const crabRad = Math.asin(ratio);
       crabAngleDeg = (crabRad * 180) / Math.PI;
       crabAngleDeg = Math.max(-30, Math.min(30, crabAngleDeg));
     }

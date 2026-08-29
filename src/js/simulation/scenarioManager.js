@@ -124,6 +124,29 @@ export class ScenarioManager {
       // Clear icebergs to isolate sea-ice effect
       this.engine.icebergs = [];
 
+    } else if (name === "INTELLIGENT_Vessel_RECOVERY") {
+      // Spectacular Combo Scenario
+      state.environment.wind.enabled = true;
+      state.environment.wind.speed = 35;
+      state.environment.wind.direction = 210;
+      state.environment.ocean.currentSpeed = 7.5;
+      state.environment.ocean.currentDirection = 160;
+      state.environment.seaIce.enabled = true;
+      state.environment.seaIce.averageConcentration = 0.4;
+
+      this.engine.icebergs = [
+        new Iceberg({
+          id: 9999,
+          name: "M-CROSSER",
+          x: 1800,
+          y: 900,
+          mass: 8.5,
+          size: 115
+        })
+      ];
+      this.engine.icebergs[0].vx = -30;
+      this.engine.icebergs[0].vy = 40;
+
     } else if (name === "EXTREME_WEATHER") {
       // Scenario 4: Extreme Weather
       state.environment.wind.enabled = true;
@@ -178,7 +201,7 @@ export class ScenarioManager {
     this.isAutoDemo = forceState !== undefined ? forceState : !this.isAutoDemo;
     if (this.isAutoDemo) {
       this.autoDemoIndex = 0;
-      const scenarios = ["NORMAL_TRANSIT", "ICEBERG_CROSSING", "INCREASING_SEA_ICE", "EXTREME_WEATHER"];
+      const scenarios = ["INTELLIGENT_Vessel_RECOVERY", "NORMAL_TRANSIT", "ICEBERG_CROSSING", "INCREASING_SEA_ICE", "EXTREME_WEATHER"];
       this.activateScenario(scenarios[this.autoDemoIndex]);
       
       this.autoDemoInterval = setInterval(() => {

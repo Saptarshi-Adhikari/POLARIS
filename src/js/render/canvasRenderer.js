@@ -107,25 +107,25 @@ export class CanvasRenderer {
       ctx.globalAlpha = 1 - t;
       this.camera.applyTransform(ctx);
 
-      this.drawBackgroundGrid(ctx, vectorField);
-      this.drawWaveRipples(ctx, vectorField);
-      this.drawVectorFieldCurrents(ctx, vectorField, simTimeHours, dt);
+      try { this.drawBackgroundGrid(ctx, vectorField); } catch(e) { console.warn("drawBackgroundGrid failed", e); }
+      try { this.drawWaveRipples(ctx, vectorField); } catch(e) { console.warn("drawWaveRipples failed", e); }
+      try { this.drawVectorFieldCurrents(ctx, vectorField, simTimeHours, dt); } catch(e) { console.warn("drawVectorFieldCurrents failed", e); }
 
       if (vectorField.lastState && vectorField.lastState.environment.seaIce.enabled) {
-        this.drawSeaIce(ctx, vectorField);
+        try { this.drawSeaIce(ctx, vectorField); } catch(e) { console.warn("drawSeaIce failed", e); }
       }
 
-      this.drawProbabilisticRiskMap(ctx);
-      this.drawRiskHeatmap(ctx, aiNavigator);
-      this.drawNavMarkers(ctx);
-      this.drawSafeRoute(ctx, aiNavigator, ship);
-      this.drawIcebergTrajectories(ctx, icebergs);
-      this.drawIcebergs(ctx, icebergs);
-      this.drawShip(ctx, ship);
-      this.drawValidationOverlays(ctx);
+      try { this.drawProbabilisticRiskMap(ctx); } catch(e) { console.warn("drawProbabilisticRiskMap failed", e); }
+      try { this.drawRiskHeatmap(ctx, aiNavigator); } catch(e) { console.warn("drawRiskHeatmap failed", e); }
+      try { this.drawNavMarkers(ctx); } catch(e) { console.warn("drawNavMarkers failed", e); }
+      try { this.drawSafeRoute(ctx, aiNavigator, ship); } catch(e) { console.warn("drawSafeRoute failed", e); }
+      try { this.drawIcebergTrajectories(ctx, icebergs); } catch(e) { console.warn("drawIcebergTrajectories failed", e); }
+      try { this.drawIcebergs(ctx, icebergs); } catch(e) { console.warn("drawIcebergs failed", e); }
+      try { this.drawShip(ctx, ship); } catch(e) { console.warn("drawShip failed", e); }
+      try { this.drawValidationOverlays(ctx); } catch(e) { console.warn("drawValidationOverlays failed", e); }
 
       if (vectorField.stormMode) {
-        this.drawStormOverlay(ctx);
+        try { this.drawStormOverlay(ctx); } catch(e) { console.warn("drawStormOverlay failed", e); }
       }
 
       ctx.restore();
