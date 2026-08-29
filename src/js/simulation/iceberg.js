@@ -34,6 +34,8 @@ export class Iceberg {
     this.heading = Math.floor(Math.random() * 360);
     this.angularVelocity = (Math.random() - 0.5) * 0.2; // degrees per sec
 
+    this.collisionRadius = Math.max(10, this.size / 35);
+
     // Interactive state
     this.isDragging = false;
     this.isSelected = false;
@@ -43,8 +45,9 @@ export class Iceberg {
     this.trajectoryForecast = [];
   }
 
-  update(dt, vectorField, simTimeHours) {
+  update(dt, vectorField, simTimeHours, state) {
     if (this.isDragging) return;
+    if (!state || !state.icebergs.enabled) return;
 
     if (this.manualTarget) {
       // Manual trajectory override towards target (e.g. ship position)
@@ -66,20 +69,26 @@ export class Iceberg {
     }
 
     // 1. Get local ocean current velocity
-    const oceanVel = vectorField.getVelocityAt(this.x, this.y, simTimeHours);
+    const oceanVel = vectorField.getVelocityAt(this.x, this.y, simTimeHours, state);
 
     // 2. Get local wind velocity
-    const radWind = (vectorField.windDirection * Math.PI) / 180;
-    const windMS = (vectorField.windSpeed * 1000) / 3600;
-    const windVx = Math.cos(radWind) * windMS;
-    const windVy = Math.sin(radWind) * windMS;
+    let windVx = 0;
+    let windVy = 0;
+    if (state.environment.wind.enabled) {
+        const radWind = (state.environment.wind.direction * Math.PI) / 180;
+        const windMS = (state.environment.wind.speed * 1000) / 3600;
+        windVx = Math.cos(radWind) * windMS;
+        windVy = Math.sin(radWind) * windMS;
+    }
 
     // 3. Wave drift effect
-    const waveDrift = vectorField.waveHeight * 0.1;
+    const waveDrift = 1.2 * 0.1; // fallback if waveHeight moved
 
     // 4. Combine physics forces: V_iceberg = alpha * V_current + beta * V_wind + gamma * V_wave
-    const targetVx = oceanVel.u * this.currentResponse * 12 + windVx * this.windResponse * 2 + waveDrift * this.waveResponse;
-    const targetVy = oceanVel.v * this.currentResponse * 12 + windVy * this.windResponse * 2 + waveDrift * this.waveResponse;
+    const driftMultiplier = state.icebergs.driftStrength || 1.0;
+    
+    const targetVx = (oceanVel.u * this.currentResponse * 12 + windVx * this.windResponse * 2 + waveDrift * this.waveResponse) * driftMultiplier;
+    const targetVy = (oceanVel.v * this.currentResponse * 12 + windVy * this.windResponse * 2 + waveDrift * this.waveResponse) * driftMultiplier;
 
     // Smooth inertia acceleration
     this.vx += (targetVx - this.vx) * Math.min(1, dt * 2);
@@ -92,12 +101,12 @@ export class Iceberg {
     // Heading rotation
     this.heading = (this.heading + this.angularVelocity * dt * 10 + 360) % 360;
 
-    // Bound to world map edges (world = 3600 × 2400)
+    // Wrap around continuous 2D world edges (world = 3600 × 2400)
     const WW = 3600, WH = 2400;
-    if (this.x < 20)      this.x = 20;
-    if (this.x > WW - 20) this.x = WW - 20;
-    if (this.y < 20)      this.y = 20;
-    if (this.y > WH - 20) this.y = WH - 20;
+    if (this.x < 0)  this.x += WW;
+    if (this.x > WW) this.x -= WW;
+    if (this.y < 0)  this.y += WH;
+    if (this.y > WH) this.y -= WH;
 
     this.updateLatLon();
     this.generateTrajectoryForecast(vectorField, simTimeHours);
@@ -120,11 +129,19 @@ export class Iceberg {
       const timeStep = h / 4;
       for (let s = 0; s < 4; s++) {
         const futureTime = currentSimHours + (h * s) / 4;
-        const oVel = vectorField.getVelocityAt(simX, simY, futureTime);
-        const radW = (vectorField.windDirection * Math.PI) / 180;
-        const wMS = (vectorField.windSpeed * 1000) / 3600;
-        const fVx = oVel.u * this.currentResponse * 12 + Math.cos(radW) * wMS * this.windResponse * 2;
-        const fVy = oVel.v * this.currentResponse * 12 + Math.sin(radW) * wMS * this.windResponse * 2;
+        const oVel = vectorField.getVelocityAt(simX, simY, futureTime, vectorField.lastState); // state is cached in vectorField
+        
+        let windVx = 0;
+        let windVy = 0;
+        if (vectorField.lastState && vectorField.lastState.environment.wind.enabled) {
+            const radW = (vectorField.lastState.environment.wind.direction * Math.PI) / 180;
+            const wMS = (vectorField.lastState.environment.wind.speed * 1000) / 3600;
+            windVx = Math.cos(radW) * wMS;
+            windVy = Math.sin(radW) * wMS;
+        }
+        
+        const fVx = oVel.u * this.currentResponse * 12 + windVx * this.windResponse * 2;
+        const fVy = oVel.v * this.currentResponse * 12 + windVy * this.windResponse * 2;
         simX += fVx * timeStep * 1.5;
         simY += fVy * timeStep * 1.5;
       }

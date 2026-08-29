@@ -3,9 +3,8 @@
 <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>POLARIS // DIGITAL TWIN & AI NAVIGATION SYSTEM</title>
+  <title>ASTRALIS NAV-OS // ANTARCTIC NAVIGATION CONSOLE</title>
   
-  <!-- Tailwind CSS CDN + Fonts -->
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -19,383 +18,969 @@
       theme: {
         extend: {
           "colors": {
-            "tertiary-fixed": "#ffdcc5",
-            "on-surface": "#dae2fd",
-            "on-error-container": "#ffdad6",
             "primary": "#ffffff",
-            "surface-bright": "#31394d",
-            "on-tertiary-fixed": "#301400",
-            "on-secondary-container": "#1e2f00",
-            "on-primary-container": "#126f77",
-            "outline": "#889394",
-            "surface-container-lowest": "#060e20",
-            "outline-variant": "#3f494a",
-            "tertiary": "#ffffff",
-            "surface-container-low": "#131b2e",
-            "surface-container": "#171f33",
-            "surface-dim": "#0b1326",
-            "primary-container": "#a1eff8",
-            "surface-variant": "#2d3449",
-            "on-secondary-fixed-variant": "#354e00",
-            "on-surface-variant": "#bec8ca",
-            "inverse-primary": "#026971",
-            "surface-container-highest": "#2d3449",
-            "surface-container-high": "#222a3d",
-            "inverse-surface": "#dae2fd",
-            "surface": "#0b1326",
+            "surface": "#060e20",
+            "surface-container": "#131b2e",
+            "on-surface": "#dae2fd",
+            "on-surface-variant": "#889394",
+            "outline": "#3f494a",
             "secondary": "#a4d64c",
-            "on-tertiary-container": "#9d4f00",
-            "secondary-container": "#719e13",
-            "primary-fixed": "#a1eff8",
-            "on-secondary": "#233600",
-            "on-background": "#dae2fd",
-            "on-primary": "#00363b",
-            "tertiary-fixed-dim": "#ffb783",
-            "on-primary-fixed-variant": "#004f55",
-            "on-error": "#690005",
-            "on-tertiary-fixed-variant": "#713700",
-            "on-primary-fixed": "#002023",
-            "surface-tint": "#85d3dc",
             "error": "#ffb4ab",
-            "secondary-fixed-dim": "#a4d64c",
-            "secondary-fixed": "#bff365",
-            "error-container": "#93000a",
-            "tertiary-container": "#ffdcc5",
-            "on-secondary-fixed": "#131f00",
-            "background": "#0b1326",
-            "primary-fixed-dim": "#85d3dc",
-            "inverse-on-surface": "#283044",
-            "on-tertiary": "#4f2500"
-          },
-          "borderRadius": {
-            "DEFAULT": "0.125rem",
-            "lg": "0.25rem",
-            "xl": "0.5rem",
-            "full": "0.75rem"
-          },
-          "spacing": {
-            "gutter": "8px",
-            "touch-target": "44px",
-            "container-padding": "12px",
-            "panel-gap": "4px",
-            "unit": "4px"
           },
           "fontFamily": {
-            "headline-lg": ["JetBrains Mono"],
-            "body-sm": ["Inter"],
-            "label-caps": ["JetBrains Mono"],
-            "body-md": ["Inter"],
-            "mono-data": ["JetBrains Mono"],
-            "display-data": ["JetBrains Mono"],
-            "headline-sm": ["JetBrains Mono"]
+            "body": ["Inter"],
+            "mono": ["JetBrains Mono"]
           }
         }
       }
     }
   </script>
-  <script type="module" crossorigin src="/assets/index-BwtEBCva.js"></script>
+  <script type="module" crossorigin src="/assets/index-DJBAEsV-.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/index-veuBRbxX.css">
 </head>
 
-<body class="bg-background text-on-surface h-screen w-screen overflow-hidden font-body-md select-none">
+<body class="bg-surface text-on-surface h-screen w-screen overflow-hidden font-body select-none">
 
   <!-- Interactive 2D Digital Twin Canvas Engine -->
-  <div class="absolute inset-0 z-0">
-    <canvas id="map-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+  <div class="absolute inset-0 z-0 bg-background overflow-hidden cursor-crosshair">
+    <canvas id="map-canvas" class="w-full h-full block"></canvas>
   </div>
+
+  <!-- Debug HUD (Hidden by Default — Toggle with D key) -->
+  <div id="debug-hud" class="hidden absolute top-20 right-4 bg-surface/90 text-[10px] text-primary p-2 border border-primary/30 z-[100] font-mono shadow-md backdrop-blur-md rounded-md pointer-events-none w-52">
+    <div class="font-bold text-secondary mb-1 border-b border-primary/30 pb-1">RUNTIME DEBUG [D]</div>
+    <div>FPS: <span id="dbg-fps" class="text-secondary">0</span></div>
+    <div>dt: <span id="dbg-dt" class="text-secondary">0</span></div>
+    <div>TimeScale: <span id="dbg-ts" class="text-secondary">1</span>x</div>
+    <div class="mt-1 border-t border-primary/20 pt-1">Ship X/Y: <span id="dbg-pos" class="text-secondary">0, 0</span></div>
+    <div>Ship Vel: <span id="dbg-vel" class="text-secondary">0, 0</span></div>
+    <div>Ship Spd: <span id="dbg-spd" class="text-secondary">0</span> kts</div>
+    <div>Heading: <span id="dbg-hdg" class="text-secondary">0</span>°</div>
+    <div class="mt-1 border-t border-primary/20 pt-1">Wpt: <span id="dbg-wpt" class="text-secondary">0/0</span></div>
+    <div>Dist→Wpt: <span id="dbg-dist" class="text-secondary">N/A</span> SU</div>
+    <div>Route Valid: <span id="dbg-route" class="text-secondary">NO</span></div>
+    <div class="mt-1 border-t border-primary/20 pt-1">Zoom: <span id="dbg-zoom" class="text-secondary">100%</span></div>
+    <div>Camera: <span id="dbg-cam" class="text-secondary">0, 0</span></div>
+    <div>Mouse W: <span id="dbg-mouse" class="text-secondary">0, 0</span></div>
+    <div>Start: <span id="dbg-start" class="text-secondary">—</span></div>
+    <div>Dest: <span id="dbg-dest" class="text-secondary">—</span></div>
+    <div>Follow: <span id="dbg-follow" class="text-secondary">ON</span></div>
+    <div class="mt-1 border-t border-primary/20 pt-1">Coord: <span id="dbg-cs" class="text-secondary">WORLD</span></div>
+    <div>Icebergs: <span id="dbg-ice" class="text-secondary">0</span></div>
+  </div>
+
 
   <!-- Reroute Alert Notification Banner (Dynamic) -->
   <div id="reroute-alert-banner" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300">
-    <div class="glass-panel warning-glow px-6 py-2.5 flex items-center space-x-3 rounded-sm bg-error-container/80 text-on-error-container">
-      <span class="material-symbols-outlined text-error animate-pulse">warning</span>
-      <span id="reroute-alert-msg" class="font-label-caps text-label-caps text-error tracking-wider">
-        🚨 EXISTING ROUTE NO LONGER OPTIMAL — AUTOMATIC REROUTING ENGAGED
+    <div class="px-6 py-2.5 flex items-center space-x-3 rounded-md bg-error/90 text-surface font-mono font-bold shadow-lg">
+      <span class="material-symbols-outlined">warning</span>
+      <span id="reroute-alert-msg" class="tracking-wider">
+        HAZARD DETECTED — REROUTING
       </span>
     </div>
   </div>
 
   <!-- Top Navigation Bar -->
-  <nav class="fixed top-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/20 flex justify-between items-center px-container-padding h-touch-target">
-    <div class="font-headline-lg text-headline-lg tracking-tighter text-primary flex items-center">
-      <span class="material-symbols-outlined mr-2 text-primary-container">explore</span>
-      ASTRALIS NAV-OS <span class="text-secondary opacity-80 ml-3 font-label-caps text-label-caps tracking-widest">POLARIS // DIGITAL TWIN</span>
-    </div>
-
-    <!-- Mode Switcher -->
-    <div class="flex space-x-6">
-      <div id="mode-simulate-btn" class="text-primary border-b-2 border-primary h-touch-target flex items-center px-2 cursor-pointer hover:bg-surface-variant/30 transition-colors">
-        <span class="font-label-caps text-label-caps">MODE B // WHAT-IF SIMULATOR</span>
-      </div>
-      <div id="mode-live-btn" class="text-on-surface-variant hover:bg-surface-variant/30 transition-colors h-touch-target flex items-center px-2 cursor-pointer">
-        <span class="font-label-caps text-label-caps">MODE A // REAL SATELLITE DATA</span>
-      </div>
-      <div id="synthetic-drawer-btn" class="text-on-surface-variant hover:bg-surface-variant/30 transition-colors h-touch-target flex items-center px-2 cursor-pointer">
-        <span class="font-label-caps text-label-caps text-primary-container flex items-center">
-          <span class="material-symbols-outlined text-[16px] mr-1">dataset</span> SYNTHETIC DATA
-        </span>
-      </div>
+  <nav class="fixed top-0 left-0 w-full z-50 bg-surface-container/90 backdrop-blur-md border-b border-outline flex justify-between items-center px-4 py-2">
+    <div class="font-mono font-bold tracking-tighter text-primary flex items-center text-lg">
+      <span class="material-symbols-outlined mr-2">sailing</span>
+      ANTARCTIC NAVIGATION CONSOLE
     </div>
 
     <div class="flex items-center space-x-4">
-      <span class="material-symbols-outlined text-primary cursor-pointer hover:bg-surface-variant/30 transition-colors p-1" title="Telemetry Antenna">settings_input_antenna</span>
-      <span class="material-symbols-outlined text-primary cursor-pointer hover:bg-surface-variant/30 transition-colors p-1" title="AI Security">security</span>
-      <span class="material-symbols-outlined text-primary cursor-pointer hover:bg-surface-variant/30 transition-colors p-1" title="Operator Profile">account_circle</span>
+      <button id="toolbar-btn-whatif" class="border border-secondary text-secondary bg-secondary/5 hover:bg-secondary/10 px-2 py-1 rounded font-mono text-xs font-bold transition-all">🔮 WHAT-IF ENGINE</button>
+      <button id="toolbar-btn-conf" class="border border-secondary text-secondary bg-secondary/5 hover:bg-secondary/10 px-2 py-1 rounded font-mono text-xs font-bold transition-all">📈 CONFIDENCE ENGINE</button>
+      <button id="toolbar-btn-dc" class="border border-secondary text-secondary bg-secondary/5 hover:bg-secondary/10 px-2 py-1 rounded font-mono text-xs font-bold transition-all">🚨 DECISION CENTER</button>
+      <div class="text-on-surface-variant font-mono text-sm border border-outline px-2 py-1 rounded bg-surface">
+        DATA: <span class="text-secondary">SIMULATION</span>
+      </div>
+      <div id="sim-clock-val" class="text-primary font-mono text-sm bg-surface px-3 py-1 rounded border border-outline">
+        2042.11.04_14:00:05Z
+      </div>
     </div>
   </nav>
 
-  <!-- Left Sidebar (Environmental Controls) -->
-  <aside class="fixed left-0 top-touch-target h-[calc(100vh-touch-target-96px)] w-64 z-40 bg-surface-container-low/70 backdrop-blur-2xl border-r border-outline-variant/10 flex flex-col py-gutter">
-    <div class="px-container-padding mb-4 mt-2">
-      <h2 class="font-headline-sm text-headline-sm text-primary mb-1 flex items-center">
-        <span class="material-symbols-outlined mr-2 text-primary-container text-[18px]">tune</span>
-        ENVIRONMENTAL
+  <!-- Navigation Panel (Left) -->
+  <!-- Navigation Panel (Left) -->
+  <div id="nav-panel" class="fixed left-4 top-16 w-72 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 shadow-xl font-mono text-xs select-none">
+    <div id="nav-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 class="text-primary font-bold tracking-tight flex items-center">
+        <span class="material-symbols-outlined mr-2 text-secondary text-base">route</span>
+        NAVIGATION
       </h2>
-      <p class="font-label-caps text-label-caps text-secondary opacity-80">CONTROLS // SCENARIO OVERRIDE</p>
+      <button id="nav-panel-toggle" class="text-secondary font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
     </div>
+    <div id="nav-panel-body" class="p-3 space-y-3">
+      <div id="nav-status" class="text-on-surface-variant mb-1 p-2 bg-surface rounded border border-outline/50 text-[10px]">
+        Set start and destination points
+      </div>
 
-    <div class="flex-1 px-container-padding space-y-4 overflow-y-auto">
-      
-      <!-- Wind Speed -->
-      <div class="glass-panel p-3 relative overflow-hidden">
-        <div class="flex justify-between items-end mb-1">
-          <span class="font-label-caps text-label-caps text-on-surface-variant flex items-center">
-            <span class="material-symbols-outlined text-[14px] mr-1 text-primary-container">air</span> WIND SPEED
-          </span>
-          <span id="wind-speed-val" class="font-mono-data text-mono-data text-primary">45.2 <span class="text-[10px] text-on-surface-variant">km/h</span></span>
+      <div class="space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="text-on-surface-variant">START</span>
+          <span id="start-status" class="text-on-surface-variant">NOT SET</span>
         </div>
-        <input id="wind-speed-input" class="w-full mt-2" max="100" min="0" type="range" value="45"/>
-        <div class="flex justify-between mt-1">
-          <span class="font-mono-data text-[9px] text-outline">0 km/h</span>
-          <span class="font-mono-data text-[9px] text-outline">100 km/h</span>
+        <div class="flex justify-between items-center">
+          <span class="text-on-surface-variant">DESTINATION</span>
+          <span id="dest-status" class="text-on-surface-variant">NOT SET</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-on-surface-variant">ZOOM</span>
+          <span id="zoom-indicator" class="text-secondary">100%</span>
         </div>
       </div>
 
-      <!-- Ocean Current Speed -->
-      <div class="glass-panel p-3 relative overflow-hidden">
-        <div class="flex justify-between items-end mb-1">
-          <span class="font-label-caps text-label-caps text-on-surface-variant flex items-center">
-            <span class="material-symbols-outlined text-[14px] mr-1 text-primary-container">water</span> CURRENT SPEED
-          </span>
-          <span id="current-speed-val" class="font-mono-data text-mono-data text-primary">1.8 <span class="text-[10px] text-on-surface-variant">m/s</span></span>
-        </div>
-        <input id="current-speed-input" class="w-full mt-2" max="50" min="0" type="range" value="18"/>
-        <div class="flex justify-between mt-1">
-          <span class="font-mono-data text-[9px] text-outline">0 m/s</span>
-          <span class="font-mono-data text-[9px] text-outline">5.0 m/s</span>
-        </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="set-start-btn" class="border border-outline rounded py-1.5 hover:bg-outline/20 transition-colors text-on-surface-variant hover:text-primary">SET START</button>
+        <button id="set-dest-btn" class="border border-outline rounded py-1.5 hover:bg-outline/20 transition-colors text-on-surface-variant hover:text-primary">SET DEST</button>
+        <button id="calc-route-btn" class="border border-secondary/50 rounded py-1.5 hover:bg-secondary/10 transition-colors text-secondary col-span-2">CALCULATE ROUTE</button>
+        <button id="clear-route-btn" class="border border-outline rounded py-1.5 hover:bg-outline/20 transition-colors text-on-surface-variant">CLEAR ROUTE</button>
+        <button id="place-vessel-btn" class="border border-outline rounded py-1.5 hover:bg-outline/20 transition-colors text-on-surface-variant">PLACE VESSEL</button>
+        <button id="start-nav-btn" class="border border-secondary rounded py-1.5 bg-secondary/10 hover:bg-secondary/20 transition-colors text-secondary col-span-2 font-bold">START NAVIGATION</button>
       </div>
 
-      <!-- Tidal Period -->
-      <div class="glass-panel p-3 relative overflow-hidden">
-        <div class="flex justify-between items-end mb-1">
-          <span class="font-label-caps text-label-caps text-on-surface-variant flex items-center">
-            <span class="material-symbols-outlined text-[14px] mr-1 text-primary-container">waves</span> TIDAL PERIOD
-          </span>
-          <span id="tidal-period-val" class="font-mono-data text-mono-data text-primary">12.4 <span class="text-[10px] text-on-surface-variant">hrs</span></span>
-        </div>
-        <input id="tidal-period-input" class="w-full mt-2" max="240" min="0" type="range" value="124"/>
-        <div class="flex justify-between mt-1">
-          <span class="font-mono-data text-[9px] text-outline">0 hrs</span>
-          <span class="font-mono-data text-[9px] text-outline">24 hrs</span>
-        </div>
+      <div class="flex gap-2 border-t border-outline pt-3">
+        <button id="follow-ship-btn" class="flex-1 border border-outline rounded py-1.5 hover:bg-outline/20 transition-colors text-on-surface-variant text-[10px]">FOLLOW: ON</button>
+        <button id="center-ship-btn" class="flex-1 border border-outline rounded py-1.5 hover:bg-outline/20 transition-colors text-on-surface-variant text-[10px]">CENTER SHIP</button>
       </div>
-
-      <!-- Wave Height -->
-      <div class="glass-panel p-3 relative overflow-hidden">
-        <div class="flex justify-between items-end mb-1">
-          <span class="font-label-caps text-label-caps text-on-surface-variant flex items-center">
-            <span class="material-symbols-outlined text-[14px] mr-1 text-primary-container">tsunami</span> WAVE HEIGHT
-          </span>
-          <span id="wave-height-val" class="font-mono-data text-mono-data text-primary">1.2 <span class="text-[10px] text-on-surface-variant">m</span></span>
-        </div>
-        <input id="wave-height-input" class="w-full mt-2" max="100" min="0" type="range" value="12"/>
-        <div class="flex justify-between mt-1">
-          <span class="font-mono-data text-[9px] text-outline">0 m</span>
-          <span class="font-mono-data text-[9px] text-outline">10 m</span>
-        </div>
-      </div>
-
-      <button id="recalibrate-btn" class="w-full py-2 border border-primary-container/30 text-primary-container font-label-caps text-label-caps hover:bg-primary-container/10 active-glow transition-colors mt-2">
-        RESET TO NOMINAL
-      </button>
-
-    </div>
-  </aside>
-
-  <!-- Right Sidebar (AI Navigator Telemetry) -->
-  <aside class="fixed right-0 top-touch-target h-[calc(100vh-touch-target-96px)] w-72 z-40 bg-surface-container-low/70 backdrop-blur-2xl border-l border-outline-variant/10 flex flex-col py-gutter">
-    <div class="px-container-padding mb-4 mt-2">
-      <h2 class="font-headline-sm text-headline-sm text-primary mb-1 flex items-center">
-        <span class="material-symbols-outlined mr-2 text-secondary text-[18px]">memory</span>
-        AI NAVIGATOR
-      </h2>
-      <p class="font-label-caps text-label-caps text-on-surface-variant">TELEMETRY DATA LINK</p>
-    </div>
-
-    <div class="flex-1 px-container-padding space-y-4 overflow-y-auto">
-      
-      <!-- System Risk Level -->
-      <div class="glass-panel p-3 relative overflow-hidden border-secondary/30">
-        <div class="scanning-line"></div>
-        <div class="flex items-center justify-between">
-          <span class="font-label-caps text-label-caps text-on-surface-variant">SYS_RISK</span>
-          <span id="sys-risk-badge" class="font-label-caps text-label-caps text-secondary bg-secondary/10 px-2 py-0.5 rounded-sm">LOW</span>
-        </div>
-        <div class="mt-3 flex justify-between items-end">
-          <span id="sys-risk-score" class="font-mono-data text-display-data text-primary leading-none">0.14</span>
-          <span class="material-symbols-outlined text-secondary">check_circle</span>
-        </div>
-      </div>
-
-      <!-- Route Confidence -->
-      <div class="glass-panel p-3">
-        <span class="font-label-caps text-label-caps text-on-surface-variant block mb-1">ROUTE CONFIDENCE</span>
-        <div class="flex items-end justify-between mb-1">
-          <span id="route-confidence-val" class="font-mono-data text-[24px] font-bold text-primary leading-none">92.4%</span>
-          <span class="font-mono-data text-[10px] text-primary-container">+1.2%</span>
-        </div>
-        <div class="w-full bg-surface-variant h-1.5 mt-2 rounded-full overflow-hidden">
-          <div id="route-confidence-bar" class="bg-primary-container h-full w-[92%] shadow-[0_0_8px_rgba(165,243,252,0.8)] transition-all duration-500"></div>
-        </div>
-      </div>
-
-      <!-- Fuel Efficiency -->
-      <div class="glass-panel p-3">
-        <span class="font-label-caps text-label-caps text-on-surface-variant block mb-2">FUEL EFFICIENCY (PROJ)</span>
-        <div class="grid grid-cols-2 gap-2 mt-1">
-          <div>
-            <span class="font-label-caps text-[9px] text-outline block">CURRENT</span>
-            <span id="fuel-current-val" class="font-mono-data text-mono-data text-primary block">14.2 t/d</span>
-          </div>
-          <div>
-            <span class="font-label-caps text-[9px] text-outline block">OPTIMAL</span>
-            <span id="fuel-optimal-val" class="font-mono-data text-mono-data text-secondary block">12.8 t/d</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tracked Entities List -->
-      <div class="mt-2 pt-3 border-t border-outline-variant/30">
-        <span class="font-label-caps text-label-caps text-on-surface-variant block mb-2">TRACKED ENTITIES</span>
-        <div id="tracked-entities-list" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-          <!-- Dynamic List -->
-        </div>
-      </div>
-
-    </div>
-  </aside>
-
-  <!-- Iceberg Detail Inspector Drawer (Floating Modal on Select) -->
-  <div id="iceberg-inspector" class="fixed bottom-28 left-72 z-40 hidden transition-all duration-300">
-    <div class="glass-panel border-primary-container/40 p-4 w-80 shadow-2xl rounded-sm">
-      <div class="flex justify-between items-center mb-2 pb-2 border-b border-outline-variant/30">
-        <span id="inspector-iceberg-name" class="font-headline-sm text-headline-sm text-primary">ICEBERG #07 TELEMETRY</span>
-        <span class="material-symbols-outlined text-primary-container text-[18px]">ac_unit</span>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2 font-mono-data text-[11px] mb-3">
-        <div>
-          <span class="text-outline text-[9px] block">POSITION</span>
-          <span class="text-primary"><span id="inspector-lat">-64.382</span>° S, <span id="inspector-lon">72.821</span>° E</span>
-        </div>
-        <div>
-          <span class="text-outline text-[9px] block">MASS / SIZE</span>
-          <span class="text-primary"><span id="inspector-mass">4.8 Mt</span> / <span id="inspector-size">720 m</span></span>
-        </div>
-        <div>
-          <span class="text-outline text-[9px] block">DRIFT CURRENT</span>
-          <span id="inspector-drift-current" class="text-primary-container">1.8 m/s</span>
-        </div>
-        <div>
-          <span class="text-outline text-[9px] block">DRIFT WIND</span>
-          <span id="inspector-drift-wind" class="text-primary-container">0.3 m/s</span>
-        </div>
-      </div>
-
-      <!-- AI Trajectory Forecast -->
-      <div class="bg-surface-variant/40 p-2 rounded-sm mb-3">
-        <span class="font-label-caps text-[9px] text-secondary block mb-1">AI TRAJECTORY PREDICTION</span>
-        <div class="font-mono-data text-[10px] space-y-0.5 text-on-surface-variant">
-          <div id="inspector-forecast-6h">6h  → -64.41, 72.52</div>
-          <div id="inspector-forecast-12h">12h → -64.47, 72.19</div>
-          <div id="inspector-forecast-24h">24h → -64.61, 71.62</div>
-        </div>
-      </div>
-
-      <!-- Manual Trajectory Override Button -->
-      <button id="inspector-target-ship-btn" class="w-full py-1.5 bg-error/20 border border-error/40 text-error font-label-caps text-label-caps hover:bg-error/30 transition-colors flex items-center justify-center">
-        <span class="material-symbols-outlined text-[14px] mr-1">navigation</span>
-        TARGET TOWARD SHIP (OVERRIDE)
-      </button>
     </div>
   </div>
 
-  <!-- Synthetic Data Generator Drawer (Modal) -->
-  <div id="synthetic-drawer" class="fixed top-16 right-80 z-40 hidden w-96 glass-panel border-primary-container/30 p-4 rounded-sm shadow-2xl">
-    <div class="flex justify-between items-center mb-2 pb-2 border-b border-outline-variant/30">
-      <span class="font-headline-sm text-headline-sm text-primary flex items-center">
-        <span class="material-symbols-outlined text-primary-container mr-2 text-[18px]">dataset</span> SYNTHETIC DATA ENGINE
-      </span>
+  <!-- Ship Status / Control Sidebar -->
+  <div id="ship-status-panel" class="fixed right-4 top-16 w-72 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 shadow-xl font-mono text-xs select-none">
+    <div id="ship-status-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 class="text-primary font-bold tracking-tight flex items-center">
+        <span class="material-symbols-outlined mr-2 text-secondary text-base">monitoring</span>
+        VESSEL TELEMETRY
+      </h2>
+      <button id="ship-status-panel-toggle" class="text-secondary font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
     </div>
-    <p class="font-body-sm text-[11px] text-on-surface-variant mb-3">
-      Generates thousands of synthetic Antarctic drift & weather scenarios with ground truth collision hazards to train AI models.
-    </p>
-
-    <div id="synthetic-logs" class="max-h-56 overflow-y-auto space-y-1 mb-3 bg-surface-container-lowest p-2 rounded-sm border border-outline-variant/20">
-      <div class="text-outline text-[11px] font-mono-data text-center py-4">Click "GENERATE SCENARIOS" to produce ground-truth synthetic datasets.</div>
+    <div id="ship-status-panel-body" class="p-3 space-y-2">
+      <div>
+        <div class="flex justify-between mb-1">
+          <span>FUEL</span>
+          <span id="telemetry-fuel">100.0%</span>
+        </div>
+        <div class="w-full bg-surface h-2 rounded overflow-hidden border border-outline/50">
+          <div id="telemetry-fuel-bar" class="bg-secondary h-full" style="width: 100%;"></div>
+        </div>
+        <div id="telemetry-fuel-warn" class="text-error hidden font-bold mt-1 text-[10px]">⚠️ LOW FUEL WARNING</div>
+      </div>
+      <div class="flex justify-between items-center border-t border-outline/30 pt-2">
+        <span>SPEED</span>
+        <div>
+          <span id="telemetry-speed" class="text-primary font-bold">0.0</span> / 
+          <span id="telemetry-desired-speed" class="text-on-surface-variant">0.0</span> kts
+        </div>
+      </div>
+      <div>
+        <div class="flex justify-between mb-1">
+          <span>THROTTLE</span>
+          <span id="telemetry-throttle">0%</span>
+        </div>
+        <div class="w-full bg-surface h-2 rounded overflow-hidden border border-outline/50">
+          <div id="telemetry-throttle-bar" class="bg-secondary h-full" style="width: 0%;"></div>
+        </div>
+      </div>
+      <div class="flex justify-between border-t border-outline/30 pt-2">
+        <span>ENGINE OUTPUT</span>
+        <span id="telemetry-engine" class="text-primary">100%</span>
+      </div>
+      <div class="flex justify-between">
+        <span>AUTOPILOT</span>
+        <span id="telemetry-auto" class="text-secondary font-bold">MANUAL</span>
+      </div>
+      <div class="flex justify-between">
+        <span>NAV MODE</span>
+        <span id="telemetry-navmode" class="text-primary">BALANCED</span>
+      </div>
+      <div class="flex justify-between">
+        <span>AP STATUS</span>
+        <span id="telemetry-ap-status" class="text-secondary font-bold">NORMAL_TRACKING</span>
+      </div>
+      <div class="flex justify-between border-t border-outline/30 pt-2">
+        <span>CROSS-TRACK ERR</span>
+        <span id="telemetry-xte" class="text-error font-bold">0.0 SU</span>
+      </div>
+      <div class="flex justify-between">
+        <span>DRIFT CORR</span>
+        <span id="telemetry-drift-corr" class="text-amber-400">0.0°</span>
+      </div>
+      <div class="flex justify-between">
+        <span>CRAB ANGLE</span>
+        <span id="telemetry-crab-angle" class="text-primary">0.0°</span>
+      </div>
+      <div class="flex justify-between">
+        <span>ENV RESIST</span>
+        <span id="telemetry-env-resist" class="text-on-surface-variant">0.0</span>
+      </div>
+      <div class="flex justify-between border-t border-outline/30 pt-2">
+        <span>DIST TO WP</span>
+        <span id="telemetry-dist-wp" class="text-primary">0 SU</span>
+      </div>
+      <div class="flex justify-between">
+        <span>DIST TO DEST</span>
+        <span id="telemetry-dist-dest" class="text-primary">0 SU</span>
+      </div>
     </div>
-
-    <button id="generate-synthetic-btn" class="w-full py-2 bg-primary-container/20 border border-primary-container/50 text-primary-container font-label-caps text-label-caps hover:bg-primary-container/30 active-glow transition-all flex items-center justify-center">
-      <span class="material-symbols-outlined text-[16px] mr-1.5">auto_mode</span> GENERATE 5 SCENARIOS
-    </button>
   </div>
 
-  <!-- Bottom Playback Control Bar -->
-  <div class="fixed bottom-0 left-0 w-full z-50 h-24 bg-surface-dim/90 backdrop-blur-md border-t border-primary/20 shadow-[0_-4px_24px_rgba(133,211,220,0.1)] px-container-padding flex items-center justify-between pb-safe">
+  <!-- Hazard Warning Panel -->
+  <div id="hazard-panel" class="fixed right-4 bottom-24 w-72 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 shadow-xl font-mono text-xs select-none">
+    <div id="hazard-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 class="text-error font-bold tracking-tight flex items-center">
+        <span class="material-symbols-outlined mr-2 text-error text-base">warning</span>
+        HAZARD WARNINGS
+      </h2>
+      <button id="hazard-panel-toggle" class="text-error font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
+    </div>
+    <div id="hazard-panel-body" class="p-3 max-h-[12rem] overflow-y-auto space-y-2">
+      <div id="hazard-list" class="space-y-2">
+        <div class="text-on-surface-variant text-[10px]">No immediate hazards detected.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Decision Advisor Panel -->
+  <div id="ai-advisor-panel" class="fixed left-4 top-[25rem] w-72 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 shadow-xl font-mono text-xs select-none">
+    <div id="ai-advisor-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 class="text-primary font-bold tracking-tight flex items-center">
+        <span class="material-symbols-outlined mr-2 text-secondary text-base">psychology</span>
+        AI DECISION ADVISOR
+      </h2>
+      <button id="ai-advisor-panel-toggle" class="text-secondary font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
+    </div>
+    <div id="ai-advisor-panel-body" class="p-3 space-y-3">
+      <!-- Autonomous Control Toggle -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-primary tracking-tight">AUTONOMOUS CONTROL</span>
+          <button id="ai-auto-toggle-btn" class="border border-error text-error px-2 py-0.5 rounded hover:bg-error/10 transition-colors font-bold text-[9px]">STANDBY</button>
+        </div>
+        <div class="grid grid-cols-2 gap-1 text-[10px] text-on-surface-variant pt-1 border-t border-outline/30">
+          <div>DECISION: <span id="ai-ctrl-mode" class="text-secondary font-bold">STANDBY</span></div>
+          <div class="text-right">ROUTE: <span id="ai-ctrl-route-mode" class="text-primary font-bold">BALANCED</span></div>
+          <div>TARGET HDG: <span id="ai-ctrl-hdg" class="text-primary">0°</span></div>
+          <div class="text-right">TARGET SPD: <span id="ai-ctrl-spd" class="text-primary">0 kts</span></div>
+        </div>
+      </div>
+
+      <!-- Sea-Ice ML Forecast display -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-1">
+        <div class="flex justify-between items-center text-[10px]">
+          <span class="font-bold text-primary tracking-tight">❄️ SEA-ICE ML FORECAST</span>
+          <span id="seaice-ml-status" class="text-error font-bold text-[9px]">OFFLINE</span>
+        </div>
+        <div class="grid grid-cols-4 gap-1 text-[9px] text-on-surface-variant pt-1 border-t border-outline/30 text-center">
+          <div>NOW<span id="seaice-val-now" class="block font-bold text-secondary">0%</span></div>
+          <div>+6H<span id="seaice-val-6h" class="block font-bold text-primary">0%</span></div>
+          <div>+12H<span id="seaice-val-12h" class="block font-bold text-primary">0%</span></div>
+          <div>+24H<span id="seaice-val-24h" class="block font-bold text-primary">0%</span></div>
+        </div>
+        <div class="text-[9px] text-on-surface-variant pt-1 flex justify-between px-1">
+          <span>CONFIDENCE:</span>
+          <span id="seaice-ml-conf" class="font-bold text-secondary">N/A</span>
+        </div>
+      </div>
+
+      <!-- Advisor Status -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-2">
+        <div class="flex justify-between font-bold mb-1">
+          <span>RECOMMENDATION:</span>
+          <span id="ai-rec-status" class="text-secondary">SAFE TO PROCEED</span>
+        </div>
+        <div id="ai-rec-explanation" class="text-[10px] text-on-surface-variant leading-relaxed">
+          No immediate hazards detected on course. Weather conditions are nominal.
+        </div>
+        <button id="ai-execute-btn" class="w-full mt-1 border border-secondary text-secondary py-1 rounded bg-secondary/10 hover:bg-secondary/20 transition-colors font-bold text-[10px]">EXECUTE AI RECOMMENDATION</button>
+        
+        <div class="border-t border-outline/30 pt-2 grid grid-cols-2 gap-1 text-[9px] text-on-surface-variant">
+          <div>AI ENGINE:<span id="ai-engine-status" class="text-error font-bold ml-1">OFFLINE</span></div>
+          <div class="text-right">CONF: <span id="ai-engine-confidence" class="text-primary font-bold">N/A</span></div>
+          <div class="col-span-2">FORECASTS: <span id="ai-engine-forecasts" class="text-primary font-bold">0 Active</span></div>
+        </div>
+      </div>
+
+      <!-- Decision History -->
+      <div class="space-y-1">
+        <h3 class="text-secondary font-bold text-[9px] border-b border-outline/30 pb-0.5">DECISION LOG HISTORY</h3>
+        <div id="ai-decision-history" class="space-y-1 max-h-[5.5rem] overflow-y-auto pr-1">
+          <!-- Populated by JS -->
+          <div class="text-on-surface-variant text-[9px]">No historical decisions logged yet.</div>
+        </div>
+      </div>
+
+      <!-- AI Copilot Section -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-primary tracking-tight">🤖 ASTRALIS AI COPILOT</span>
+          <span id="copilot-engine-status" class="text-error font-bold text-[9px]">OFFLINE</span>
+        </div>
+        <div class="text-[10px] text-on-surface-variant bg-surface-container/60 p-2 rounded border border-outline/30 leading-relaxed min-h-[4rem] max-h-[8rem] overflow-y-auto" id="copilot-explanation">
+          AI Copilot standby. Select a trigger query below to compile explanation.
+        </div>
+        <div class="flex justify-between text-[9px] text-on-surface-variant px-1">
+          <span>RISK LEVEL:</span>
+          <span id="copilot-risk-level" class="text-secondary font-bold">LOW</span>
+        </div>
+        <div class="grid grid-cols-2 gap-1 pt-1">
+          <button id="copilot-btn-general" class="border border-outline hover:bg-outline/20 text-on-surface-variant rounded py-1 text-[9px]">EXPLAIN DECISION</button>
+          <button id="copilot-btn-slowdown" class="border border-outline hover:bg-outline/20 text-on-surface-variant rounded py-1 text-[9px]">WHY SLOW DOWN?</button>
+          <button id="copilot-btn-reroute" class="border border-outline hover:bg-outline/20 text-on-surface-variant rounded py-1 text-[9px]">WHY REROUTING?</button>
+          <button id="copilot-btn-refresh" class="border border-secondary/50 text-secondary bg-secondary/5 hover:bg-secondary/10 rounded py-1 text-[9px] font-bold">REFRESH ANALYTICS</button>
+        </div>
+      </div>
+
+      <!-- Route Comparison -->
+      <div class="space-y-2">
+        <h3 class="text-secondary font-bold text-[10px] border-b border-outline/30 pb-1">COMPARE ROUTE STRATEGIES</h3>
+        <div id="ai-routes-compare" class="space-y-2">
+          <!-- Populated by JS -->
+          <div class="text-on-surface-variant text-[10px]">No route strategies computed yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Demo Scenarios Panel -->
+  <div id="demo-scenarios-panel" class="fixed right-4 top-24 w-72 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 shadow-xl font-mono text-xs select-none">
+    <div id="demo-scenarios-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 class="text-primary font-bold tracking-tight flex items-center">
+        <span class="material-symbols-outlined mr-2 text-secondary text-base">movie</span>
+        DEMO SCENARIOS
+      </h2>
+      <button id="demo-scenarios-panel-toggle" class="text-secondary font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
+    </div>
+    <div id="demo-scenarios-panel-body" class="p-3 space-y-3">
+      <div class="grid grid-cols-2 gap-1.5">
+        <button id="demo-btn-normal" class="border border-outline hover:bg-outline/20 text-on-surface rounded py-1.5 text-[9px] font-bold">🟢 NORMAL TRANSIT</button>
+        <button id="demo-btn-iceberg" class="border border-outline hover:bg-outline/20 text-on-surface rounded py-1.5 text-[9px] font-bold">🧊 ICEBERG CROSS</button>
+        <button id="demo-btn-seaice" class="border border-outline hover:bg-outline/20 text-on-surface rounded py-1.5 text-[9px] font-bold">❄️ SEA ICE ML</button>
+        <button id="demo-btn-weather" class="border border-outline hover:bg-outline/20 text-on-surface rounded py-1.5 text-[9px] font-bold">🌪 EXTREME WEATHER</button>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-1.5 border-t border-outline/30 pt-2.5">
+        <button id="demo-btn-auto" class="border border-primary text-primary bg-primary/5 hover:bg-primary/10 rounded py-1.5 text-[9px] font-bold">▶ AUTO DEMO</button>
+        <button id="demo-btn-reset" class="border border-error text-error bg-error/5 hover:bg-error/10 rounded py-1.5 text-[9px] font-bold">↻ RESET</button>
+      </div>
+
+      <div class="p-2 rounded bg-surface border border-outline/50 text-[10px] space-y-1 text-on-surface-variant">
+        <div>ACTIVE: <span id="demo-lbl-active" class="font-bold text-secondary">None</span></div>
+        <div>PHASE: <span id="demo-lbl-phase" class="font-bold text-primary">SETUP</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Validation Panel -->
+  <div id="ai-validation-panel" class="fixed right-4 bottom-24 w-72 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 shadow-xl font-mono text-xs select-none">
+    <div id="ai-validation-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 class="text-primary font-bold tracking-tight flex items-center">
+        <span class="material-symbols-outlined mr-2 text-secondary text-base">analytics</span>
+        AI SYSTEM INTELLIGENCE
+      </h2>
+      <button id="ai-validation-panel-toggle" class="text-secondary font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
+    </div>
+    <div id="ai-validation-panel-body" class="p-3 space-y-3">
+      <!-- Validation toggle button -->
+      <button id="val-toggle-btn" class="w-full border border-outline hover:bg-outline/20 text-on-surface py-1 rounded transition-colors font-bold text-[9px]">🧠 ENABLE MAP VALIDATION OVERLAYS</button>
+
+      <!-- Iceberg ML Stats -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-1">
+        <div class="font-bold text-primary text-[10px]">🧊 ICEBERG TRAJECTORY ML</div>
+        <div class="grid grid-cols-2 gap-1 text-[9px] text-on-surface-variant pt-1 border-t border-outline/10">
+          <div>Status: <span id="val-iceberg-status" class="font-bold text-error">OFFLINE</span></div>
+          <div class="text-right">Confidence: <span id="val-iceberg-conf" class="font-bold text-secondary">N/A</span></div>
+          <div>Validated: <span id="val-iceberg-count" class="font-bold text-primary">0</span></div>
+          <div class="text-right">Avg Error: <span id="val-iceberg-err" class="font-bold text-primary">N/A</span></div>
+        </div>
+      </div>
+
+      <!-- Sea Ice ML Stats -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-1">
+        <div class="font-bold text-primary text-[10px]">❄️ SEA-ICE ML FORECAST</div>
+        <div class="grid grid-cols-2 gap-1 text-[9px] text-on-surface-variant pt-1 border-t border-outline/10">
+          <div>Status: <span id="val-seaice-status" class="font-bold text-error">OFFLINE</span></div>
+          <div class="text-right">Confidence: <span id="val-seaice-conf" class="font-bold text-secondary">N/A</span></div>
+          <div class="col-span-2">Trend Direction: <span id="val-seaice-trend" class="font-bold text-secondary">STABLE</span></div>
+        </div>
+      </div>
+
+      <!-- Autonomous Control Decision Confidence -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-1">
+        <div class="font-bold text-primary text-[10px]">🤖 AUTONOMOUS CONTROL</div>
+        <div class="grid grid-cols-2 gap-1 text-[9px] text-on-surface-variant pt-1 border-t border-outline/10">
+          <div>Status: <span id="val-auto-status" class="font-bold text-error">STANDBY</span></div>
+          <div class="text-right">Confidence: <span id="val-auto-conf" class="font-bold text-secondary">N/A</span></div>
+          <div class="col-span-2">Active Target: <span id="val-auto-mode" class="font-bold text-secondary">CRUISE</span></div>
+        </div>
+      </div>
+
+      <!-- AI Decision Pipeline Stages -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-1.5">
+        <div class="font-bold text-primary text-[10px] border-b border-outline/30 pb-0.5">AI DECISION PIPELINE</div>
+        <div class="space-y-1 text-[9px]" id="val-pipeline-list">
+          <div class="flex justify-between"><span>1. ENVIRONMENT</span><span id="pipe-step-1" class="text-on-surface-variant font-bold">WAITING</span></div>
+          <div class="flex justify-between"><span>2. DETECTION</span><span id="pipe-step-2" class="text-on-surface-variant font-bold">WAITING</span></div>
+          <div class="flex justify-between"><span>3. ML PREDICTION</span><span id="pipe-step-3" class="text-on-surface-variant font-bold">WAITING</span></div>
+          <div class="flex justify-between"><span>4. ROUTE ANALYSIS</span><span id="pipe-step-4" class="text-on-surface-variant font-bold">WAITING</span></div>
+          <div class="flex justify-between"><span>5. AI DECISION</span><span id="pipe-step-5" class="text-on-surface-variant font-bold">WAITING</span></div>
+          <div class="flex justify-between"><span>6. SHIP EXECUTION</span><span id="pipe-step-6" class="text-on-surface-variant font-bold">WAITING</span></div>
+          <div class="flex justify-between"><span>7. VALIDATION</span><span id="pipe-step-7" class="text-on-surface-variant font-bold">WAITING</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Risk Intelligence Panel -->
+  <div id="ai-risk-panel" class="fixed left-4 top-24 w-72 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 shadow-xl font-mono text-xs select-none">
+    <div id="ai-risk-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 class="text-primary font-bold tracking-tight flex items-center">
+        <span class="material-symbols-outlined mr-2 text-secondary text-base">security</span>
+        AI RISK INTELLIGENCE
+      </h2>
+      <button id="ai-risk-panel-toggle" class="text-secondary font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
+    </div>
+    <div id="ai-risk-panel-body" class="p-3 space-y-3">
+      <!-- Toggle Risk Overlay Button -->
+      <button id="val-toggle-risk-btn" class="w-full border border-outline hover:bg-outline/20 text-on-surface py-1 rounded transition-colors font-bold text-[9px]">🧠 ENABLE MAP RISK OVERLAYS</button>
+
+      <!-- Status Info -->
+      <div class="p-2 rounded bg-surface border border-outline/50 text-[10px] space-y-1 text-on-surface-variant">
+        <div class="flex justify-between"><span>RISK MAP STATUS:</span><span id="risk-lbl-status" class="font-bold text-secondary">ONLINE</span></div>
+        <div class="flex justify-between"><span>CURRENT SITE RISK:</span><span id="risk-lbl-current" class="font-bold text-primary">0%</span></div>
+        <div class="flex justify-between"><span>ROUTE THREAT LEVEL:</span><span id="risk-lbl-route" class="font-bold text-secondary">LOW</span></div>
+        <div class="flex justify-between"><span>MAX ROUTE RISK:</span><span id="risk-lbl-max" class="font-bold text-primary">0%</span></div>
+        <div class="flex justify-between"><span>FORECAST CONFIDENCE:</span><span id="risk-lbl-conf" class="font-bold text-secondary">N/A</span></div>
+      </div>
+
+      <!-- Specific Hazards -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-1 text-[10px] text-on-surface-variant">
+        <div class="font-bold text-primary border-b border-outline/10 pb-0.5">SPECIFIC RISK THREATS</div>
+        <div class="flex justify-between"><span>🧊 ICEBERG RISK:</span><span id="risk-lbl-ice" class="font-bold">0%</span></div>
+        <div class="flex justify-between"><span>❄️ SEA-ICE RISK:</span><span id="risk-lbl-seaice" class="font-bold">0%</span></div>
+      </div>
+
+      <!-- Top Threat & Advice -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-1.5 text-[9px] text-on-surface-variant">
+        <div class="font-bold text-primary">TOP HAZARD THREAT</div>
+        <div id="risk-lbl-topthreat" class="font-bold text-amber-400">NONE</div>
+        <div class="font-bold text-primary border-t border-outline/10 pt-1.5">AI RE-STEER RECOMMENDATION</div>
+        <div id="risk-lbl-recommendation" class="font-bold text-secondary">SAFE TO PROCEED</div>
+        <div id="risk-lbl-reason" class="text-on-surface-variant mt-0.5 leading-tight">No active hazards.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Mission Planner Panel -->
+  <div id="ai-mission-panel" class="fixed left-4 bottom-24 w-72 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 shadow-xl font-mono text-xs select-none">
+    <div id="ai-mission-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 class="text-primary font-bold tracking-tight flex items-center">
+        <span class="material-symbols-outlined mr-2 text-secondary text-base">explore</span>
+        🧭 AI MISSION PLANNER
+      </h2>
+      <button id="ai-mission-panel-toggle" class="text-secondary font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
+    </div>
+    <div id="ai-mission-panel-body" class="p-3 space-y-3">
+      <!-- Planner Inputs -->
+      <div class="space-y-2">
+        <div class="text-[10px] text-on-surface-variant flex justify-between">
+          <span>MAX FUEL (%):</span>
+          <span id="mp-val-fuel" class="font-bold text-primary">65%</span>
+        </div>
+        <input type="range" id="mp-inp-fuel" min="10" max="100" value="65" class="w-full h-1 bg-surface rounded-lg appearance-none cursor-pointer accent-secondary">
+
+        <div class="text-[10px] text-on-surface-variant flex justify-between">
+          <span>MAX RISK CEILING:</span>
+          <span id="mp-val-risk" class="font-bold text-primary">0.45</span>
+        </div>
+        <input type="range" id="mp-inp-risk" min="0.05" max="1.0" step="0.05" value="0.45" class="w-full h-1 bg-surface rounded-lg appearance-none cursor-pointer accent-secondary">
+
+        <div class="text-[10px] text-on-surface-variant flex justify-between">
+          <span>ARRIVAL TIMELINE (HOURS):</span>
+          <span id="mp-val-hours" class="font-bold text-primary">20h</span>
+        </div>
+        <input type="range" id="mp-inp-hours" min="5" max="48" value="20" class="w-full h-1 bg-surface rounded-lg appearance-none cursor-pointer accent-secondary">
+
+        <div class="text-[10px] text-on-surface-variant">PRIORITY PROFILE:</div>
+        <select id="mp-inp-priority" class="w-full bg-surface border border-outline/50 rounded p-1 text-[10px] text-on-surface font-mono">
+          <option value="BALANCED">⚖ BALANCED</option>
+          <option value="SAFETY">🛡 SAFETY</option>
+          <option value="SPEED">⚡ SPEED</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-3 gap-1 border-t border-outline/30 pt-2.5">
+        <button id="mp-btn-plan" class="border border-primary text-primary bg-primary/5 hover:bg-primary/10 rounded py-1.5 text-[9px] font-bold">🧠 PLAN</button>
+        <button id="mp-btn-apply" class="border border-secondary text-secondary bg-secondary/5 hover:bg-secondary/10 rounded py-1.5 text-[9px] font-bold">✓ APPLY</button>
+        <button id="mp-btn-reset" class="border border-error text-error bg-error/5 hover:bg-error/10 rounded py-1.5 text-[9px] font-bold">↺ RESET</button>
+      </div>
+
+      <!-- Results Display -->
+      <div id="mp-results-box" class="p-2 rounded bg-surface border border-outline/50 text-[10px] space-y-1.5 text-on-surface-variant hidden">
+        <div class="font-bold text-primary border-b border-outline/10 pb-0.5 flex justify-between">
+          <span>RECOMMENDED PLAN</span>
+          <span id="mp-lbl-strategy" class="text-secondary font-bold">SAFEST ★</span>
+        </div>
+        <div class="grid grid-cols-2 gap-1 text-[9px]">
+          <div>ETA: <span id="mp-lbl-eta" class="font-bold">18.4h</span></div>
+          <div>FUEL: <span id="mp-lbl-fuel" class="font-bold">58%</span></div>
+          <div>MAX RISK: <span id="mp-lbl-risk" class="font-bold">31%</span></div>
+          <div>SAFETY: <span id="mp-lbl-safety" class="font-bold">69%</span></div>
+        </div>
+        <div class="text-[8px] text-on-surface-variant pt-1 border-t border-outline/10">
+          <div>AI CONFIDENCE: <span id="mp-lbl-conf" class="font-bold text-secondary">89%</span></div>
+          <div class="mt-1 font-bold">TRADE-OFFS:</div>
+          <ul id="mp-lbl-tradeoffs" class="list-disc list-inside space-y-0.5 pl-0.5 text-[8px]">
+            <!-- Trades -->
+          </ul>
+        </div>
+        <div class="text-center pt-1 border-t border-outline/10 font-bold text-[9px]" id="mp-lbl-status">
+          MISSION FEASIBLE ✓
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Data Mode Switcher Panel -->
+  <div id="ai-data-mode-panel" class="fixed right-4 bottom-24 w-72 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 shadow-xl font-mono text-xs select-none">
+    <div id="ai-data-mode-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 class="text-primary font-bold tracking-tight flex items-center text-[10px]">
+        <span class="material-symbols-outlined mr-2 text-secondary text-base">satellite_alt</span>
+        🛰️ ANTARCTIC DATA MODE
+      </h2>
+      <button id="ai-data-mode-panel-toggle" class="text-secondary font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
+    </div>
+    <div id="ai-data-mode-panel-body" class="p-3 space-y-3">
+      <!-- Mode Switcher Buttons -->
+      <div class="grid grid-cols-2 gap-2">
+        <button id="data-mode-btn-sim" class="border border-secondary text-secondary bg-secondary/10 hover:bg-secondary/20 rounded py-1.5 text-[9px] font-bold transition-all">🧪 SIMULATION</button>
+        <button id="data-mode-btn-data" class="border border-outline hover:bg-outline/20 text-on-surface rounded py-1.5 text-[9px] font-bold transition-all">🛰️ DATA-DRIVEN</button>
+      </div>
+
+      <!-- Telemetry status -->
+      <div class="p-2 rounded bg-surface border border-outline/50 text-[9px] space-y-1 text-on-surface-variant">
+        <div class="flex justify-between"><span>DATA STATUS:</span><span id="data-lbl-status" class="font-bold text-secondary">SIMULATION ACTIVE</span></div>
+        <div class="flex justify-between"><span>DATASET:</span><span id="data-lbl-dataset" class="font-bold text-primary">N/A</span></div>
+        <div class="flex justify-between"><span>SEA ICE SOURCE:</span><span id="data-lbl-seaice" class="font-bold">PROCEDURAL</span></div>
+        <div class="flex justify-between"><span>OCEAN CURRENT:</span><span id="data-lbl-current" class="font-bold">PROCEDURAL</span></div>
+        <div class="flex justify-between"><span>WIND FIELD:</span><span id="data-lbl-wind" class="font-bold">PROCEDURAL</span></div>
+        <div class="flex justify-between"><span>ICEBERG TRACKS:</span><span id="data-lbl-iceberg" class="font-bold">PROCEDURAL</span></div>
+      </div>
+      <div class="text-[8px] text-on-surface-variant leading-normal opacity-70">
+        * Bundled preprocessed environmental sample for offline demonstration.
+      </div>
+    </div>
+  </div>
+
+  <!-- AI What-If Simulator Panel -->
+  <div id="ai-whatif-panel" class="fixed right-4 bottom-24 w-80 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 shadow-xl font-mono text-xs select-none max-h-[80vh] overflow-y-auto hidden">
+    <div id="ai-whatif-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 class="text-primary font-bold tracking-tight flex items-center text-[10px]">
+        <span class="material-symbols-outlined mr-2 text-secondary text-base">science</span>
+        🔮 AI WHAT-IF SIMULATOR
+      </h2>
+      <button id="ai-whatif-panel-toggle" class="text-secondary font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
+    </div>
+    <div id="ai-whatif-panel-body" class="p-3 space-y-3">
+      <!-- Sliders -->
+      <div class="space-y-2">
+        <div class="space-y-1">
+          <div class="flex justify-between text-[9px]"><span>🌬 WIND MULTIPLIER:</span><span id="wi-lbl-wind" class="font-bold text-secondary">100%</span></div>
+          <input type="range" id="wi-inp-wind" min="0.5" max="2.0" step="0.1" value="1.0" class="w-full accent-secondary">
+        </div>
+        <div class="space-y-1">
+          <div class="flex justify-between text-[9px]"><span>🌊 CURRENT MULTIPLIER:</span><span id="wi-lbl-current" class="font-bold text-secondary">100%</span></div>
+          <input type="range" id="wi-inp-current" min="0.5" max="2.0" step="0.1" value="1.0" class="w-full accent-secondary">
+        </div>
+        <div class="space-y-1">
+          <div class="flex justify-between text-[9px]"><span>❄ SEA ICE ADJUSTMENT:</span><span id="wi-lbl-ice" class="font-bold text-secondary">+0%</span></div>
+          <input type="range" id="wi-inp-ice" min="0.0" max="0.6" step="0.05" value="0.0" class="w-full accent-secondary">
+        </div>
+        <div class="space-y-1">
+          <div class="flex justify-between text-[9px]"><span>🧊 ICEBERG UNCERTAINTY:</span><span id="wi-lbl-iceberg" class="font-bold text-secondary">100%</span></div>
+          <input type="range" id="wi-inp-iceberg" min="0.5" max="2.0" step="0.1" value="1.0" class="w-full accent-secondary">
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid grid-cols-2 gap-2 border-t border-outline/30 pt-2.5">
+        <button id="wi-btn-run" class="border border-primary text-primary bg-primary/5 hover:bg-primary/10 rounded py-1.5 text-[9px] font-bold">▶ RUN WHAT-IF</button>
+        <button id="wi-btn-reset" class="border border-error text-error bg-error/5 hover:bg-error/10 rounded py-1.5 text-[9px] font-bold">↺ RESET</button>
+      </div>
+
+      <!-- Baseline vs Hypothetical Readouts -->
+      <div id="wi-results-box" class="p-2 rounded bg-surface border border-outline/50 text-[9px] space-y-1.5 text-on-surface-variant hidden">
+        <div class="font-bold text-primary border-b border-outline/10 pb-0.5">BASELINE vs HYPOTHETICAL</div>
+        <div class="grid grid-cols-3 gap-1 font-bold text-center border-b border-outline/10 pb-0.5">
+          <span class="text-left">METRIC</span>
+          <span>LIVE</span>
+          <span>HYPO</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1 text-center">
+          <span class="text-left">ETA:</span>
+          <span id="wi-lbl-base-eta">12.4h</span>
+          <span id="wi-lbl-hypo-eta" class="text-secondary">14.1h</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1 text-center">
+          <span class="text-left">FUEL:</span>
+          <span id="wi-lbl-base-fuel">42%</span>
+          <span id="wi-lbl-hypo-fuel" class="text-secondary">51%</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1 text-center">
+          <span class="text-left">RISK:</span>
+          <span id="wi-lbl-base-risk">LOW</span>
+          <span id="wi-lbl-hypo-risk" class="text-secondary">HIGH</span>
+        </div>
+      </div>
+
+      <!-- AI Recommendations -->
+      <div id="wi-recommend-box" class="p-2 rounded bg-surface border border-outline/50 text-[9px] space-y-1 text-on-surface-variant hidden">
+        <div class="font-bold text-primary flex justify-between">
+          <span>🤖 AI RECOMMENDATION</span>
+          <span id="wi-lbl-rec-strat" class="text-secondary">SAFEST</span>
+        </div>
+        <div class="flex justify-between">
+          <span>CONFIDENCE:</span>
+          <span id="wi-lbl-rec-conf" class="font-bold text-secondary">87%</span>
+        </div>
+        <div class="flex justify-between">
+          <span>ACTION:</span>
+          <span id="wi-lbl-rec-action" class="font-bold">REROUTE WEST</span>
+        </div>
+        <div class="text-[8px] text-on-surface-variant border-t border-outline/10 pt-1 mt-1 leading-tight" id="wi-lbl-rec-reasons">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Toggle route preview -->
+      <div class="flex items-center space-x-2 border-t border-outline/30 pt-2 text-[9px]">
+        <input type="checkbox" id="wi-chk-show-route" class="accent-secondary">
+        <label for="wi-chk-show-route" class="font-bold text-on-surface-variant cursor-pointer">🗺 SHOW WHAT-IF ROUTE PREVIEW</label>
+      </div>
+
+      <div class="text-[8px] text-on-surface-variant leading-normal opacity-70">
+        * Shadow simulation runs in an isolated thread. Active vessel is unaffected.
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Autonomous Decision Center Panel -->
+  <div id="ai-decision-center-panel" class="fixed right-4 top-16 w-80 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 shadow-xl font-mono text-xs select-none max-h-[80vh] overflow-y-auto hidden">
+    <div id="ai-decision-center-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 class="text-primary font-bold tracking-tight flex items-center text-[10px]">
+        <span class="material-symbols-outlined mr-2 text-secondary text-base">emergency</span>
+        🚨 AI DECISION CENTER
+      </h2>
+      <button id="ai-decision-center-panel-toggle" class="text-secondary font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
+    </div>
+    <div id="ai-decision-center-panel-body" class="p-3 space-y-3">
+      <!-- Current Decision -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-1 text-center">
+        <div class="text-[8px] text-on-surface-variant font-bold">CURRENT AI DECISION ACTION</div>
+        <div id="dc-lbl-action" class="text-error font-bold text-xs tracking-wider uppercase">MAINTAIN COURSE</div>
+        <div id="dc-lbl-reason" class="text-[8px] text-on-surface-variant leading-tight">No critical ice barriers in pathway.</div>
+      </div>
+
+      <!-- Decision Pipeline Timeline -->
+      <div class="space-y-1.5">
+        <div class="font-bold text-primary text-[10px] border-b border-outline/20 pb-0.5">DECISION PIPELINE TIMELINE</div>
+        <div id="dc-pipeline-list" class="space-y-2 pt-1">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Expected Impact & Confidence -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-1 text-[9px] text-on-surface-variant">
+        <div class="font-bold text-primary border-b border-outline/10 pb-0.5">EXPECTED IMPACT METRICS</div>
+        <div class="grid grid-cols-2 gap-1 text-[8px]">
+          <div>ETA DELTA: <span id="dc-lbl-impact-eta" class="font-bold text-primary">+0.0h</span></div>
+          <div>FUEL DELTA: <span id="dc-lbl-impact-fuel" class="font-bold text-primary">+0%</span></div>
+          <div>RISK REDUCTION: <span id="dc-lbl-impact-risk" class="font-bold text-secondary">-0%</span></div>
+          <div>CONFIDENCE: <span id="dc-lbl-impact-conf" class="font-bold text-secondary">100%</span></div>
+        </div>
+      </div>
+
+      <!-- Live Decision Log -->
+      <div class="space-y-1.5">
+        <div class="font-bold text-primary text-[10px] border-b border-outline/20 pb-0.5">LIVE DECISION LOG</div>
+        <div id="dc-events-list" class="space-y-1 max-h-36 overflow-y-auto text-[8px] pr-1">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Confidence Intelligence Panel -->
+  <div id="ai-confidence-panel" class="fixed right-4 top-16 w-80 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 shadow-xl font-mono text-xs select-none max-h-[80vh] overflow-y-auto hidden">
+    <div id="ai-confidence-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 class="text-primary font-bold tracking-tight flex items-center text-[10px]">
+        <span class="material-symbols-outlined mr-2 text-secondary text-base">trending_up</span>
+        📈 AI CONFIDENCE INTELLIGENCE
+      </h2>
+      <button id="ai-confidence-panel-toggle" class="text-secondary font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
+    </div>
+    <div id="ai-confidence-panel-body" class="p-3 space-y-3">
+      <!-- Total Compound Decision Confidence -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-1.5 text-[9px] text-on-surface-variant">
+        <div class="font-bold text-primary flex justify-between">
+          <span>🤖 AI DECISION CONFIDENCE</span>
+          <span id="conf-lbl-total" class="text-secondary font-bold">87%</span>
+        </div>
+        <div class="w-full bg-outline/20 h-2.5 rounded-sm overflow-hidden flex">
+          <div id="conf-bar-total" class="bg-secondary h-full transition-all duration-300" style="width: 87%"></div>
+        </div>
+        <div class="flex justify-between text-[8px]">
+          <span>LEVEL: <span id="conf-lbl-level" class="font-bold text-primary">HIGH</span></span>
+          <span>COMPLETENESS: <span id="conf-lbl-completeness" class="font-bold text-primary">100%</span></span>
+        </div>
+      </div>
+
+      <!-- Iceberg Forecast horizons -->
+      <div class="space-y-1.5">
+        <div class="font-bold text-primary text-[10px] border-b border-outline/20 pb-0.5">🧊 ICEBERG FORECAST CONFIDENCE</div>
+        <div class="space-y-1 text-[9px]">
+          <div class="flex justify-between"><span>+6 HOURS:</span><span id="conf-lbl-ice-6" class="font-bold text-secondary">91% HIGH</span></div>
+          <div class="flex justify-between"><span>+12 HOURS:</span><span id="conf-lbl-ice-12" class="font-bold text-secondary">82% HIGH</span></div>
+          <div class="flex justify-between"><span>+24 HOURS:</span><span id="conf-lbl-ice-24" class="font-bold text-amber-400">68% MODERATE</span></div>
+        </div>
+      </div>
+
+      <!-- Sea Ice Forecast horizons -->
+      <div class="space-y-1.5">
+        <div class="font-bold text-primary text-[10px] border-b border-outline/20 pb-0.5">❄ SEA ICE FORECAST</div>
+        <div class="space-y-1 text-[9px]">
+          <div class="flex justify-between"><span>CONFIDENCE:</span><span id="conf-lbl-sea-val" class="font-bold text-secondary">84%</span></div>
+          <div class="flex justify-between"><span>RELIABILITY:</span><span id="conf-lbl-sea-reliability" class="font-bold text-secondary">HIGH</span></div>
+        </div>
+      </div>
+
+      <!-- Live Validation metrics -->
+      <div class="space-y-1.5">
+        <div class="font-bold text-primary text-[10px] border-b border-outline/20 pb-0.5">📊 LIVE VALIDATION STATUS</div>
+        <div class="space-y-1 text-[9px] text-on-surface-variant">
+          <div class="flex justify-between"><span>MEAN ERROR:</span><span id="conf-lbl-val-mean" class="font-bold">14.2 SU</span></div>
+          <div class="flex justify-between"><span>TREND:</span><span id="conf-lbl-val-trend" class="font-bold text-secondary">IMPROVING</span></div>
+          <div class="flex justify-between"><span>SAMPLES VALIDATED:</span><span id="conf-lbl-val-samples" class="font-bold">18</span></div>
+        </div>
+      </div>
+
+      <!-- Uncertainty Levels -->
+      <div class="space-y-1.5">
+        <div class="font-bold text-primary text-[10px] border-b border-outline/20 pb-0.5">📉 ENVIRONMENTAL UNCERTAINTY</div>
+        <div class="space-y-1 text-[9px] text-on-surface-variant">
+          <div class="flex justify-between"><span>ENVIRONMENT STABILITY:</span><span id="conf-lbl-env-stable" class="font-bold text-secondary">95%</span></div>
+          <div class="flex justify-between"><span>CONTROLLER TRACKING:</span><span id="conf-lbl-ctrl-stable" class="font-bold text-secondary">STABLE</span></div>
+        </div>
+      </div>
+
+      <!-- Boosters and Reducers -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-1.5 text-[8px] text-on-surface-variant">
+        <div class="font-bold text-primary text-[9px]">🧠 WHY THIS CONFIDENCE?</div>
+        <div id="conf-boosters-list" class="space-y-0.5 text-secondary">
+          <!-- Boosters -->
+        </div>
+        <div id="conf-reducers-list" class="space-y-0.5 text-error">
+          <!-- Reducers -->
+        </div>
+      </div>
+
+      <!-- Toggle route uncertainty -->
+      <div class="flex items-center space-x-2 border-t border-outline/30 pt-2 text-[9px]">
+        <input type="checkbox" id="conf-chk-show-uncertainty" class="accent-secondary" checked>
+        <label for="conf-chk-show-uncertainty" class="font-bold text-on-surface-variant cursor-pointer">👁 SHOW AI UNCERTAINTY REGIONS</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Explainability / Route Intelligence Panel -->
+  <div id="ai-explain-panel" class="fixed right-4 top-16 w-80 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 shadow-xl font-mono text-xs select-none max-h-[80vh] overflow-y-auto">
+    <div id="ai-explain-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 class="text-primary font-bold tracking-tight flex items-center text-[10px]">
+        <span class="material-symbols-outlined mr-2 text-secondary text-base">psychology</span>
+        🔍 AI ROUTE INTELLIGENCE
+      </h2>
+      <button id="ai-explain-panel-toggle" class="text-secondary font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
+    </div>
+    <div id="ai-explain-panel-body" class="p-3 space-y-3">
+      <!-- Top 3 Reasons -->
+      <div class="space-y-1.5">
+        <div class="font-bold text-primary text-[10px] border-b border-outline/20 pb-0.5">WHY THIS ROUTE?</div>
+        <div id="explain-reasons-list" class="space-y-2">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Tradeoff Summary -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-1 text-[9px] text-on-surface-variant">
+        <div class="font-bold text-primary">TRADEOFF COMPOSITE SUMMARY</div>
+        <div id="explain-lbl-tradeoff" class="leading-tight text-on-surface">No active route comparison computed.</div>
+      </div>
+
+      <!-- Counterfactuals (Why Not?) -->
+      <div class="space-y-1.5">
+        <div class="font-bold text-primary text-[10px] border-b border-outline/20 pb-0.5">WHY NOT THE OTHER ROUTES?</div>
+        <div id="explain-counterfactuals-list" class="space-y-1.5 text-[9px] text-on-surface-variant">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Confidence Breakdown -->
+      <div class="p-2 rounded bg-surface border border-outline/50 space-y-1.5 text-[9px] text-on-surface-variant">
+        <div class="font-bold text-primary flex justify-between">
+          <span>AI DECISION CONFIDENCE:</span>
+          <span id="explain-lbl-conf-total" class="text-secondary font-bold">N/A</span>
+        </div>
+        <div class="space-y-1">
+          <div class="flex justify-between"><span>ML FORECAST:</span><span id="explain-lbl-conf-ml">85%</span></div>
+          <div class="flex justify-between"><span>RISK MAP:</span><span id="explain-lbl-conf-risk">90%</span></div>
+          <div class="flex justify-between"><span>SAFETY MARGIN:</span><span id="explain-lbl-conf-safety">80%</span></div>
+          <div class="flex justify-between"><span>DECISION STABILITY:</span><span id="explain-lbl-conf-stability">95%</span></div>
+        </div>
+      </div>
+
+      <!-- Pipeline Timeline -->
+      <div class="space-y-1.5">
+        <div class="font-bold text-primary text-[10px] border-b border-outline/20 pb-0.5">DECISION PIPELINE TIMELINE</div>
+        <div id="explain-timeline-list" class="space-y-2 pt-1">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Context Panel (Appears on Selection) -->
+  <div id="context-panel" class="fixed left-4 bottom-24 w-80 bg-surface-container/95 backdrop-blur-md border border-outline rounded-lg z-40 hidden shadow-xl font-mono text-xs select-none">
+    <div id="context-panel-header" class="flex justify-between items-center p-3 border-b border-outline/30 cursor-move">
+      <h2 id="context-title" class="font-mono text-xs font-bold text-primary flex items-center">
+        <span class="material-symbols-outlined mr-2 text-secondary text-base" id="context-icon">directions_boat</span>
+        <span id="context-name">V-ALPHA</span>
+      </h2>
+      <div class="flex items-center space-x-2">
+        <button id="context-panel-toggle" class="text-secondary font-bold text-sm w-5 h-5 flex items-center justify-center border border-outline/50 rounded hover:bg-outline/20">−</button>
+        <button id="close-context-btn" class="text-on-surface-variant hover:text-primary transition-colors material-symbols-outlined text-sm">close</button>
+      </div>
+    </div>
     
-    <!-- Simulation Clock -->
-    <div class="flex items-center space-x-6 w-64 pl-4">
-      <div class="font-mono-data text-mono-data">
-        <div class="text-outline text-[10px] tracking-wider">SIMULATION TIME (UTC)</div>
-        <div id="sim-clock-val" class="text-primary tracking-widest mt-0.5 text-[15px] font-bold">2042.11.04_14:00:00Z</div>
+    <div id="context-panel-body" class="p-3 space-y-3 text-on-surface-variant">
+      <div id="context-content" class="space-y-3">
+        <!-- Injected by JS -->
       </div>
-    </div>
-
-    <!-- Main Playback Controls -->
-    <div class="flex items-center space-x-4 bg-surface-variant/40 rounded-full p-2 border border-outline-variant/30">
-      <button id="step-prev-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" title="Step Back">
-        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">skip_previous</span>
-      </button>
-
-      <button id="play-pause-btn" class="w-14 h-14 rounded-full bg-surface flex items-center justify-center border border-primary-container text-primary-container active-glow hover:scale-105 transition-all">
-        <span id="play-pause-icon" class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">pause</span>
-      </button>
-
-      <button id="step-next-btn" class="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" title="Step Forward 1h">
-        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">skip_next</span>
-      </button>
-    </div>
-
-    <!-- Right Controls: Time Warp & Chaos Mode -->
-    <div class="flex items-center space-x-4 w-80 justify-end pr-4">
-      
-      <!-- Time Warp Multipliers -->
-      <div class="flex border border-outline-variant/50 rounded-sm overflow-hidden bg-surface-container">
-        <button id="timewarp-1x" class="px-3 py-1 font-mono-data text-[11px] bg-primary-container/20 text-primary-container border-r border-outline-variant/50">1X</button>
-        <button id="timewarp-10x" class="px-3 py-1 font-mono-data text-[11px] text-on-surface-variant hover:bg-surface-variant border-r border-outline-variant/50">10X</button>
-        <button id="timewarp-100x" class="px-3 py-1 font-mono-data text-[11px] text-on-surface-variant hover:bg-surface-variant border-r border-outline-variant/50">100X</button>
-        <button id="timewarp-1000x" class="px-3 py-1 font-mono-data text-[11px] text-on-surface-variant hover:bg-surface-variant">1000X</button>
-      </div>
-
-      <!-- Storm / Chaos Mode Trigger -->
-      <button id="storm-mode-btn" class="glass-panel px-4 py-2 flex items-center group hover:bg-error/20 transition-all border-error/40">
-        <span class="material-symbols-outlined text-error mr-2 text-[18px] group-hover:animate-pulse">thunderstorm</span>
-        <span class="font-label-caps text-label-caps text-error tracking-wider font-bold">⚠️ STORM EVENT</span>
-      </button>
-
     </div>
   </div>
 
-  <!-- Entry Script -->
+  <!-- Bottom Control Strip -->
+  <div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-surface-container/95 backdrop-blur-md border border-outline rounded-full flex items-center px-6 py-2 shadow-2xl space-x-6">
+    
+    <!-- Time Controls -->
+    <div class="flex items-center space-x-2 border-r border-outline pr-6">
+      <button id="play-pause-btn" class="text-primary hover:text-secondary transition-colors outline-none">
+        <span id="play-pause-icon" class="material-symbols-outlined text-3xl">pause_circle</span>
+      </button>
+      <div class="flex bg-surface rounded overflow-hidden border border-outline">
+        <button id="timewarp-1x" class="px-2 py-1 text-xs font-mono text-secondary bg-outline/30">1X</button>
+        <button id="timewarp-10x" class="px-2 py-1 text-xs font-mono text-on-surface-variant hover:bg-outline/20">10X</button>
+        <button id="timewarp-100x" class="px-2 py-1 text-xs font-mono text-on-surface-variant hover:bg-outline/20">100X</button>
+      </div>
+    </div>
+
+    <!-- Env / Hazard Toggles -->
+    <div class="flex items-center space-x-4 border-r border-outline pr-6">
+      <button id="add-iceberg-btn" class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors group relative">
+        <span class="material-symbols-outlined text-xl">ac_unit</span>
+        <span class="text-[10px] font-mono mt-1">SPAWN ICEBERG</span>
+      </button>
+      
+      <!-- Environment Drawer Toggle -->
+      <button id="toggle-env-drawer" class="flex flex-col items-center text-on-surface-variant hover:text-primary transition-colors">
+        <span class="material-symbols-outlined text-xl">tune</span>
+        <span class="text-[10px] font-mono mt-1">ENVIRONMENT</span>
+      </button>
+    </div>
+    
+    <div class="flex items-center">
+       <button id="recalibrate-btn" class="text-xs font-mono border border-outline px-3 py-1 rounded hover:bg-outline/20 transition-colors">RESET</button>
+    </div>
+
+  </div>
+
+  <!-- Persistent Environment Drawer -->
+  <div id="env-drawer" class="fixed left-0 top-14 bottom-0 w-80 bg-surface-container/95 backdrop-blur-md border-r border-outline z-40 transform -translate-x-full transition-transform duration-300 shadow-2xl flex flex-col font-mono text-sm">
+    <div class="flex justify-between items-center p-4 border-b border-outline">
+      <h2 class="text-primary font-bold tracking-tight">ENVIRONMENT CONTROLS</h2>
+      <button id="close-env-drawer" class="text-on-surface-variant hover:text-primary material-symbols-outlined">close</button>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-6">
+      
+      <!-- Ocean -->
+      <div>
+        <h3 class="text-secondary font-bold mb-2">OCEAN</h3>
+        <label class="block text-xs mb-1 font-semibold">CURRENT SPEED (0-25)</label>
+        <input id="ctrl-ocean-speed" type="range" min="0" max="25" value="18" class="w-full mb-2"/>
+        <label class="block text-xs mb-1 font-semibold">CURRENT DIRECTION (°)</label>
+        <input id="ctrl-ocean-direction" type="range" min="0" max="360" value="127" class="w-full mb-2"/>
+        <label class="block text-xs mb-1 font-semibold">TURBULENCE</label>
+        <input id="ctrl-ocean-turb" type="range" min="0" max="100" value="30" class="w-full"/>
+      </div>
+
+      <!-- Wind -->
+      <div>
+        <h3 class="text-secondary font-bold mb-2 flex justify-between">WIND <input type="checkbox" id="ctrl-wind-enable" checked class="rounded border-outline bg-surface text-secondary focus:ring-0"></h3>
+        <label class="block text-xs mb-1 font-semibold">WIND SPEED (0-100)</label>
+        <input id="ctrl-wind-speed" type="range" min="0" max="100" value="45" class="w-full mb-2"/>
+        <label class="block text-xs mb-1 font-semibold">WIND DIRECTION (°)</label>
+        <input id="ctrl-wind-direction" type="range" min="0" max="360" value="247" class="w-full mb-2"/>
+      </div>
+
+      <!-- Sea Ice -->
+      <div>
+        <h3 class="text-secondary font-bold mb-2 flex justify-between">SEA ICE <input type="checkbox" id="ctrl-ice-enable" checked class="rounded border-outline bg-surface text-secondary focus:ring-0"></h3>
+        <label class="block text-xs mb-1 font-semibold">CONCENTRATION</label>
+        <input id="ctrl-ice-conc" type="range" min="0" max="100" value="20" class="w-full"/>
+      </div>
+
+      <!-- Icebergs -->
+      <div>
+        <h3 class="text-secondary font-bold mb-2 flex justify-between">ICEBERGS <input type="checkbox" id="ctrl-ib-enable" checked class="rounded border-outline bg-surface text-secondary focus:ring-0"></h3>
+        <label class="block text-xs mb-1 font-semibold">DRIFT STRENGTH</label>
+        <input id="ctrl-ib-drift" type="range" min="0" max="300" value="100" class="w-full"/>
+      </div>
+
+      <!-- Vessel -->
+      <div>
+        <h3 class="text-secondary font-bold mb-2 flex justify-between">VESSEL (AUTOPILOT) <input type="checkbox" id="ctrl-vessel-auto" checked class="rounded border-outline bg-surface text-secondary focus:ring-0"></h3>
+        <label class="block text-xs mb-1 font-semibold">MANUAL THROTTLE (%)</label>
+        <input id="ctrl-vessel-throttle" type="range" min="0" max="100" value="65" class="w-full mb-2"/>
+        <label class="block text-xs mb-1 font-semibold">MANUAL RUDDER</label>
+        <input id="ctrl-vessel-rudder" type="range" min="-35" max="35" value="0" class="w-full mb-2"/>
+        <label class="block text-xs mb-1 font-semibold">ENGINE POWER MULTIPLIER</label>
+        <input id="ctrl-vessel-engine-power" type="range" min="50" max="300" value="100" class="w-full mb-2"/>
+        <label class="block text-xs mb-1 font-semibold">MAX CRUISE SPEED</label>
+        <input id="ctrl-vessel-max-speed" type="range" min="10" max="50" value="30" class="w-full mb-2"/>
+        <label class="block text-xs mb-1 font-semibold">AUTOPILOT THROTTLE (%)</label>
+        <input id="ctrl-vessel-autopilot-throttle" type="range" min="10" max="100" value="65" class="w-full"/>
+      </div>
+
+      <!-- Navigation -->
+      <div>
+        <h3 class="text-secondary font-bold mb-2">NAVIGATION A*</h3>
+        <select id="ctrl-nav-mode" class="w-full bg-surface border border-outline text-primary text-xs rounded p-1">
+          <option value="SHORTEST">SHORTEST ROUTE</option>
+          <option value="BALANCED" selected>BALANCED</option>
+          <option value="SAFEST">SAFEST (AVOID ICE)</option>
+        </select>
+      </div>
+
+      <!-- Presets -->
+      <div class="pt-4 border-t border-outline">
+        <h3 class="text-secondary font-bold mb-2">PRESETS</h3>
+        <div class="grid grid-cols-2 gap-2">
+          <button class="preset-btn text-xs border border-outline rounded py-1 hover:bg-outline/30" data-preset="CALM">CALM</button>
+          <button class="preset-btn text-xs border border-outline rounded py-1 hover:bg-outline/30" data-preset="STORM">STORM</button>
+          <button class="preset-btn text-xs border border-outline rounded py-1 hover:bg-outline/30" data-preset="ICE_FIELD">ICE FIELD</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

@@ -1,24 +1,50 @@
 /**
  * POLARIS DIGITAL TWIN - Main Application Entry Point
+ *
+ * COORDINATE SYSTEM: All simulation entities (Ship, Icebergs, AINavigator, VectorField)
+ * operate in WORLD coordinates (WORLD_W x WORLD_H = 3600 x 2400).
+ * The CanvasRenderer applies a camera transform to map world coords to screen pixels.
+ * DO NOT mix screen pixel coords with world coords.
  */
 
 import { VectorField } from './simulation/vectorField.js';
 import { Iceberg } from './simulation/iceberg.js';
 import { Ship } from './simulation/ship.js';
 import { AINavigator } from './ai/aiNavigator.js';
-import { CanvasRenderer } from './render/canvasRenderer.js';
+import { CanvasRenderer, PlanningMode } from './render/canvasRenderer.js';
 import { UIController } from './ui/uiController.js';
+import { AIClient } from './ui/aiClient.js';
+import { AutonomousController } from './ai/autonomousController.js';
+import { ScenarioManager } from './simulation/scenarioManager.js';
+import { ValidationEngine } from './simulation/validationEngine.js';
+import { RiskIntelligenceEngine } from './ai/riskIntelligenceEngine.js';
+import { MissionPlanner } from './ai/missionPlanner.js';
+import { AntarcticDataManager } from './data/antarcticDataManager.js';
+import { ExplainabilityEngine } from './ai/explainabilityEngine.js';
+import { CounterfactualSimulator } from './ai/counterfactualSimulator.js';
+import { ConfidenceIntelligenceEngine } from './ai/confidenceIntelligenceEngine.js';
+import { DecisionIntelligenceEngine } from './ai/decisionIntelligenceEngine.js';
+
+// Canonical World Dimensions - ALL simulation entities MUST use these
+const WORLD_W = 3600;
+const WORLD_H = 2400;
 
 class SimulationEngine {
   constructor() {
     const canvasEl = document.getElementById('map-canvas');
 
-    this.vectorField = new VectorField(canvasEl.clientWidth || window.innerWidth, canvasEl.clientHeight || window.innerHeight);
-    this.ship = new Ship({ x: 250, y: 550, heading: 40 });
-    this.aiNavigator = new AINavigator(this.vectorField.width, this.vectorField.height);
+    // VectorField and AINavigator MUST be initialized with WORLD dimensions, not canvas.clientWidth
+    this.vectorField = new VectorField(WORLD_W, WORLD_H);
+    this.aiNavigator = new AINavigator(WORLD_W, WORLD_H);
+
+    // Ship starts in world coordinates
+    this.ship = new Ship({ x: 400, y: 1800, heading: 330 });
 
     this.icebergs = [];
     this.initDefaultIcebergs();
+
+    this.scenarioManager = new ScenarioManager(this);
+    this.validationEngine = new ValidationEngine(this);
 
     this.renderer = new CanvasRenderer(canvasEl);
     this.renderer.bindEntitiesGetter(
@@ -27,40 +53,289 @@ class SimulationEngine {
     );
 
     this.renderer.onSelectIceberg = (iceberg) => {
-      this.uiController.showIcebergInspector(iceberg);
+      this.uiController && this.uiController.showIcebergInspector && this.uiController.showIcebergInspector(iceberg);
+    };
+
+    this.renderer.onPlaceNavPoint = (wx, wy, mode) => this.handleNavPointPlacement(wx, wy, mode);
+
+    // Central Simulation State (Source of Truth)
+    // ALL coordinates in this state are WORLD coordinates
+    this.state = {
+      simulation: {
+        isPaused: false,
+        timeWarp: 1,
+        simTimeHours: 14.0
+      },
+      environment: {
+        mode: 'SIMULATION',
+        ocean: {
+          currentSpeed: 1.8,
+          currentDirection: 127,
+          turbulence: 0.3
+        },
+        wind: {
+          enabled: true,
+          speed: 45.2,
+          direction: 247
+        },
+        seaIce: {
+          enabled: true,
+          averageConcentration: 0.2,
+          resistanceFactor: 1.0
+        }
+      },
+      vessel: {
+        throttle: 65,
+        rudder: 0,
+        // Normalized simulation units - NOT real SI units
+        maxSpeed: 30.0,        // SU/sec (simulation units per second)
+        dragCoefficient: 0.04, // normalized drag coefficient
+        mass: 1.0,             // normalized mass (1.0 = balanced against thrust/drag)
+        heading: 330,
+        autopilot: true,
+        enginePower: 1.0,
+        autopilotThrottle: 65
+      },
+      navigation: {
+        mode: 'BALANCED',
+        routeInvalid: false,
+        routeCalculated: false,
+        isNavigating: false,
+        planningMode: PlanningMode.NONE,
+        startPoint: null,
+        destinationPoint: null,
+        destination: { x: WORLD_W - 400, y: 400 },
+        statusMessage: 'Set start and destination points'
+      },
+      icebergs: {
+        count: 6,
+        enabled: true,
+        driftStrength: 1.0,
+        collisionRadius: 1.0
+      }
     };
 
     this.uiController = new UIController(this);
+    this.aiClient = new AIClient(this);
+    this.autonomousController = new AutonomousController(this);
+    this.riskIntelligenceEngine = new RiskIntelligenceEngine(this);
+    this.missionPlanner = new MissionPlanner(this);
+    this.missionPlan = null;
+    this.antarcticDataManager = new AntarcticDataManager(this);
+    this.explainabilityEngine = new ExplainabilityEngine(this);
+    this.counterfactualSimulator = new CounterfactualSimulator(this);
+    this.confidenceIntelligenceEngine = new ConfidenceIntelligenceEngine(this);
+    this.decisionIntelligenceEngine = new DecisionIntelligenceEngine(this);
 
-    // Simulation Loop state
-    this.isPaused = false;
-    this.timeWarp = 1;
-    this.simTimeHours = 14.0; // 14:00Z
+    this.scenarioManager.saveDefaultStateCheckpoints();
+
     this.lastTimestamp = performance.now();
 
-    // Start Main Loop
+    // Debug HUD toggle
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'd' || e.key === 'D') {
+        const hud = document.getElementById('debug-hud');
+        if (hud) hud.classList.toggle('hidden');
+      }
+    });
+
     requestAnimationFrame((t) => this.loop(t));
   }
 
   initDefaultIcebergs() {
-    this.icebergs = [
-      new Iceberg({ id: 1, name: 'IB-01', x: 620, y: 220, mass: 4.8, size: 720, currentResponse: 0.88, windResponse: 0.12 }),
-      new Iceberg({ id: 2, name: 'IB-02', x: 540, y: 460, mass: 2.3, size: 480, currentResponse: 0.80, windResponse: 0.20 }),
-      new Iceberg({ id: 3, name: 'IB-03', x: 780, y: 350, mass: 6.1, size: 890, currentResponse: 0.92, windResponse: 0.08 }),
-      new Iceberg({ id: 4, name: 'IB-04', x: 420, y: 310, mass: 1.5, size: 340, currentResponse: 0.75, windResponse: 0.25 }),
-      new Iceberg({ id: 5, name: 'IB-05', x: 880, y: 520, mass: 3.9, size: 610, currentResponse: 0.85, windResponse: 0.15 }),
-      new Iceberg({ id: 6, name: 'IB-06', x: 350, y: 180, mass: 5.2, size: 780, currentResponse: 0.90, windResponse: 0.10 })
-    ];
+    // Generate 16 deterministic, nicely distributed icebergs using a seeded LCG generator
+    let seed = 12345;
+    function random() {
+      let x = Math.sin(seed++) * 10000;
+      return x - Math.floor(x);
+    }
+
+    this.icebergs = [];
+    // Spawning coordinates check: Keep safe distance from start (400, 1800) and destination (3200, 400)
+    const isSafe = (x, y) => {
+      const distToStart = Math.hypot(x - 400, y - 1800);
+      const distToDest  = Math.hypot(x - 3200, y - 400);
+      return distToStart > 300 && distToDest > 300;
+    };
+
+    // Pre-defined set of grid positions to ensure good distribution, perturbed randomly
+    const cols = 4;
+    const rows = 4;
+    const cellW = WORLD_W / cols;
+    const cellH = WORLD_H / rows;
+
+    let id = 1;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        // Perturb within grid cell
+        const px = c * cellW + cellW * 0.2 + random() * cellW * 0.6;
+        const py = r * cellH + cellH * 0.2 + random() * cellH * 0.6;
+        if (isSafe(px, py)) {
+          // Weighted random size categories:
+          // Small (50%): collision radius 10-20 => size 300-600
+          // Medium (30%): collision radius 20-40 => size 600-1200
+          // Large (15%): collision radius 40-70 => size 1200-2100
+          // Massive (5%): collision radius 70-110 => size 2100-3300
+          const randSize = random();
+          let size;
+          if (randSize < 0.50) {
+            size = 300 + Math.floor(random() * 300);
+          } else if (randSize < 0.80) {
+            size = 600 + Math.floor(random() * 600);
+          } else if (randSize < 0.95) {
+            size = 1200 + Math.floor(random() * 900);
+          } else {
+            size = 2100 + Math.floor(random() * 1200);
+          }
+
+          const mass = (size / 300) * (1.0 + random() * 2.0);
+          this.icebergs.push(new Iceberg({
+            id: id++,
+            name: `IB-${String(id).padStart(2, '0')}`,
+            x: px,
+            y: py,
+            mass,
+            size,
+            currentResponse: 0.7 + random() * 0.25,
+            windResponse: 0.08 + random() * 0.15
+          }));
+        }
+      }
+    }
   }
 
-  loadAntarcticPreset(presetName) {
-    if (presetName === 'DRAKE_PASSAGE') {
-      this.vectorField.setParams({ currentSpeed: 3.4, windSpeed: 68, waveHeight: 4.2, stormMode: true });
-    } else {
-      this.vectorField.setParams({ currentSpeed: 1.8, windSpeed: 45.2, waveHeight: 1.2, stormMode: false });
+  /** Validate world click — bounds + iceberg collision */
+  validateWorldPoint(wx, wy) {
+    const MARGIN = 50;
+    if (wx < MARGIN || wx > WORLD_W - MARGIN || wy < MARGIN || wy > WORLD_H - MARGIN) {
+      return { valid: false, reason: 'Point outside navigable area' };
     }
-    this.uiController.updateSlidersFromState();
-    this.uiController.toggleStormMode(false);
+    for (let ice of this.icebergs) {
+      const dist = Math.hypot(wx - ice.x, wy - ice.y);
+      const collisionR = ice.collisionRadius;
+      if (dist < collisionR) {
+        return { valid: false, reason: 'Point inside iceberg hazard zone' };
+      }
+    }
+    return { valid: true };
+  }
+
+  handleNavPointPlacement(wx, wy, mode) {
+    const check = this.validateWorldPoint(wx, wy);
+    if (!check.valid) {
+      this.state.navigation.statusMessage = check.reason;
+      this.uiController && this.uiController.updateNavStatus();
+      return;
+    }
+
+    const pt = { x: Math.round(wx), y: Math.round(wy) };
+
+    if (mode === PlanningMode.SET_START) {
+      this.state.navigation.startPoint = pt;
+      this.renderer.startPoint = pt;
+      this.state.navigation.planningMode = PlanningMode.NONE;
+      this.renderer.planningMode = PlanningMode.NONE;
+      this.state.navigation.statusMessage = `Start set (${pt.x}, ${pt.y}) — now set destination`;
+      this.state.navigation.routeCalculated = false;
+      this.state.navigation.routeInvalid = true;
+    } else if (mode === PlanningMode.SET_DESTINATION) {
+      this.state.navigation.destinationPoint = pt;
+      this.state.navigation.destination = pt;
+      this.renderer.destinationPoint = pt;
+      this.state.navigation.planningMode = PlanningMode.NONE;
+      this.renderer.planningMode = PlanningMode.NONE;
+      this.state.navigation.statusMessage = `Destination set (${pt.x}, ${pt.y}) — calculate route`;
+      this.state.navigation.routeCalculated = false;
+      this.state.navigation.routeInvalid = true;
+    }
+    this.uiController && this.uiController.updateNavStatus();
+  }
+
+  setPlanningMode(mode) {
+    this.state.navigation.planningMode = mode;
+    this.renderer.planningMode = mode;
+    const labels = {
+      [PlanningMode.SET_START]: 'Click map to set START point',
+      [PlanningMode.SET_DESTINATION]: 'Click map to set DESTINATION point',
+      [PlanningMode.NONE]: this.state.navigation.statusMessage
+    };
+    this.state.navigation.statusMessage = labels[mode] || labels[PlanningMode.NONE];
+    this.uiController && this.uiController.updateNavStatus();
+  }
+
+  calculateRoute() {
+    const nav = this.state.navigation;
+    if (!nav.startPoint) {
+      nav.statusMessage = 'Set a start point first';
+      this.uiController && this.uiController.updateNavStatus();
+      return false;
+    }
+    if (!nav.destinationPoint) {
+      nav.statusMessage = 'Set a destination point first';
+      this.uiController && this.uiController.updateNavStatus();
+      return false;
+    }
+
+    const startShip = { x: nav.startPoint.x, y: nav.startPoint.y };
+    this.aiNavigator.calculateRoute(
+      startShip,
+      nav.destinationPoint,
+      this.icebergs,
+      this.vectorField,
+      nav.mode,
+      this.state,
+      this.ship
+    );
+    nav.routeCalculated = true;
+    nav.routeInvalid = false;
+    nav.statusMessage = `Route calculated (${this.ship.routeWaypoints.length} waypoints)`;
+    this.uiController && this.uiController.updateNavStatus();
+    return true;
+  }
+
+  clearRoute() {
+    this.ship.routeWaypoints = [];
+    this.ship.waypointIndex = 0;
+    this.ship.targetWaypoint = null;
+    this.aiNavigator.optimalRoute = [];
+    this.state.navigation.routeCalculated = false;
+    this.state.navigation.routeInvalid = true;
+    this.state.navigation.isNavigating = false;
+    this.state.navigation.statusMessage = 'Route cleared';
+    this.uiController && this.uiController.updateNavStatus();
+  }
+
+  placeVesselAtStart() {
+    const start = this.state.navigation.startPoint;
+    if (!start) {
+      this.state.navigation.statusMessage = 'Set a start point first';
+      this.uiController && this.uiController.updateNavStatus();
+      return;
+    }
+    this.ship.x = start.x;
+    this.ship.y = start.y;
+    this.ship.vx = 0;
+    this.ship.vy = 0;
+    this.ship.angularVelocity = 0;
+    this.ship.waypointIndex = 0;
+    this.ship.targetWaypoint = this.ship.routeWaypoints.length > 0 ? this.ship.routeWaypoints[0] : null;
+    this.state.navigation.statusMessage = 'Vessel placed at start';
+    this.uiController && this.uiController.updateNavStatus();
+  }
+
+  startNavigation() {
+    if (!this.state.navigation.routeCalculated || this.ship.routeWaypoints.length === 0) {
+      this.state.navigation.statusMessage = 'Calculate a route first';
+      this.uiController && this.uiController.updateNavStatus();
+      return;
+    }
+    this.placeVesselAtStart();
+    this.state.vessel.autopilot = true;
+    this.state.navigation.isNavigating = true;
+    this.renderer.setFollowShip(true);
+    this.state.navigation.statusMessage = 'Navigation active';
+    this.uiController && this.uiController.updateNavStatus();
+    this.uiController && this.uiController.updateSlidersFromState();
   }
 
   resetToDefaults() {
@@ -75,57 +350,172 @@ class SimulationEngine {
       windGusts: false,
       stormMode: false
     });
-    this.ship.x = 250;
-    this.ship.y = 550;
-    this.ship.heading = 40;
+    // Reset ship to WORLD start position
+    this.ship.x = 400;
+    this.ship.y = 1800;
+    this.ship.heading = 330;
+    this.ship.vx = 0;
+    this.ship.vy = 0;
     this.ship.fuel = 78.4;
+    this.ship.routeWaypoints = [];
+    this.ship.waypointIndex = 0;
+    this.ship.targetWaypoint = null;
+
+    this.state.simulation.isPaused = false;
+    this.state.simulation.timeWarp = 1;
+    this.state.navigation.routeInvalid = true;
+    this.state.navigation.routeCalculated = false;
+    this.state.navigation.isNavigating = false;
+    this.state.navigation.planningMode = PlanningMode.NONE;
+    this.state.navigation.startPoint = null;
+    this.state.navigation.destinationPoint = null;
+    this.state.navigation.destination = { x: WORLD_W - 400, y: 400 };
+    this.state.navigation.statusMessage = 'Set start and destination points';
+
+    this.renderer.startPoint = null;
+    this.renderer.destinationPoint = null;
+    this.renderer.planningMode = PlanningMode.NONE;
+    this.renderer.camera.reset();
+
     this.initDefaultIcebergs();
-    this.aiNavigator.generateOptimalRoute(this.ship, this.icebergs);
+    this.aiNavigator.optimalRoute = [];
+
+    if (this.uiController) this.uiController.updateSlidersFromState();
+  }
+
+  spawnIcebergAt(wx, wy, mass, size) {
+    const id = Date.now();
+    const newIce = new Iceberg({ id, name: `IB-${id}`, x: wx, y: wy, mass, size });
+    this.icebergs.push(newIce);
+    this.renderer.addIcebergMode = false;
+    this.renderer.canvas.style.cursor = 'crosshair';
+    this.state.navigation.routeInvalid = true;
   }
 
   loop(timestamp) {
     const rawDt = Math.min(0.1, (timestamp - this.lastTimestamp) / 1000);
     this.lastTimestamp = timestamp;
+    let dt = 0;
 
-    if (!this.isPaused) {
-      const dt = rawDt * this.timeWarp;
-      this.simTimeHours += (dt / 3600);
+    if (!this.state.simulation.isPaused) {
+      dt = rawDt * this.state.simulation.timeWarp;
+      this.state.simulation.simTimeHours += (dt / 3600);
 
-      // Update Simulation Physics
-      this.vectorField.updateGrid(this.simTimeHours);
-      this.vectorField.updateParticles(rawDt, this.simTimeHours);
+      this.vectorField.updateGrid(this.state.simulation.simTimeHours, this.state);
+      this.vectorField.updateParticles(rawDt, this.state.simulation.simTimeHours, this.state);
 
-      for (let ice of this.icebergs) {
-        ice.update(rawDt, this.vectorField, this.simTimeHours);
+      if (this.state.environment.mode === 'DATA-DRIVEN' && this.antarcticDataManager.active) {
+        const dataIcebergs = this.antarcticDataManager.getIcebergsAt(this.state.simulation.simTimeHours);
+        if (dataIcebergs) {
+          this.icebergs = dataIcebergs.map(ice => {
+            const existing = this.icebergs.find(ex => ex.id === ice.id);
+            if (existing) {
+              existing.x = ice.x;
+              existing.y = ice.y;
+              existing.vx = ice.vx;
+              existing.vy = ice.vy;
+              existing.size = ice.size;
+              existing.mass = ice.mass;
+              existing.name = ice.name;
+              return existing;
+            } else {
+              return new Iceberg(ice);
+            }
+          });
+        }
+      } else {
+        for (let ice of this.icebergs) {
+          ice.update(dt, this.vectorField, this.state.simulation.simTimeHours, this.state);
+        }
       }
 
-      this.ship.update(rawDt, this.vectorField, this.simTimeHours);
+      this.ship.update(dt, this.vectorField, this.state.simulation.simTimeHours, this.state, this.icebergs);
 
-      // Update AI Navigator & Dynamic Risk Evaluation
-      this.aiNavigator.evaluate(this.ship, this.icebergs, this.vectorField, this.simTimeHours);
+      this.aiNavigator.evaluate(this.ship, this.icebergs, this.vectorField, this.state.simulation.simTimeHours, this.state);
     }
 
-    // Render Canvas Frame
+    if (this.aiClient) {
+      this.aiClient.updatePredictions();
+    }
+
+    if (this.autonomousController) {
+      this.autonomousController.evaluate(timestamp);
+    }
+
+    if (this.scenarioManager) {
+      this.scenarioManager.updateScenarioPhases();
+    }
+
+    if (this.validationEngine) {
+      this.validationEngine.evaluate(this.state.simulation.simTimeHours);
+    }
+
+    if (this.confidenceIntelligenceEngine) {
+      this.confidenceIntelligenceEngine.update(timestamp);
+    }
+
+    if (this.decisionIntelligenceEngine) {
+      this.decisionIntelligenceEngine.update(timestamp);
+    }
+
+    if (this.riskIntelligenceEngine) {
+      this.riskIntelligenceEngine.update(timestamp);
+    }
+
     this.renderer.render(
       this.vectorField,
       this.ship,
       this.icebergs,
       this.aiNavigator,
-      this.simTimeHours,
-      rawDt
+      this.state.simulation.simTimeHours,
+      rawDt,
+      this.state
     );
 
-    // Update UI Telemetry & Inspector
-    this.uiController.updateTelemetry();
-    if (this.renderer.selectedEntity) {
-      this.uiController.showIcebergInspector(this.renderer.selectedEntity);
+    try {
+      this.uiController.updateTelemetry();
+    } catch (e) {
+      console.warn('[Telemetry Update Failed]', e);
+    }
+
+    // Debug HUD update
+    this.frames = (this.frames || 0) + 1;
+    if (timestamp - (this.lastFpsTime || 0) > 1000) {
+      this.fps = this.frames;
+      this.frames = 0;
+      this.lastFpsTime = timestamp;
+    }
+    const dbgHud = document.getElementById('debug-hud');
+    if (dbgHud && !dbgHud.classList.contains('hidden')) {
+      const wpt = this.ship.routeWaypoints[this.ship.waypointIndex];
+      const distToWpt = wpt ? Math.hypot(wpt.x - this.ship.x, wpt.y - this.ship.y).toFixed(0) : 'N/A';
+      const setDbg = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      setDbg('dbg-fps',   this.fps || 0);
+      setDbg('dbg-dt',    dt ? dt.toFixed(4) : '0.0000');
+      setDbg('dbg-ts',    this.state.simulation.timeWarp);
+      setDbg('dbg-pos',   `${this.ship.x.toFixed(0)}, ${this.ship.y.toFixed(0)}`);
+      setDbg('dbg-vel',   `${this.ship.vx.toFixed(2)}, ${this.ship.vy.toFixed(2)}`);
+      setDbg('dbg-spd',   this.ship.speedKnots.toFixed(2));
+      setDbg('dbg-hdg',   this.ship.heading.toFixed(1));
+      setDbg('dbg-wpt',   `${this.ship.waypointIndex} / ${this.ship.routeWaypoints.length}`);
+      setDbg('dbg-dist',  distToWpt);
+      setDbg('dbg-route', this.ship.routeWaypoints.length > 0 ? 'YES' : 'NO');
+      setDbg('dbg-cs',    'WORLD (3600x2400)');
+      setDbg('dbg-ice',   this.icebergs.length);
+      setDbg('dbg-zoom',  `${(this.renderer.zoom * 100).toFixed(0)}%`);
+      setDbg('dbg-cam',   `${this.renderer.cameraX.toFixed(0)}, ${this.renderer.cameraY.toFixed(0)}`);
+      setDbg('dbg-mouse', `${this.renderer.mouseWorld.x.toFixed(0)}, ${this.renderer.mouseWorld.y.toFixed(0)}`);
+      const sp = this.state.navigation.startPoint;
+      const dp = this.state.navigation.destinationPoint;
+      setDbg('dbg-start', sp ? `${sp.x}, ${sp.y}` : '—');
+      setDbg('dbg-dest',  dp ? `${dp.x}, ${dp.y}` : '—');
+      setDbg('dbg-follow', this.renderer.trackShip ? 'ON' : 'OFF');
     }
 
     requestAnimationFrame((t) => this.loop(t));
   }
 }
 
-// Initialize on DOM load
 window.addEventListener('DOMContentLoaded', () => {
   window.simEngine = new SimulationEngine();
 });

@@ -1,0 +1,10 @@
+{
+  "source": "Copernicus Marine Service & NOAA NSIDC G02158",
+  "preprocessed": true,
+  "time_period": "November 2024 Climate Cycle",
+  "region": "Antarctic Ross Sea & Amundsen Sea sectors",
+  "provenance": "Offline preprocessed environmental sample for offline demonstration.",
+  "grid_width": 48,
+  "grid_height": 32,
+  "time_steps": 3
+}

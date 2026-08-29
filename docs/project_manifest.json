@@ -1,0 +1,49 @@
+{
+  "project": {
+    "name": "Astralis Nav-OS",
+    "description": "Interactive browser simulation for arctic navigation."
+  },
+  "architecture": {
+    "type": "Client-Side SPA",
+    "stack": "HTML, JS, Tailwind"
+  },
+  "frontend": {
+    "framework": "Vanilla JS",
+    "renderer": "Canvas 2D"
+  },
+  "backend": {
+    "exists": false
+  },
+  "simulation": {
+    "type": "Deterministic Euler Integration",
+    "environment": "Procedural Vector Field"
+  },
+  "ai_ml": {
+    "has_trained_models": false,
+    "pathfinding": "A* Heuristic"
+  },
+  "data": {
+    "real_data": false,
+    "synthetic": true
+  },
+  "algorithms": {
+    "routing": "A*",
+    "physics": "Euler"
+  },
+  "features": {
+    "dynamic_routing": true,
+    "interactive_weather": true,
+    "satellite_data": false
+  },
+  "status": {
+    "phase": "Phase 0 (Mockup)",
+    "demo_ready": true
+  },
+  "limitations": {
+    "scale": "Low entity count",
+    "accuracy": "Visual approximation only"
+  },
+  "future": {
+    "next_step": "FastAPI Backend Integration"
+  }
+}
