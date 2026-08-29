@@ -101,12 +101,12 @@ class SimulationEngine {
         mode: 'BALANCED',
         routeInvalid: false,
         routeCalculated: false,
-        isNavigating: false,
+        isNavigating: true,
         planningMode: PlanningMode.NONE,
-        startPoint: null,
-        destinationPoint: null,
+        startPoint: { x: 400, y: 1800 },
+        destinationPoint: { x: WORLD_W - 400, y: 400 },
         destination: { x: WORLD_W - 400, y: 400 },
-        statusMessage: 'Set start and destination points'
+        statusMessage: 'Ready'
       },
       icebergs: {
         count: 6,
@@ -140,6 +140,10 @@ class SimulationEngine {
         if (hud) hud.classList.toggle('hidden');
       }
     });
+
+    this.renderer.startPoint = this.state.navigation.startPoint;
+    this.renderer.destinationPoint = this.state.navigation.destinationPoint;
+    this.calculateRoute();
 
     requestAnimationFrame((t) => this.loop(t));
   }
@@ -240,6 +244,9 @@ class SimulationEngine {
       this.state.navigation.statusMessage = `Start set (${pt.x}, ${pt.y}) — now set destination`;
       this.state.navigation.routeCalculated = false;
       this.state.navigation.routeInvalid = true;
+      if (this.state.navigation.destinationPoint) {
+        this.calculateRoute();
+      }
     } else if (mode === PlanningMode.SET_DESTINATION) {
       this.state.navigation.destinationPoint = pt;
       this.state.navigation.destination = pt;
@@ -249,6 +256,9 @@ class SimulationEngine {
       this.state.navigation.statusMessage = `Destination set (${pt.x}, ${pt.y}) — calculate route`;
       this.state.navigation.routeCalculated = false;
       this.state.navigation.routeInvalid = true;
+      if (this.state.navigation.startPoint) {
+        this.calculateRoute();
+      }
     }
     this.uiController && this.uiController.updateNavStatus();
   }
@@ -367,17 +377,18 @@ class SimulationEngine {
     this.state.simulation.timeWarp = 1;
     this.state.navigation.routeInvalid = true;
     this.state.navigation.routeCalculated = false;
-    this.state.navigation.isNavigating = false;
+    this.state.navigation.isNavigating = true;
     this.state.navigation.planningMode = PlanningMode.NONE;
-    this.state.navigation.startPoint = null;
-    this.state.navigation.destinationPoint = null;
+    this.state.navigation.startPoint = { x: 400, y: 1800 };
+    this.state.navigation.destinationPoint = { x: WORLD_W - 400, y: 400 };
     this.state.navigation.destination = { x: WORLD_W - 400, y: 400 };
-    this.state.navigation.statusMessage = 'Set start and destination points';
+    this.state.navigation.statusMessage = 'Ready';
 
-    this.renderer.startPoint = null;
-    this.renderer.destinationPoint = null;
+    this.renderer.startPoint = this.state.navigation.startPoint;
+    this.renderer.destinationPoint = this.state.navigation.destinationPoint;
     this.renderer.planningMode = PlanningMode.NONE;
     this.renderer.camera.reset();
+    this.calculateRoute();
 
     this.initDefaultIcebergs();
     this.aiNavigator.optimalRoute = [];

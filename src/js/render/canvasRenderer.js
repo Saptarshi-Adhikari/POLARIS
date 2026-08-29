@@ -475,21 +475,79 @@ export class CanvasRenderer {
     if (remaining.length === 0) { ctx.restore(); return; }
 
     const pts = [{ x: ship.x, y: ship.y }, ...remaining];
-    ctx.strokeStyle = aiNavigator.riskScore > 0.65 ? '#ef4444' : '#fcd34d';
-    ctx.lineWidth   = Math.max(1.5, 2 / this.camera.zoom);
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.setLineDash([5 / this.camera.zoom, 5 / this.camera.zoom]);
-    ctx.beginPath();
-    ctx.moveTo(pts[0].x, pts[0].y);
-    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-    ctx.stroke();
+    const icebergs = this.getIcebergs ? this.getIcebergs() : [];
+
+    ctx.lineWidth = Math.max(2.0, 3 / this.camera.zoom);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.setLineDash([8 / this.camera.zoom, 6 / this.camera.zoom]);
+
+    for (let i = 1; i < pts.length; i++) {
+      const ptA = pts[i - 1];
+      const ptB = pts[i];
+
+      // Safeguard: Ensure points are finite world coordinates
+      if (!Number.isFinite(ptA.x) || !Number.isFinite(ptA.y) || !Number.isFinite(ptB.x) || !Number.isFinite(ptB.y)) {
+        continue;
+      }
+
+      let isCritical = false;
+      const dx = ptB.x - ptA.x;
+      const dy = ptB.y - ptA.y;
+      const segLen2 = dx * dx + dy * dy;
+
+      // 1. Proximity hazard check against active icebergs
+      for (let ice of icebergs) {
+        let t = 0;
+        if (segLen2 > 0) {
+          t = Math.max(0, Math.min(1, ((ice.x - ptA.x) * dx + (ice.y - ptA.y) * dy) / segLen2));
+        }
+        const cx = ptA.x + t * dx;
+        const cy = ptA.y + t * dy;
+        const distToIceCenter = Math.hypot(ice.x - cx, ice.y - cy);
+        
+        // Critical collision/hazard proximity (iceberg size contribution + ship radius 15 + safety buffer 100)
+        const effectiveDistance = distToIceCenter - ice.collisionRadius - 15;
+        if (effectiveDistance < 100) {
+          isCritical = true;
+          break;
+        }
+      }
+
+      // 2. Sample risk check using RiskIntelligenceEngine
+      if (!isCritical) {
+        const samples = 3;
+        const ri = window.simEngine && window.simEngine.riskIntelligenceEngine;
+        if (ri) {
+          for (let s = 0; s <= samples; s++) {
+            const sx = ptA.x + (s / samples) * dx;
+            const sy = ptA.y + (s / samples) * dy;
+            const riskObj = ri.getRiskAt(sx, sy);
+            if (riskObj && riskObj.risk > 0.6) {
+              isCritical = true;
+              break;
+            }
+          }
+        }
+      }
+
+      ctx.strokeStyle = isCritical ? '#ef4444' : '#fcd34d';
+
+      ctx.beginPath();
+      ctx.moveTo(ptA.x, ptA.y);
+      ctx.lineTo(ptB.x, ptB.y);
+      ctx.stroke();
+    }
+
     ctx.setLineDash([]);
 
     const r = Math.max(4, 5 / this.camera.zoom);
     for (let i = 0; i < pts.length; i++) {
       if (i === 0 || i === pts.length - 1) {
-        ctx.fillStyle = ctx.strokeStyle;
-        ctx.beginPath(); ctx.arc(pts[i].x, pts[i].y, i === pts.length - 1 ? r : r * 0.6, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = i === 0 ? (aiNavigator.riskScore > 0.65 ? '#ef4444' : '#fcd34d') : '#fcd34d';
+        ctx.beginPath();
+        ctx.arc(pts[i].x, pts[i].y, i === pts.length - 1 ? r : r * 0.6, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
     ctx.restore();

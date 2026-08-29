@@ -103,8 +103,10 @@ def train_learned_cost_weights():
     print(f"Calibration completed. Best weights: {best_weights}")
     
     # Write to src/data/
-    os.makedirs("../src/data", exist_ok=True)
-    json_path = "../src/data/routeCalibration.json"
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    target_dir = os.path.abspath(os.path.join(current_dir, "../src/data"))
+    os.makedirs(target_dir, exist_ok=True)
+    json_path = os.path.join(target_dir, "routeCalibration.json")
     with open(json_path, "w") as f:
         json.dump(best_weights, f, indent=2)
         
