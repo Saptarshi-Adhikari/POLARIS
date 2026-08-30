@@ -1,3 +1,5 @@
+import uncertaintyCalibration from '../../data/uncertaintyCalibration.json';
+
 export class ConfidenceIntelligenceEngine {
   constructor(engine) {
     this.engine = engine;
@@ -138,9 +140,9 @@ export class ConfidenceIntelligenceEngine {
       reliability6: getReliability(c6),
       reliability12: getReliability(c12),
       reliability24: getReliability(c24),
-      uncertainty6: 12 * growth6,
-      uncertainty12: 12 * growth12,
-      uncertainty24: 12 * growth24
+      uncertainty6: uncertaintyCalibration?.uncertainty_30 || (12 * growth6),
+      uncertainty12: uncertaintyCalibration?.uncertainty_60 || (12 * growth12),
+      uncertainty24: (uncertaintyCalibration?.uncertainty_60 * 2.0) || (12 * growth24)
     };
   }
 

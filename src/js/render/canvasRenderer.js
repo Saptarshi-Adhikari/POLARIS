@@ -5,6 +5,8 @@
 
 import { Camera, WORLD_WIDTH, WORLD_HEIGHT } from './camera.js';
 
+
+
 export const PlanningMode = {
   NONE: 'NONE',
   SET_START: 'SET_START',
@@ -482,6 +484,19 @@ export class CanvasRenderer {
     ctx.lineJoin = 'round';
     ctx.setLineDash([8 / this.camera.zoom, 6 / this.camera.zoom]);
 
+    let shipSpeed = 20.0;
+    const currentSpeed = Math.hypot(ship.vx, ship.vy);
+    if (currentSpeed > 5.0) {
+      shipSpeed = currentSpeed;
+    } else {
+      const state = window.simEngine && window.simEngine.state;
+      const throttle = ship.throttle || 65;
+      const maxSpd = (state && state.vessel && state.vessel.maxSpeed) || 30.0;
+      shipSpeed = maxSpd * Math.sqrt(throttle / 100);
+    }
+
+    let accumulatedDistance = 0;
+
     for (let i = 1; i < pts.length; i++) {
       const ptA = pts[i - 1];
       const ptB = pts[i];
@@ -494,24 +509,29 @@ export class CanvasRenderer {
       let isCritical = false;
       const dx = ptB.x - ptA.x;
       const dy = ptB.y - ptA.y;
+      const segLen = Math.hypot(dx, dy);
       const segLen2 = dx * dx + dy * dy;
 
-      // 1. Proximity hazard check against active icebergs
-      for (let ice of icebergs) {
-        let t = 0;
-        if (segLen2 > 0) {
-          t = Math.max(0, Math.min(1, ((ice.x - ptA.x) * dx + (ice.y - ptA.y) * dy) / segLen2));
+      const numSamples = Math.max(3, Math.ceil(segLen / 50));
+      for (let k = 0; k <= numSamples; k++) {
+        const ratio = k / numSamples;
+        const sx = ptA.x + ratio * dx;
+        const sy = ptA.y + ratio * dy;
+        const sampleDist = accumulatedDistance + ratio * segLen;
+        const etaSample = sampleDist / (3600 * shipSpeed);
+
+        for (let ice of icebergs) {
+          const icePos = ice.getPositionAt(etaSample);
+          const avoidR = ice.collisionRadius + 15 + 30; // 15 ship radius + 30 margin
+          const uRadius = icePos.uncertainty || 0;
+          const totalAvoidR = avoidR + uRadius * 0.4;
+          
+          if (Math.hypot(icePos.x - sx, icePos.y - sy) < totalAvoidR) {
+            isCritical = true;
+            break;
+          }
         }
-        const cx = ptA.x + t * dx;
-        const cy = ptA.y + t * dy;
-        const distToIceCenter = Math.hypot(ice.x - cx, ice.y - cy);
-        
-        // Critical collision/hazard proximity (iceberg size contribution + ship radius 15 + safety buffer 100)
-        const effectiveDistance = distToIceCenter - ice.collisionRadius - 15;
-        if (effectiveDistance < 100) {
-          isCritical = true;
-          break;
-        }
+        if (isCritical) break;
       }
 
       // 2. Sample risk check using RiskIntelligenceEngine
@@ -532,6 +552,7 @@ export class CanvasRenderer {
       }
 
       ctx.strokeStyle = isCritical ? '#ef4444' : '#fcd34d';
+      accumulatedDistance += segLen;
 
       ctx.beginPath();
       ctx.moveTo(ptA.x, ptA.y);

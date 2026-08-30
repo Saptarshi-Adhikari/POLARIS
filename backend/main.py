@@ -108,29 +108,43 @@ def predict_trajectory(request: IcebergRequest):
     x_60 = request.x + dx_60
     y_60 = request.y + dy_60
     
-    # Compute confidence & growing uncertainty radius (based on forest estimator variances)
-    # Simple model confidence decay over time
+    import json
+    u_10 = 12.0
+    u_30 = 24.0
+    u_60 = 48.0
+    
+    cal_path = "src/data/uncertaintyCalibration.json"
+    if os.path.exists(cal_path):
+        try:
+            with open(cal_path, "r") as f:
+                cal = json.load(f)
+                u_10 = cal.get("uncertainty_10", 12.0)
+                u_30 = cal.get("uncertainty_30", 24.0)
+                u_60 = cal.get("uncertainty_60", 48.0)
+        except Exception as e:
+            print(f"Error loading calibrated uncertainties in FastAPI: {e}")
+
     predictions = [
         TrajectoryPrediction(
             time=10,
             x=round(x_10, 2),
             y=round(y_10, 2),
             confidence=0.95,
-            uncertainty=round(10.0 + np.random.uniform(0, 3.0), 2)
+            uncertainty=round(u_10, 2)
         ),
         TrajectoryPrediction(
             time=30,
             x=round(x_30, 2),
             y=round(y_30, 2),
             confidence=0.86,
-            uncertainty=round(22.0 + np.random.uniform(0, 5.0), 2)
+            uncertainty=round(u_30, 2)
         ),
         TrajectoryPrediction(
             time=60,
             x=round(x_60, 2),
             y=round(y_60, 2),
             confidence=0.72,
-            uncertainty=round(45.0 + np.random.uniform(0, 10.0), 2)
+            uncertainty=round(u_60, 2)
         )
     ]
     

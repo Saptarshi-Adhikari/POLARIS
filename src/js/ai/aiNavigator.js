@@ -1,5 +1,48 @@
 import routeCalibration from '../../data/routeCalibration.json';
 
+function getCellCost(r, c, etaHours, cellW, cellH, icebergCostMult, seaIceCostMult, state, vectorField, icebergs) {
+  const cx = c * cellW + cellW / 2;
+  const cy = r * cellH + cellH / 2;
+  let cost = 1.0;
+
+  for (let ice of icebergs) {
+    const icePos = ice.getPositionAt(etaHours);
+    const dist = Math.hypot(cx - icePos.x, cy - icePos.y);
+    const collisionR  = ice.collisionRadius + 15;
+    const uRadius = icePos.uncertainty || 0;
+    const totalAvoidR  = collisionR + 30 + uRadius * 0.4;
+
+    if (dist < totalAvoidR) {
+      cost += 100000;
+    } else if (dist < totalAvoidR + 150) {
+      const t = 1 - (dist - totalAvoidR) / 150;
+      cost += t * t * (routeCalibration.icebergWeight || 10.0) * 10 * icebergCostMult;
+    }
+  }
+
+  if (state?.environment?.seaIce?.enabled && vectorField?.getSeaIceConcentration) {
+    let iceConc = vectorField.getSeaIceConcentration(cx, cy);
+    const client = window.simEngine && window.simEngine.aiClient;
+    if (client && client.status === 'ONLINE' && client.seaIceForecast) {
+      const forecast = client.seaIceForecast;
+      const maxForecasted = Math.max(forecast.ice_6h, forecast.ice_12h, forecast.ice_24h);
+      if (maxForecasted > iceConc) {
+        iceConc = maxForecasted;
+      }
+    }
+    if (iceConc > 0.1) cost += iceConc * (routeCalibration.seaIceWeight || 5.0) * 2 * seaIceCostMult;
+  }
+
+  if (window.simEngine && window.simEngine.riskIntelligenceEngine) {
+    const cellRiskObj = window.simEngine.riskIntelligenceEngine.getRiskAt(cx, cy);
+    if (cellRiskObj) {
+      cost += cellRiskObj.risk * (routeCalibration.riskWeight || 6.0) * icebergCostMult;
+    }
+  }
+
+  return cost;
+}
+
 export class AINavigator {
   constructor(width = 3600, height = 2400) {
     this.width = width;
@@ -89,39 +132,49 @@ export class AINavigator {
     let isObstructed = false;
     if (isNavigating && ship.routeWaypoints && ship.routeWaypoints.length > ship.waypointIndex) {
       const remainingRoute = [{x: ship.x, y: ship.y}, ...ship.routeWaypoints.slice(ship.waypointIndex)];
-      for (let ice of icebergs) {
-        const avoidR = ice.collisionRadius + 15 + 30; // 15 ship radius + 30 margin
-        const forecastPoints = (ice.mlTrajectory && ice.mlTrajectory.length > 0) ? ice.mlTrajectory : ice.trajectoryForecast;
+      
+      let shipSpeed = 20.0;
+      const currentSpeed = Math.hypot(ship.vx, ship.vy);
+      if (currentSpeed > 5.0) {
+        shipSpeed = currentSpeed;
+      } else {
+        const throttle = ship.throttle || 65;
+        const maxSpd = (state && state.vessel && state.vessel.maxSpeed) || 30.0;
+        shipSpeed = maxSpd * Math.sqrt(throttle / 100);
+      }
+
+      let accumulatedDistance = 0;
+      
+      for (let i = 0; i < remainingRoute.length - 1; i++) {
+        const ptA = remainingRoute[i];
+        const ptB = remainingRoute[i+1];
+        const dx = ptB.x - ptA.x;
+        const dy = ptB.y - ptA.y;
+        const segLen = Math.hypot(dx, dy);
         
-        for (let i = 0; i < remainingRoute.length - 1; i++) {
-          const ptA = remainingRoute[i];
-          const ptB = remainingRoute[i+1];
-          const dx = ptB.x - ptA.x;
-          const dy = ptB.y - ptA.y;
-          const segLen2 = dx * dx + dy * dy;
-          let t = 0;
-          if (segLen2 > 0) t = Math.max(0, Math.min(1, ((ice.x - ptA.x) * dx + (ice.y - ptA.y) * dy) / segLen2));
-          const cx = ptA.x + t * dx;
-          const cy = ptA.y + t * dy;
+        const numSamples = Math.max(3, Math.ceil(segLen / 50));
+        for (let k = 0; k <= numSamples; k++) {
+          const ratio = k / numSamples;
+          const sx = ptA.x + ratio * dx;
+          const sy = ptA.y + ratio * dy;
+          const sampleDist = accumulatedDistance + ratio * segLen;
+          const etaSample = sampleDist / (3600 * shipSpeed);
           
-          if (Math.hypot(ice.x - cx, ice.y - cy) < avoidR) {
-            isObstructed = true;
-            break;
-          }
-          
-          if (forecastPoints) {
-            for (let f of forecastPoints) {
-              const uRadius = f.uncertainty || (f.hour * 2.5);
-              const totalAvoidR = avoidR + uRadius * 0.4;
-              if (Math.hypot(f.x - cx, f.y - cy) < totalAvoidR) {
-                isObstructed = true;
-                break;
-              }
+          for (let ice of icebergs) {
+            const avoidR = ice.collisionRadius + 15 + 30; // 15 ship radius + 30 margin
+            const icePos = ice.getPositionAt(etaSample);
+            const uRadius = icePos.uncertainty || 0;
+            const totalAvoidR = avoidR + uRadius * 0.4;
+            
+            if (Math.hypot(icePos.x - sx, icePos.y - sy) < totalAvoidR) {
+              isObstructed = true;
+              break;
             }
-            if (isObstructed) break;
           }
+          if (isObstructed) break;
         }
         if (isObstructed) break;
+        accumulatedDistance += segLen;
       }
     }
 
@@ -200,51 +253,20 @@ export class AINavigator {
       seaIceCostMult  = 3.0;
     }
 
-    const costGrid = Array.from({ length: gridRows }, () => Array(gridCols).fill(1));
-
-    // Fill cost grid in world coordinates
-    for (let r = 0; r < gridRows; r++) {
-      for (let c = 0; c < gridCols; c++) {
-        // World coordinate of this cell's centre
-        const cx = c * cellW + cellW / 2;
-        const cy = r * cellH + cellH / 2;
-        let cost = 1.0;
-
-        for (let ice of icebergs) {
-          const dist = Math.hypot(cx - ice.x, cy - ice.y);
-          const collisionR  = ice.collisionRadius + 15; // iceberg + ship radius
-          const avoidanceR  = collisionR + 30; // + margin
-
-          if (dist < avoidanceR) {
-            cost += 100000; // IMPASSABLE - strictly avoid safety radius
-          } else if (dist < avoidanceR + 150) {
-            const t = 1 - (dist - avoidanceR) / 150;
-            cost += t * t * (routeCalibration.icebergWeight || 10.0) * 10 * icebergCostMult;
-          }
-        }
-
-        if (state?.environment?.seaIce?.enabled && vectorField?.getSeaIceConcentration) {
-          let iceConc = vectorField.getSeaIceConcentration(cx, cy);
-          const client = window.simEngine && window.simEngine.aiClient;
-          if (client && client.status === 'ONLINE' && client.seaIceForecast) {
-            const forecast = client.seaIceForecast;
-            const maxForecasted = Math.max(forecast.ice_6h, forecast.ice_12h, forecast.ice_24h);
-            if (maxForecasted > iceConc) {
-              iceConc = maxForecasted;
-            }
-          }
-          if (iceConc > 0.1) cost += iceConc * (routeCalibration.seaIceWeight || 5.0) * 2 * seaIceCostMult;
-        }
-
-        if (window.simEngine && window.simEngine.riskIntelligenceEngine) {
-          const cellRiskObj = window.simEngine.riskIntelligenceEngine.getRiskAt(cx, cy);
-          if (cellRiskObj) {
-            cost += cellRiskObj.risk * (routeCalibration.riskWeight || 6.0) * icebergCostMult;
-          }
-        }
-
-        costGrid[r][c] = cost;
+    let shipSpeed = 20.0;
+    if (realShip && typeof realShip.vx === 'number' && typeof realShip.vy === 'number') {
+      const currentSpeed = Math.hypot(realShip.vx, realShip.vy);
+      if (currentSpeed > 5.0) {
+        shipSpeed = currentSpeed;
+      } else {
+        const throttle = realShip.throttle || 65;
+        const maxSpd = (state && state.vessel && state.vessel.maxSpeed) || 30.0;
+        shipSpeed = maxSpd * Math.sqrt(throttle / 100);
       }
+    } else {
+      const throttle = state?.vessel?.autopilotThrottle || 65;
+      const maxSpd = state?.vessel?.maxSpeed || 30.0;
+      shipSpeed = maxSpd * Math.sqrt(throttle / 100);
     }
 
     // A* Search
@@ -252,11 +274,13 @@ export class AINavigator {
     const cameFrom = new Map();
     const gScore   = new Map();
     const fScore   = new Map();
+    const gDistance = new Map();
 
     const nodeKey  = (r, c) => `${r},${c}`;
     const startKey = nodeKey(startR, startC);
 
     gScore.set(startKey, 0);
+    gDistance.set(startKey, 0);
     fScore.set(startKey, Math.hypot(startC - endC, startR - endR));
     openSet.push({ r: startR, c: startC, f: fScore.get(startKey) });
 
@@ -319,13 +343,24 @@ export class AINavigator {
           }
         }
 
-        const rawTraverseCost = moveDist * costGrid[nr][nc] + envPenalty + turnPenalty;
+        const stepDistSU = Math.hypot((nc - current.c) * cellW, (nr - current.r) * cellH);
+        const currentDist = gDistance.get(currKey) || 0;
+        const tentativeDist = currentDist + stepDistSU;
+        
+        const etaHours = tentativeDist / (3600 * shipSpeed);
+        const cellCost = getCellCost(nr, nc, etaHours, cellW, cellH, icebergCostMult, seaIceCostMult, state, vectorField, icebergs);
+        if (cellCost >= 100000) {
+          continue; // Hard constraint - strictly impassable!
+        }
+
+        const rawTraverseCost = moveDist * cellCost + envPenalty + turnPenalty;
         const traverseCost = Math.max(0.2 * moveDist, rawTraverseCost);
         const tentativeG   = gScore.get(currKey) + traverseCost;
 
         if (!gScore.has(neighborKey) || tentativeG < gScore.get(neighborKey)) {
           cameFrom.set(neighborKey, current);
           gScore.set(neighborKey, tentativeG);
+          gDistance.set(neighborKey, tentativeDist);
           const h = Math.hypot(nc - endC, nr - endR) * (routeCalibration.heuristicWeight || 1.0);
           const f = tentativeG + h;
           fScore.set(neighborKey, f);
@@ -371,31 +406,39 @@ export class AINavigator {
     if (waypoints.length > 0) {
       smoothed.push(waypoints[0]);
       let currentIdx = 0;
+      let accumulatedDistanceToCurrentIdx = 0;
       while (currentIdx < waypoints.length - 1) {
         let furthestVisible = currentIdx + 1;
         for (let j = waypoints.length - 1; j > currentIdx + 1; j--) {
           const ptA = waypoints[currentIdx];
           const ptB = waypoints[j];
           let isClear = true;
-          for (let ice of icebergs) {
-            const dx = ptB.x - ptA.x;
-            const dy = ptB.y - ptA.y;
-            const segLen2 = dx * dx + dy * dy;
-            let t = 0;
-            if (segLen2 > 0) t = Math.max(0, Math.min(1, ((ice.x - ptA.x) * dx + (ice.y - ptA.y) * dy) / segLen2));
-            const cx = ptA.x + t * dx;
-            const cy = ptA.y + t * dy;
-            const avoidR = ice.collisionRadius + 15 + 30; // Safe corridor (collisionRadius + shipRadius + safetyMargin)
-            if (Math.hypot(ice.x - cx, ice.y - cy) < avoidR) {
-              isClear = false;
-              break;
-            }
+          
+          const dx = ptB.x - ptA.x;
+          const dy = ptB.y - ptA.y;
+          const segLen = Math.hypot(dx, dy);
+          const segLen2 = dx * dx + dy * dy;
+          
+          const numSamples = Math.max(3, Math.ceil(segLen / 50));
+          for (let k = 0; k <= numSamples; k++) {
+            const ratio = k / numSamples;
+            const sx = ptA.x + ratio * dx;
+            const sy = ptA.y + ratio * dy;
+            const sampleDist = accumulatedDistanceToCurrentIdx + ratio * segLen;
+            const etaSample = sampleDist / (3600 * shipSpeed);
 
-            // Check sea ice and risk along segment
-            const numSamples = 5;
-            for (let s = 1; s < numSamples; s++) {
-              const sx = ptA.x + (s / numSamples) * dx;
-              const sy = ptA.y + (s / numSamples) * dy;
+            for (let ice of icebergs) {
+              const icePos = ice.getPositionAt(etaSample);
+              const avoidR = ice.collisionRadius + 15 + 30; // Safe corridor
+              const uRadius = icePos.uncertainty || 0;
+              const totalAvoidR = avoidR + uRadius * 0.4;
+              
+              if (Math.hypot(icePos.x - sx, icePos.y - sy) < totalAvoidR) {
+                isClear = false;
+                break;
+              }
+
+              // Check sea ice and risk along segment at sample point
               if (state?.environment?.seaIce?.enabled && vectorField?.getSeaIceConcentration) {
                 const iceConc = vectorField.getSeaIceConcentration(sx, sy);
                 if (iceConc > 0.85) {
@@ -419,18 +462,20 @@ export class AINavigator {
           }
         }
         smoothed.push(waypoints[furthestVisible]);
+        const segmentLen = Math.hypot(waypoints[furthestVisible].x - waypoints[currentIdx].x, waypoints[furthestVisible].y - waypoints[currentIdx].y);
+        accumulatedDistanceToCurrentIdx += segmentLen;
         currentIdx = furthestVisible;
       }
     }
     
     // Validate final waypoints path against loops and collisions
-    const valResult = this.validateRoute(smoothed, icebergs);
+    const valResult = this.validateRoute(smoothed, icebergs, shipSpeed, state);
     let finalPath = waypoints;
     if (valResult.valid) {
       finalPath = smoothed;
     } else {
       console.warn("A* route smoothing rejected:", valResult.reason);
-      const rawValResult = this.validateRoute(waypoints, icebergs);
+      const rawValResult = this.validateRoute(waypoints, icebergs, shipSpeed, state);
       if (rawValResult.valid) {
         finalPath = waypoints;
       } else if (this.lastValidRoute && this.lastValidRoute.length >= 2) {
@@ -462,7 +507,7 @@ export class AINavigator {
     }
   }
 
-  validateRoute(waypoints, icebergs) {
+  validateRoute(waypoints, icebergs, shipSpeed = 20.0, state = null) {
     if (!waypoints || waypoints.length < 2) return { valid: false, reason: "Insufficient points" };
 
     // Validate coordinates are finite and inside world bounds
@@ -476,23 +521,32 @@ export class AINavigator {
     }
 
     // 1. Check segment collision intersection
+    let accumulatedDistance = 0;
     for (let i = 0; i < waypoints.length - 1; i++) {
       const ptA = waypoints[i];
       const ptB = waypoints[i+1];
       const dx = ptB.x - ptA.x;
       const dy = ptB.y - ptA.y;
+      const segLen = Math.hypot(dx, dy);
       const segLen2 = dx * dx + dy * dy;
 
-      for (let ice of icebergs) {
-        let t = 0;
-        if (segLen2 > 0) t = Math.max(0, Math.min(1, ((ice.x - ptA.x) * dx + (ice.y - ptA.y) * dy) / segLen2));
-        const cx = ptA.x + t * dx;
-        const cy = ptA.y + t * dy;
-        const collisionR = ice.collisionRadius + 15;
-        if (Math.hypot(ice.x - cx, ice.y - cy) < collisionR) {
-          return { valid: false, reason: `Segment crosses critical iceberg collision zone` };
+      const numSamples = Math.max(3, Math.ceil(segLen / 50));
+      for (let k = 0; k <= numSamples; k++) {
+        const ratio = k / numSamples;
+        const sx = ptA.x + ratio * dx;
+        const sy = ptA.y + ratio * dy;
+        const sampleDist = accumulatedDistance + ratio * segLen;
+        const etaSample = sampleDist / (3600 * shipSpeed);
+
+        for (let ice of icebergs) {
+          const icePos = ice.getPositionAt(etaSample);
+          const collisionR = ice.collisionRadius + 15;
+          if (Math.hypot(icePos.x - sx, icePos.y - sy) < collisionR) {
+            return { valid: false, reason: `Segment crosses critical iceberg collision zone` };
+          }
         }
       }
+      accumulatedDistance += segLen;
     }
 
     // 2. Check loops/self-intersections

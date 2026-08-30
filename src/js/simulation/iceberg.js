@@ -159,4 +159,51 @@ export class Iceberg {
   setManualTarget(x, y) {
     this.manualTarget = { x, y };
   }
+
+  getPositionAt(futureTimeHours) {
+    const defaultX = Number.isFinite(this.x) ? this.x : 0;
+    const defaultY = Number.isFinite(this.y) ? this.y : 0;
+    const points = [{ timeHours: 0, x: defaultX, y: defaultY, uncertainty: 0 }];
+    
+    if (this.mlTrajectory && this.mlTrajectory.length > 0) {
+      for (let f of this.mlTrajectory) {
+        if (f && Number.isFinite(f.x) && Number.isFinite(f.y)) {
+          const t = Number.isFinite(f.time) ? f.time : 0;
+          points.push({ timeHours: t / 60, x: f.x, y: f.y, uncertainty: f.uncertainty || (t * 0.1) });
+        }
+      }
+    }
+    if (this.trajectoryForecast && this.trajectoryForecast.length > 0) {
+      for (let f of this.trajectoryForecast) {
+        if (f && Number.isFinite(f.x) && Number.isFinite(f.y)) {
+          const h = Number.isFinite(f.hour) ? f.hour : 0;
+          if (points.some(p => Math.abs(p.timeHours - h) < 0.05)) continue;
+          points.push({ timeHours: h, x: f.x, y: f.y, uncertainty: h * 2.5 });
+        }
+      }
+    }
+    points.sort((a, b) => a.timeHours - b.timeHours);
+
+    const targetTime = Number.isFinite(futureTimeHours) ? Math.max(0, futureTimeHours) : 0;
+
+    if (points.length === 1 || targetTime <= 0) return points[0];
+    if (targetTime >= points[points.length - 1].timeHours) {
+      return points[points.length - 1];
+    }
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const pA = points[i];
+      const pB = points[i + 1];
+      if (targetTime >= pA.timeHours && targetTime <= pB.timeHours) {
+        const timeDiff = pB.timeHours - pA.timeHours;
+        const t = timeDiff > 0.0001 ? (targetTime - pA.timeHours) / timeDiff : 0;
+        return {
+          x: pA.x + t * (pB.x - pA.x),
+          y: pA.y + t * (pB.y - pA.y),
+          uncertainty: pA.uncertainty + t * (pB.uncertainty - pA.uncertainty)
+        };
+      }
+    }
+    return points[points.length - 1];
+  }
 }
