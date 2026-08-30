@@ -7,6 +7,45 @@ import routeCalibration from '../../data/routeCalibration.json';
  * NO soft margin, NO uncertainty inflation — those belong in getTraversalCost.
  * This is the ONLY function allowed to exclude a node from A*.
  */
+/**
+ * _MinHeap — self-contained binary min-heap for the A* open set.
+ * Items must have an `.f` field (f-score). Push/pop are O(log n).
+ * No external dependencies.
+ */
+class _MinHeap {
+  constructor() { this._d = []; }
+  get size()    { return this._d.length; }
+  push(item) {
+    this._d.push(item);
+    this._up(this._d.length - 1);
+  }
+  pop() {
+    const top  = this._d[0];
+    const last = this._d.pop();
+    if (this._d.length > 0) { this._d[0] = last; this._down(0); }
+    return top;
+  }
+  _up(i) {
+    while (i > 0) {
+      const p = (i - 1) >> 1;
+      if (this._d[p].f <= this._d[i].f) break;
+      [this._d[p], this._d[i]] = [this._d[i], this._d[p]];
+      i = p;
+    }
+  }
+  _down(i) {
+    const n = this._d.length;
+    for (;;) {
+      let s = i, l = 2*i+1, r = 2*i+2;
+      if (l < n && this._d[l].f < this._d[s].f) s = l;
+      if (r < n && this._d[r].f < this._d[s].f) s = r;
+      if (s === i) break;
+      [this._d[s], this._d[i]] = [this._d[i], this._d[s]];
+      i = s;
+    }
+  }
+}
+
 function isHardBlocked(cx, cy, etaHours, icebergs) {
   for (let ice of icebergs) {
     const icePos = ice.getPositionAt(etaHours);
@@ -285,20 +324,51 @@ export class AINavigator {
       shipSpeed = maxSpd * Math.sqrt(throttle / 100);
     }
 
-    // A* Search using a proper min-heap via sorted insertion
-    const openSet   = [];
+    // ── A* STATE: (row, col, timeBucket) ────────────────────────────────────────
+    //
+    // shipSpeed is in SU/sec (simulation units per second, per ship.js documentation).
+    // ETA formula: etaHours = distanceSU / (shipSpeed_SU_per_sec × 3600 sec/hr)
+    // Dimensionally: SU / (SU/sec × sec/hr) = hr  ✓
+    //
+    // TIME_BUCKET_H discretises the time axis of the state space so that the same
+    // spatial cell reached at meaningfully different times is treated as a distinct
+    // A* state.  Cells entered within the same 0.1-hour window share a state key.
+    // This prevents an early arrival from permanently closing a cell that may be
+    // safe to enter later (after a moving iceberg has passed).
+    //
+    // ALL iceberg physics (isHardBlocked / getTraversalCost) use the NODE'S EXACT
+    // etaH — never the rounded/bucketed value.  Bucketing is ONLY for state identity.
+    const TIME_BUCKET_H = 0.1; // hours (6-minute temporal resolution)
+
+    // nodeKey encodes the full time-aware A* state identity.
+    const nodeKey = (r, c, etaH) => `${r},${c},${Math.floor(etaH / TIME_BUCKET_H)}`;
+
+    // openHeap  — binary min-heap of {r, c, etaH, f}; O(log n) push/pop.
+    // openMap   — Map<stateKey, bestF>; O(1) lookup for lazy stale-entry detection.
+    //             An entry popped from the heap is STALE if openMap holds a strictly
+    //             lower f for the same key (a better path was found after this push).
+    // closedSet — permanently expanded (r, c, timeBucket) states.
+    // cameFrom  — Map<stateKey, {r, c, etaH}>; full parent triple for path
+    //             reconstruction.  The spatial coordinates come from .r/.c; the
+    //             exact etaH is stored so the next reconstruction step can compute
+    //             its own nodeKey correctly.
+    // gScore    — Map<stateKey, cost>; best accumulated traversal cost to state.
+    // gDistance — Map<stateKey, SU>;  accumulated world-unit distance, used to
+    //             derive etaH for each neighbor.
+    const openHeap  = new _MinHeap();
+    const openMap   = new Map();
     const closedSet = new Set();
     const cameFrom  = new Map();
     const gScore    = new Map();
     const gDistance = new Map();
 
-    const nodeKey  = (r, c) => `${r},${c}`;
-    const startKey = nodeKey(startR, startC);
-
+    const startEtaH = 0;
+    const startKey  = nodeKey(startR, startC, startEtaH);
     gScore.set(startKey, 0);
     gDistance.set(startKey, 0);
     const h0 = Math.hypot(startC - endC, startR - endR) * (routeCalibration.heuristicWeight || 1.0);
-    openSet.push({ r: startR, c: startC, f: h0 });
+    openHeap.push({ r: startR, c: startC, etaH: startEtaH, f: h0 });
+    openMap.set(startKey, h0);
 
     let current = null;
     let found   = false;
@@ -308,13 +378,19 @@ export class AINavigator {
       [-1, -1], [-1, 1], [1, -1], [1, 1]
     ];
 
-    while (openSet.length > 0) {
-      openSet.sort((a, b) => a.f - b.f);
-      current = openSet.shift();
+    while (openHeap.size > 0) {
+      current = openHeap.pop();
+      const currKey = nodeKey(current.r, current.c, current.etaH);
 
-      const currKey = nodeKey(current.r, current.c);
+      // ── Stale-entry detection (lazy deletion) ─────────────────────────────
+      // Skip if already expanded, OR if openMap holds a strictly lower f for
+      // this state (meaning a better push arrived after this one was queued).
       if (closedSet.has(currKey)) continue;
+      const knownBestF = openMap.get(currKey);
+      if (knownBestF !== undefined && current.f > knownBestF + 1e-9) continue;
+
       closedSet.add(currKey);
+      openMap.delete(currKey);
 
       if (current.r === endR && current.c === endC) {
         found = true;
@@ -326,25 +402,28 @@ export class AINavigator {
         const nc = current.c + dir[1];
         if (nr < 0 || nr >= gridRows || nc < 0 || nc >= gridCols) continue;
 
-        const neighborKey = nodeKey(nr, nc);
-        if (closedSet.has(neighborKey)) continue;
-
-        const moveDist = (dir[0] !== 0 && dir[1] !== 0) ? 1.414 : 1.0;
-
         // World-space cell centre of the neighbor
         const ncx = nc * cellW + cellW / 2;
         const ncy = nr * cellH + cellH / 2;
 
-        const stepDistSU  = Math.hypot((nc - current.c) * cellW, (nr - current.r) * cellH);
-        const currentDist = gDistance.get(currKey) || 0;
+        const stepDistSU    = Math.hypot((nc - current.c) * cellW, (nr - current.r) * cellH);
+        const currentDist   = gDistance.get(currKey) || 0;
         const tentativeDist = currentDist + stepDistSU;
-        const etaHours = tentativeDist / (3600 * shipSpeed);
+        // Exact ETA in hours — used for all iceberg physics below.
+        // Formula: SU / (SU/sec × sec/hr) = hr  ✓
+        const etaH = tentativeDist / (shipSpeed * 3600);
 
-        // ── HARD BLOCK (physical collision only) ─────────────────────────────
-        if (isHardBlocked(ncx, ncy, etaHours, icebergs)) continue;
+        // ── HARD BLOCK (physical collision only) — uses EXACT etaH ──────────
+        if (isHardBlocked(ncx, ncy, etaH, icebergs)) continue;
 
-        // ── SOFT TRAVERSAL COST (proximity penalty, sea ice, risk) ───────────
-        const cellCost = getTraversalCost(ncx, ncy, etaHours, cellW, cellH, icebergCostMult, seaIceCostMult, state, vectorField, icebergs);
+        // Time-aware state key for the neighbor
+        const neighborKey = nodeKey(nr, nc, etaH);
+
+        // Skip if this (r, c, timeBucket) state is already permanently closed
+        if (closedSet.has(neighborKey)) continue;
+
+        // ── SOFT TRAVERSAL COST — uses EXACT etaH ────────────────────────────
+        const cellCost = getTraversalCost(ncx, ncy, etaH, cellW, cellH, icebergCostMult, seaIceCostMult, state, vectorField, icebergs);
 
         // Directional environmental penalty
         let envPenalty = 0.0;
@@ -375,22 +454,24 @@ export class AINavigator {
           }
         }
 
+        const moveDist        = (dir[0] !== 0 && dir[1] !== 0) ? 1.414 : 1.0;
         const rawTraverseCost = moveDist * cellCost + envPenalty + turnPenalty;
         const traverseCost    = Math.max(0.2 * moveDist, rawTraverseCost);
-        const tentativeG      = gScore.get(currKey) + traverseCost;
+        const tentativeG      = (gScore.get(currKey) || 0) + traverseCost;
 
-        if (!gScore.has(neighborKey) || tentativeG < gScore.get(neighborKey)) {
-          cameFrom.set(neighborKey, current);
+        const existingG = gScore.get(neighborKey);
+        if (existingG === undefined || tentativeG < existingG) {
+          // Store the full parent triple so path reconstruction can walk the
+          // time-aware chain without relying on spatial coordinates alone.
+          cameFrom.set(neighborKey, { r: current.r, c: current.c, etaH: current.etaH });
           gScore.set(neighborKey, tentativeG);
           gDistance.set(neighborKey, tentativeDist);
           const h = Math.hypot(nc - endC, nr - endR) * (routeCalibration.heuristicWeight || 1.0);
           const f = tentativeG + h;
-          if (!openSet.some(n => n.r === nr && n.c === nc)) {
-            openSet.push({ r: nr, c: nc, f });
-          } else {
-            const existing = openSet.find(n => n.r === nr && n.c === nc);
-            if (existing) existing.f = Math.min(existing.f, f);
-          }
+          // Push new heap entry.  Any previous entry for this key becomes stale:
+          // when it is eventually popped, openMap will show a lower f → skip.
+          openHeap.push({ r: nr, c: nc, etaH, f });
+          openMap.set(neighborKey, f); // record best known f for stale detection
         }
       }
     }
@@ -398,14 +479,17 @@ export class AINavigator {
     let waypoints = [];
 
     if (found) {
-      // Reconstruct path — emit WORLD coordinates (cell centre)
-      let currNode = current;
-      while (currNode) {
+      // Reconstruct path by walking the time-aware parent chain.
+      // cameFrom maps stateKey → {r, c, etaH}; output is WORLD coordinates only
+      // (the time dimension is an internal search concern and not exported).
+      let node = { r: current.r, c: current.c, etaH: current.etaH };
+      while (node) {
         waypoints.push({
-          x: currNode.c * cellW + cellW / 2,
-          y: currNode.r * cellH + cellH / 2
+          x: node.c * cellW + cellW / 2,
+          y: node.r * cellH + cellH / 2
         });
-        currNode = cameFrom.get(nodeKey(currNode.r, currNode.c));
+        const nk = nodeKey(node.r, node.c, node.etaH);
+        node = cameFrom.get(nk);
       }
       waypoints.reverse();
     } else {
@@ -492,8 +576,19 @@ export class AINavigator {
       if (rawValResult.valid) {
         finalPath = waypoints;
       } else if (this.lastValidRoute && this.lastValidRoute.length >= 2) {
-        console.warn("Raw grid path is also invalid. Falling back to lastValidRoute");
-        finalPath = this.lastValidRoute;
+        // Revalidate lastValidRoute against CURRENT iceberg positions before reusing.
+        // A previously safe route may now collide with icebergs that have since moved.
+        const lastRouteVal = this.validateRoute(this.lastValidRoute, icebergs, shipSpeed, state);
+        if (lastRouteVal.valid) {
+          console.warn("Using revalidated lastValidRoute as fallback.");
+          finalPath = this.lastValidRoute;
+        } else {
+          console.warn("lastValidRoute is no longer safe (icebergs moved). Falling back to direct line.");
+          finalPath = [
+            { x: ship.x, y: ship.y },
+            { x: dest.x, y: dest.y }
+          ];
+        }
       } else {
         console.warn("No valid route exists. Falling back to direct line");
         finalPath = [
