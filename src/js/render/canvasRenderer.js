@@ -512,7 +512,7 @@ export class CanvasRenderer {
       const segLen = Math.hypot(dx, dy);
       const segLen2 = dx * dx + dy * dy;
 
-      const numSamples = Math.max(3, Math.ceil(segLen / 50));
+      const numSamples = Math.max(3, Math.ceil(segLen / 40));
       for (let k = 0; k <= numSamples; k++) {
         const ratio = k / numSamples;
         const sx = ptA.x + ratio * dx;
@@ -522,11 +522,10 @@ export class CanvasRenderer {
 
         for (let ice of icebergs) {
           const icePos = ice.getPositionAt(etaSample);
-          const avoidR = ice.collisionRadius + 15 + 30; // 15 ship radius + 30 margin
-          const uRadius = icePos.uncertainty || 0;
-          const totalAvoidR = avoidR + uRadius * 0.4;
+          // Physical collision boundary only — no soft margin
+          const hardR = ice.collisionRadius + 15;
           
-          if (Math.hypot(icePos.x - sx, icePos.y - sy) < totalAvoidR) {
+          if (Math.hypot(icePos.x - sx, icePos.y - sy) < hardR) {
             isCritical = true;
             break;
           }

@@ -1,22 +1,44 @@
 import routeCalibration from '../../data/routeCalibration.json';
 
-function getCellCost(r, c, etaHours, cellW, cellH, icebergCostMult, seaIceCostMult, state, vectorField, icebergs) {
-  const cx = c * cellW + cellW / 2;
-  const cy = r * cellH + cellH / 2;
+/**
+ * HARD COLLISION CHECK — returns true ONLY when a ship physically cannot occupy
+ * this cell at the given ETA. Uses only the genuine physical collision boundary:
+ *   ice.collisionRadius + 15 (ship radius)
+ * NO soft margin, NO uncertainty inflation — those belong in getTraversalCost.
+ * This is the ONLY function allowed to exclude a node from A*.
+ */
+function isHardBlocked(cx, cy, etaHours, icebergs) {
+  for (let ice of icebergs) {
+    const icePos = ice.getPositionAt(etaHours);
+    const dist = Math.hypot(cx - icePos.x, cy - icePos.y);
+    const hardR = ice.collisionRadius + 15;  // physical ship radius only
+    if (dist < hardR) return true;
+  }
+  return false;
+}
+
+/**
+ * TRAVERSAL COST — finite proximity penalty for A* optimization.
+ * MUST NEVER return a value >= 100000 (that is isHardBlocked's job).
+ * Soft buffer zone: distance from hardR to hardR+200, cost gradient 0→icebergWeight.
+ * Uncertainty adds to the inner soft-buffer width (not to the hard-block threshold).
+ */
+function getTraversalCost(cx, cy, etaHours, cellW, cellH, icebergCostMult, seaIceCostMult, state, vectorField, icebergs) {
   let cost = 1.0;
 
   for (let ice of icebergs) {
     const icePos = ice.getPositionAt(etaHours);
     const dist = Math.hypot(cx - icePos.x, cy - icePos.y);
-    const collisionR  = ice.collisionRadius + 15;
+    const hardR  = ice.collisionRadius + 15;          // physical boundary
     const uRadius = icePos.uncertainty || 0;
-    const totalAvoidR  = collisionR + 30 + uRadius * 0.4;
+    // Soft buffer: extends hardR + uncertainty*0.3 + 200 world-units
+    const softInner = hardR + uRadius * 0.3;          // uncertainty widens inner penalty
+    const softOuter = softInner + 200;                // gradient fade distance
 
-    if (dist < totalAvoidR) {
-      cost += 100000;
-    } else if (dist < totalAvoidR + 150) {
-      const t = 1 - (dist - totalAvoidR) / 150;
-      cost += t * t * (routeCalibration.icebergWeight || 10.0) * 10 * icebergCostMult;
+    if (dist < softOuter) {
+      const t = Math.max(0, 1 - (dist - softInner) / (softOuter - softInner));
+      // Max soft cost = icebergWeight * 1.5 (not *10) — keeps gap cells affordable
+      cost += t * t * (routeCalibration.icebergWeight || 10.0) * 1.5 * icebergCostMult;
     }
   }
 
@@ -26,9 +48,7 @@ function getCellCost(r, c, etaHours, cellW, cellH, icebergCostMult, seaIceCostMu
     if (client && client.status === 'ONLINE' && client.seaIceForecast) {
       const forecast = client.seaIceForecast;
       const maxForecasted = Math.max(forecast.ice_6h, forecast.ice_12h, forecast.ice_24h);
-      if (maxForecasted > iceConc) {
-        iceConc = maxForecasted;
-      }
+      if (maxForecasted > iceConc) iceConc = maxForecasted;
     }
     if (iceConc > 0.1) cost += iceConc * (routeCalibration.seaIceWeight || 5.0) * 2 * seaIceCostMult;
   }
@@ -152,7 +172,7 @@ export class AINavigator {
         const dy = ptB.y - ptA.y;
         const segLen = Math.hypot(dx, dy);
         
-        const numSamples = Math.max(3, Math.ceil(segLen / 50));
+        const numSamples = Math.max(3, Math.ceil(segLen / 40));
         for (let k = 0; k <= numSamples; k++) {
           const ratio = k / numSamples;
           const sx = ptA.x + ratio * dx;
@@ -160,16 +180,10 @@ export class AINavigator {
           const sampleDist = accumulatedDistance + ratio * segLen;
           const etaSample = sampleDist / (3600 * shipSpeed);
           
-          for (let ice of icebergs) {
-            const avoidR = ice.collisionRadius + 15 + 30; // 15 ship radius + 30 margin
-            const icePos = ice.getPositionAt(etaSample);
-            const uRadius = icePos.uncertainty || 0;
-            const totalAvoidR = avoidR + uRadius * 0.4;
-            
-            if (Math.hypot(icePos.x - sx, icePos.y - sy) < totalAvoidR) {
-              isObstructed = true;
-              break;
-            }
+          // Use isHardBlocked (physical collision only) to trigger reroute.
+          // Soft buffer zone checks should not force reroutes — only real collisions.
+          if (isHardBlocked(sx, sy, etaSample, icebergs)) {
+            isObstructed = true;
           }
           if (isObstructed) break;
         }
@@ -231,10 +245,12 @@ export class AINavigator {
    * Waypoints are emitted as world-coordinate {x, y} objects.
    */
   generateOptimalRouteAStar(ship, icebergs, vectorField, dest, mode, state, realShip = null) {
-    const gridCols = 48;
-    const gridRows = 32;
-    const cellW = this.width  / gridCols;  // world units per cell
-    const cellH = this.height / gridRows;
+    // INCREASED RESOLUTION: 72x48 gives 50x50 world-unit cells (was 75x75 at 48x32).
+    // Smaller cells mean narrow gaps (down to ~50 units) have at least one traversable node.
+    const gridCols = 72;
+    const gridRows = 48;
+    const cellW = this.width  / gridCols;  // 50.0 world units per cell
+    const cellH = this.height / gridRows;  // 50.0 world units per cell
 
     // Convert world positions to grid indices
     const startC = Math.max(0, Math.min(gridCols - 1, Math.floor(ship.x / cellW)));
@@ -249,8 +265,8 @@ export class AINavigator {
       icebergCostMult = 0.5;
       seaIceCostMult  = 0.2;
     } else if (mode === 'SAFEST') {
-      icebergCostMult = 5.0;
-      seaIceCostMult  = 3.0;
+      icebergCostMult = 3.0;   // was 5.0 — reduced to avoid excessive conservatism
+      seaIceCostMult  = 2.0;
     }
 
     let shipSpeed = 20.0;
@@ -269,11 +285,11 @@ export class AINavigator {
       shipSpeed = maxSpd * Math.sqrt(throttle / 100);
     }
 
-    // A* Search
-    const openSet  = [];
-    const cameFrom = new Map();
-    const gScore   = new Map();
-    const fScore   = new Map();
+    // A* Search using a proper min-heap via sorted insertion
+    const openSet   = [];
+    const closedSet = new Set();
+    const cameFrom  = new Map();
+    const gScore    = new Map();
     const gDistance = new Map();
 
     const nodeKey  = (r, c) => `${r},${c}`;
@@ -281,8 +297,8 @@ export class AINavigator {
 
     gScore.set(startKey, 0);
     gDistance.set(startKey, 0);
-    fScore.set(startKey, Math.hypot(startC - endC, startR - endR));
-    openSet.push({ r: startR, c: startC, f: fScore.get(startKey) });
+    const h0 = Math.hypot(startC - endC, startR - endR) * (routeCalibration.heuristicWeight || 1.0);
+    openSet.push({ r: startR, c: startC, f: h0 });
 
     let current = null;
     let found   = false;
@@ -296,34 +312,50 @@ export class AINavigator {
       openSet.sort((a, b) => a.f - b.f);
       current = openSet.shift();
 
+      const currKey = nodeKey(current.r, current.c);
+      if (closedSet.has(currKey)) continue;
+      closedSet.add(currKey);
+
       if (current.r === endR && current.c === endC) {
         found = true;
         break;
       }
-
-      const currKey = nodeKey(current.r, current.c);
 
       for (let dir of dirs) {
         const nr = current.r + dir[0];
         const nc = current.c + dir[1];
         if (nr < 0 || nr >= gridRows || nc < 0 || nc >= gridCols) continue;
 
-        const neighborKey  = nodeKey(nr, nc);
-        const moveDist     = (dir[0] !== 0 && dir[1] !== 0) ? 1.414 : 1.0;
-        
+        const neighborKey = nodeKey(nr, nc);
+        if (closedSet.has(neighborKey)) continue;
+
+        const moveDist = (dir[0] !== 0 && dir[1] !== 0) ? 1.414 : 1.0;
+
+        // World-space cell centre of the neighbor
+        const ncx = nc * cellW + cellW / 2;
+        const ncy = nr * cellH + cellH / 2;
+
+        const stepDistSU  = Math.hypot((nc - current.c) * cellW, (nr - current.r) * cellH);
+        const currentDist = gDistance.get(currKey) || 0;
+        const tentativeDist = currentDist + stepDistSU;
+        const etaHours = tentativeDist / (3600 * shipSpeed);
+
+        // ── HARD BLOCK (physical collision only) ─────────────────────────────
+        if (isHardBlocked(ncx, ncy, etaHours, icebergs)) continue;
+
+        // ── SOFT TRAVERSAL COST (proximity penalty, sea ice, risk) ───────────
+        const cellCost = getTraversalCost(ncx, ncy, etaHours, cellW, cellH, icebergCostMult, seaIceCostMult, state, vectorField, icebergs);
+
         // Directional environmental penalty
-        const cx = nc * cellW + cellW / 2;
-        const cy = nr * cellH + cellH / 2;
         let envPenalty = 0.0;
         if (vectorField && vectorField.getVelocityAt) {
           const oceanTime = state?.simulation?.simTimeHours || 0;
-          const oceanVel = vectorField.getVelocityAt(cx, cy, oceanTime, state);
+          const oceanVel = vectorField.getVelocityAt(ncx, ncy, oceanTime, state);
           const angle = Math.atan2(dir[0] * cellH, dir[1] * cellW);
           const moveUnitX = Math.cos(angle);
           const moveUnitY = Math.sin(angle);
           const dot = oceanVel.u * moveUnitX + oceanVel.v * moveUnitY;
           const crossProduct = Math.abs(oceanVel.u * moveUnitY - oceanVel.v * moveUnitX);
-
           if (dot > 0) {
             envPenalty -= dot * (routeCalibration.currentWeight || 0.25);
           } else {
@@ -343,19 +375,9 @@ export class AINavigator {
           }
         }
 
-        const stepDistSU = Math.hypot((nc - current.c) * cellW, (nr - current.r) * cellH);
-        const currentDist = gDistance.get(currKey) || 0;
-        const tentativeDist = currentDist + stepDistSU;
-        
-        const etaHours = tentativeDist / (3600 * shipSpeed);
-        const cellCost = getCellCost(nr, nc, etaHours, cellW, cellH, icebergCostMult, seaIceCostMult, state, vectorField, icebergs);
-        if (cellCost >= 100000) {
-          continue; // Hard constraint - strictly impassable!
-        }
-
         const rawTraverseCost = moveDist * cellCost + envPenalty + turnPenalty;
-        const traverseCost = Math.max(0.2 * moveDist, rawTraverseCost);
-        const tentativeG   = gScore.get(currKey) + traverseCost;
+        const traverseCost    = Math.max(0.2 * moveDist, rawTraverseCost);
+        const tentativeG      = gScore.get(currKey) + traverseCost;
 
         if (!gScore.has(neighborKey) || tentativeG < gScore.get(neighborKey)) {
           cameFrom.set(neighborKey, current);
@@ -363,9 +385,11 @@ export class AINavigator {
           gDistance.set(neighborKey, tentativeDist);
           const h = Math.hypot(nc - endC, nr - endR) * (routeCalibration.heuristicWeight || 1.0);
           const f = tentativeG + h;
-          fScore.set(neighborKey, f);
           if (!openSet.some(n => n.r === nr && n.c === nc)) {
             openSet.push({ r: nr, c: nc, f });
+          } else {
+            const existing = openSet.find(n => n.r === nr && n.c === nc);
+            if (existing) existing.f = Math.min(existing.f, f);
           }
         }
       }
@@ -401,7 +425,9 @@ export class AINavigator {
       waypoints[waypoints.length - 1] = { x: dest.x, y: dest.y };
     }
 
-    // Line-of-sight route smoothing (safely skip waypoints if clear)
+    // Line-of-sight route smoothing (safely skip waypoints if clear).
+    // Uses isHardBlocked (physical collision only) — not the soft avoid radius —
+    // so a corridor that A* correctly navigated is not re-blocked during smoothing.
     const smoothed = [];
     if (waypoints.length > 0) {
       smoothed.push(waypoints[0]);
@@ -413,48 +439,32 @@ export class AINavigator {
           const ptA = waypoints[currentIdx];
           const ptB = waypoints[j];
           let isClear = true;
-          
+
           const dx = ptB.x - ptA.x;
           const dy = ptB.y - ptA.y;
           const segLen = Math.hypot(dx, dy);
-          const segLen2 = dx * dx + dy * dy;
-          
-          const numSamples = Math.max(3, Math.ceil(segLen / 50));
+
+          const numSamples = Math.max(3, Math.ceil(segLen / 40));
           for (let k = 0; k <= numSamples; k++) {
             const ratio = k / numSamples;
             const sx = ptA.x + ratio * dx;
             const sy = ptA.y + ratio * dy;
             const sampleDist = accumulatedDistanceToCurrentIdx + ratio * segLen;
-            const etaSample = sampleDist / (3600 * shipSpeed);
+            const etaSample  = sampleDist / (3600 * shipSpeed);
 
-            for (let ice of icebergs) {
-              const icePos = ice.getPositionAt(etaSample);
-              const avoidR = ice.collisionRadius + 15 + 30; // Safe corridor
-              const uRadius = icePos.uncertainty || 0;
-              const totalAvoidR = avoidR + uRadius * 0.4;
-              
-              if (Math.hypot(icePos.x - sx, icePos.y - sy) < totalAvoidR) {
+            // Hard collision check ONLY (no soft margin)
+            if (isHardBlocked(sx, sy, etaSample, icebergs)) {
+              isClear = false;
+              break;
+            }
+
+            // Dense sea-ice is an additional hard barrier
+            if (state?.environment?.seaIce?.enabled && vectorField?.getSeaIceConcentration) {
+              if (vectorField.getSeaIceConcentration(sx, sy) > 0.85) {
                 isClear = false;
                 break;
               }
-
-              // Check sea ice and risk along segment at sample point
-              if (state?.environment?.seaIce?.enabled && vectorField?.getSeaIceConcentration) {
-                const iceConc = vectorField.getSeaIceConcentration(sx, sy);
-                if (iceConc > 0.85) {
-                  isClear = false;
-                  break;
-                }
-              }
-              if (window.simEngine && window.simEngine.riskIntelligenceEngine) {
-                const riskObj = window.simEngine.riskIntelligenceEngine.getRiskAt(sx, sy);
-                if (riskObj && riskObj.risk > 0.8) {
-                  isClear = false;
-                  break;
-                }
-              }
             }
-            if (!isClear) break;
           }
           if (isClear) {
             furthestVisible = j;
@@ -462,7 +472,10 @@ export class AINavigator {
           }
         }
         smoothed.push(waypoints[furthestVisible]);
-        const segmentLen = Math.hypot(waypoints[furthestVisible].x - waypoints[currentIdx].x, waypoints[furthestVisible].y - waypoints[currentIdx].y);
+        const segmentLen = Math.hypot(
+          waypoints[furthestVisible].x - waypoints[currentIdx].x,
+          waypoints[furthestVisible].y - waypoints[currentIdx].y
+        );
         accumulatedDistanceToCurrentIdx += segmentLen;
         currentIdx = furthestVisible;
       }
@@ -520,7 +533,7 @@ export class AINavigator {
       }
     }
 
-    // 1. Check segment collision intersection
+    // 1. Check segment collision intersection — physical collision boundary only.
     let accumulatedDistance = 0;
     for (let i = 0; i < waypoints.length - 1; i++) {
       const ptA = waypoints[i];
@@ -528,22 +541,17 @@ export class AINavigator {
       const dx = ptB.x - ptA.x;
       const dy = ptB.y - ptA.y;
       const segLen = Math.hypot(dx, dy);
-      const segLen2 = dx * dx + dy * dy;
 
-      const numSamples = Math.max(3, Math.ceil(segLen / 50));
+      const numSamples = Math.max(3, Math.ceil(segLen / 40));
       for (let k = 0; k <= numSamples; k++) {
-        const ratio = k / numSamples;
-        const sx = ptA.x + ratio * dx;
-        const sy = ptA.y + ratio * dy;
+        const ratio     = k / numSamples;
+        const sx        = ptA.x + ratio * dx;
+        const sy        = ptA.y + ratio * dy;
         const sampleDist = accumulatedDistance + ratio * segLen;
-        const etaSample = sampleDist / (3600 * shipSpeed);
+        const etaSample  = sampleDist / (3600 * shipSpeed);
 
-        for (let ice of icebergs) {
-          const icePos = ice.getPositionAt(etaSample);
-          const collisionR = ice.collisionRadius + 15;
-          if (Math.hypot(icePos.x - sx, icePos.y - sy) < collisionR) {
-            return { valid: false, reason: `Segment crosses critical iceberg collision zone` };
-          }
+        if (isHardBlocked(sx, sy, etaSample, icebergs)) {
+          return { valid: false, reason: `Segment crosses iceberg collision zone` };
         }
       }
       accumulatedDistance += segLen;
