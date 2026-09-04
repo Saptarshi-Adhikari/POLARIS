@@ -1,0 +1,2443 @@
+{
+  "provenance": {
+    "source": "runtime simulation watchdog & telemetry",
+    "data_provenance": "POLARIS digital twin runtime simulation",
+    "is_real_vessel_field_telemetry": false
+  },
+  "sessionId": "session_1788506949027",
+  "exportTimestamp": "2026-09-04T07:32:35.019Z",
+  "watchdogStatus": "CRITICAL",
+  "watchdogMode": "analyze",
+  "totalSamples": 720,
+  "totalWatchdogEvents": 83,
+  "routeConvergence": {
+    "initialDistance": 996.606473788759,
+    "finalDistance": 3511.3617148301746,
+    "minimumDistance": 292.783367481644,
+    "maximumDistance": 3704.7267105685405,
+    "netDistanceReduction": -2514.7552410414155
+  },
+  "watchdogEvents": [
+    {
+      "timestamp_ms": 1788506954570,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.95)"
+    },
+    {
+      "timestamp_ms": 1788506956636,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.95)"
+    },
+    {
+      "timestamp_ms": 1788506958735,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.95)"
+    },
+    {
+      "timestamp_ms": 1788506960835,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.95)"
+    },
+    {
+      "timestamp_ms": 1788506972666,
+      "type": "CROSS_TRACK_DIVERGENCE",
+      "severity": "medium",
+      "message": "Cross-track error growing continuously (14.0 SU)"
+    },
+    {
+      "timestamp_ms": 1788506974709,
+      "type": "CROSS_TRACK_DIVERGENCE",
+      "severity": "medium",
+      "message": "Cross-track error growing continuously (27.6 SU)"
+    },
+    {
+      "timestamp_ms": 1788506976774,
+      "type": "CROSS_TRACK_DIVERGENCE",
+      "severity": "medium",
+      "message": "Cross-track error growing continuously (41.8 SU)"
+    },
+    {
+      "timestamp_ms": 1788506978968,
+      "type": "CROSS_TRACK_DIVERGENCE",
+      "severity": "medium",
+      "message": "Cross-track error growing continuously (57.4 SU)"
+    },
+    {
+      "timestamp_ms": 1788506981002,
+      "type": "CROSS_TRACK_DIVERGENCE",
+      "severity": "medium",
+      "message": "Cross-track error growing continuously (71.6 SU)"
+    },
+    {
+      "timestamp_ms": 1788507037307,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 0.95 falsely near 100% while 322 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507039365,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 0.98 falsely near 100% while 309 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507041441,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 300 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507043527,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 297 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507045608,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 296 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507047672,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 296 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507049738,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 296 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507051824,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 295 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507053973,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 296 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507056122,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 298 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507058246,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 299 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507060339,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 300 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507062402,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 300 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507064470,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 299 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507066556,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 295 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507068639,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 296 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507069672,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.81)"
+    },
+    {
+      "timestamp_ms": 1788507070690,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 315 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507071741,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.88)"
+    },
+    {
+      "timestamp_ms": 1788507072770,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 339 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507073803,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.92)"
+    },
+    {
+      "timestamp_ms": 1788507074856,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 367 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507075903,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.99)"
+    },
+    {
+      "timestamp_ms": 1788507076937,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 404 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507077969,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-1.00)"
+    },
+    {
+      "timestamp_ms": 1788507078989,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 442 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507080021,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-1.00)"
+    },
+    {
+      "timestamp_ms": 1788507081067,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 481 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507082102,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.99)"
+    },
+    {
+      "timestamp_ms": 1788507083150,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 799 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507084170,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.56)"
+    },
+    {
+      "timestamp_ms": 1788507085203,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 1038 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507086250,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.58)"
+    },
+    {
+      "timestamp_ms": 1788507087282,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 1286 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507088319,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.48)"
+    },
+    {
+      "timestamp_ms": 1788507089434,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 1335 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507091487,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 1490 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507091750,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.65)"
+    },
+    {
+      "timestamp_ms": 1788507093535,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 1812 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507093802,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.79)"
+    },
+    {
+      "timestamp_ms": 1788507095632,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 2026 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507095883,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.67)"
+    },
+    {
+      "timestamp_ms": 1788507097715,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 2026 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507097974,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.67)"
+    },
+    {
+      "timestamp_ms": 1788507099766,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 2026 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507100032,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.67)"
+    },
+    {
+      "timestamp_ms": 1788507101849,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 2026 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507102114,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.67)"
+    },
+    {
+      "timestamp_ms": 1788507103905,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 2026 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507104183,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.67)"
+    },
+    {
+      "timestamp_ms": 1788507106014,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 2026 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507106267,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.67)"
+    },
+    {
+      "timestamp_ms": 1788507108065,
+      "type": "ROUTE_PROGRESS_ANOMALY",
+      "severity": "medium",
+      "message": "Progress fraction 1.00 falsely near 100% while 2026 SU from destination"
+    },
+    {
+      "timestamp_ms": 1788507108316,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.67)"
+    },
+    {
+      "timestamp_ms": 1788507109521,
+      "type": "DESTINATION_DIVERGENCE",
+      "severity": "high",
+      "message": "Destination distance increased by 1159.5 SU over 5s"
+    },
+    {
+      "timestamp_ms": 1788507111567,
+      "type": "DESTINATION_DIVERGENCE",
+      "severity": "high",
+      "message": "Destination distance increased by 1118.2 SU over 5s"
+    },
+    {
+      "timestamp_ms": 1788507113645,
+      "type": "DESTINATION_DIVERGENCE",
+      "severity": "high",
+      "message": "Destination distance increased by 1118.2 SU over 5s"
+    },
+    {
+      "timestamp_ms": 1788507115820,
+      "type": "DESTINATION_DIVERGENCE",
+      "severity": "high",
+      "message": "Destination distance increased by 1110.4 SU over 5s"
+    },
+    {
+      "timestamp_ms": 1788507118045,
+      "type": "DESTINATION_DIVERGENCE",
+      "severity": "high",
+      "message": "Destination distance increased by 1067.4 SU over 5s"
+    },
+    {
+      "timestamp_ms": 1788507118828,
+      "type": "CROSS_TRACK_DIVERGENCE",
+      "severity": "medium",
+      "message": "Cross-track error growing continuously (12.8 SU)"
+    },
+    {
+      "timestamp_ms": 1788507120166,
+      "type": "NOMOTO_YAW_DIRECTION_MISMATCH",
+      "severity": "critical",
+      "message": "Rudder 7.9° produced opposite yaw rate -0.35°"
+    },
+    {
+      "timestamp_ms": 1788507120906,
+      "type": "CROSS_TRACK_DIVERGENCE",
+      "severity": "medium",
+      "message": "Cross-track error growing continuously (18.6 SU)"
+    },
+    {
+      "timestamp_ms": 1788507122180,
+      "type": "NOMOTO_YAW_DIRECTION_MISMATCH",
+      "severity": "critical",
+      "message": "Rudder 11.9° produced opposite yaw rate -0.32°"
+    },
+    {
+      "timestamp_ms": 1788507123147,
+      "type": "CROSS_TRACK_DIVERGENCE",
+      "severity": "medium",
+      "message": "Cross-track error growing continuously (24.9 SU)"
+    },
+    {
+      "timestamp_ms": 1788507124198,
+      "type": "NOMOTO_YAW_DIRECTION_MISMATCH",
+      "severity": "critical",
+      "message": "Rudder 15.6° produced opposite yaw rate -0.25°"
+    },
+    {
+      "timestamp_ms": 1788507125197,
+      "type": "CROSS_TRACK_DIVERGENCE",
+      "severity": "medium",
+      "message": "Cross-track error growing continuously (29.5 SU)"
+    },
+    {
+      "timestamp_ms": 1788507128545,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.47)"
+    },
+    {
+      "timestamp_ms": 1788507130328,
+      "type": "CROSS_TRACK_DIVERGENCE",
+      "severity": "medium",
+      "message": "Cross-track error growing continuously (46.4 SU)"
+    },
+    {
+      "timestamp_ms": 1788507130595,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.25)"
+    },
+    {
+      "timestamp_ms": 1788507132361,
+      "type": "CROSS_TRACK_DIVERGENCE",
+      "severity": "medium",
+      "message": "Cross-track error growing continuously (69.4 SU)"
+    },
+    {
+      "timestamp_ms": 1788507132627,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.33)"
+    },
+    {
+      "timestamp_ms": 1788507135051,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.77)"
+    },
+    {
+      "timestamp_ms": 1788507137120,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.51)"
+    },
+    {
+      "timestamp_ms": 1788507146525,
+      "type": "GROUND_TRACK_DIVERGENCE",
+      "severity": "high",
+      "message": "Vessel ground velocity points away from look-ahead target (dot=-0.69)"
+    }
+  ],
+  "flightRecorderEvents": [
+    {
+      "timestamp_ms": 1788506949027,
+      "simulation_time_ms": 0,
+      "type": "session_started",
+      "route_id": "none",
+      "details": {
+        "sessionId": "session_1788506949027"
+      }
+    },
+    {
+      "timestamp_ms": 1788506949388,
+      "simulation_time_ms": 361.2000000178814,
+      "type": "route_id_changed",
+      "route_id": "none",
+      "details": {
+        "previousRouteId": null,
+        "nextRouteId": "route_1788506949062"
+      }
+    },
+    {
+      "timestamp_ms": 1788506949388,
+      "simulation_time_ms": 361.2000000178814,
+      "type": "guidance_mode_changed",
+      "route_id": "route_1788506949062",
+      "details": {
+        "previousMode": null,
+        "nextMode": "NORMAL_TRACKING"
+      }
+    },
+    {
+      "timestamp_ms": 1788506952735,
+      "simulation_time_ms": 3708,
+      "type": "route_id_changed",
+      "route_id": "route_1788506949062",
+      "details": {
+        "previousRouteId": "route_1788506949062",
+        "nextRouteId": "route_1788506952686"
+      }
+    },
+    {
+      "timestamp_ms": 1788506956353,
+      "simulation_time_ms": 7326.5,
+      "type": "route_id_changed",
+      "route_id": "route_1788506952686",
+      "details": {
+        "previousRouteId": "route_1788506952686",
+        "nextRouteId": "route_1788506956256"
+      }
+    },
+    {
+      "timestamp_ms": 1788506982335,
+      "simulation_time_ms": 33307.59999999404,
+      "type": "guidance_mode_changed",
+      "route_id": "route_1788506956256",
+      "details": {
+        "previousMode": "NORMAL_TRACKING",
+        "nextMode": "ROUTE_RECOVERY"
+      }
+    },
+    {
+      "timestamp_ms": 1788507109521,
+      "simulation_time_ms": 160494.09999999404,
+      "type": "route_id_changed",
+      "route_id": "route_1788506956256",
+      "details": {
+        "previousRouteId": "route_1788506956256",
+        "nextRouteId": "route_1788507109221"
+      }
+    },
+    {
+      "timestamp_ms": 1788507109521,
+      "simulation_time_ms": 160494.09999999404,
+      "type": "guidance_mode_changed",
+      "route_id": "route_1788507109221",
+      "details": {
+        "previousMode": "ROUTE_RECOVERY",
+        "nextMode": "NORMAL_TRACKING"
+      }
+    },
+    {
+      "timestamp_ms": 1788507126198,
+      "simulation_time_ms": 177171.20000001788,
+      "type": "route_id_changed",
+      "route_id": "route_1788507109221",
+      "details": {
+        "previousRouteId": "route_1788507109221",
+        "nextRouteId": "route_1788507126055"
+      }
+    },
+    {
+      "timestamp_ms": 1788507133296,
+      "simulation_time_ms": 184269,
+      "type": "guidance_mode_changed",
+      "route_id": "route_1788507126055",
+      "details": {
+        "previousMode": "NORMAL_TRACKING",
+        "nextMode": "ROUTE_RECOVERY"
+      }
+    }
+  ],
+  "recentSnapshots": [
+    {
+      "timestamp_ms": 1788507149317,
+      "simulation_time": 14.15345739722248,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.20824828195876072
+      },
+      "ship": {
+        "position": {
+          "x": 50,
+          "y": 2350
+        },
+        "heading_rad": 3.2559352342933865,
+        "heading_deg": 186.5513472929499,
+        "target_heading_deg": 320.85199006954576,
+        "rudder_command": 35,
+        "throttle": 33.25,
+        "ground_velocity": {
+          "x": 0.8617638325472766,
+          "y": -0.06914482217509725
+        },
+        "ground_speed": 0.8645333478358115,
+        "water_speed": 0.8645333478358115,
+        "sprite_rotation_deg": 186.5513472929499,
+        "distance_to_destination": 3704.7267105685405
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -391.47410499742193,
+        "current_velocity": {
+          "x": -3.268484924696382,
+          "y": 6.46344520721996
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 302.4711922908485,
+        "desired_water_heading_deg": 300.8519900695458,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 320.85199006954576,
+        "signed_heading_error_deg": 134.5433212531001,
+        "rudder_before_clamp_deg": 215.26931400496017,
+        "rudder_after_clamp_deg": 35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3704.7267105685405
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": -0.9811623132023793
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507149576,
+      "simulation_time": 14.154474619444695,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.20824796753442906
+      },
+      "ship": {
+        "position": {
+          "x": 50,
+          "y": 2349.99883329491
+        },
+        "heading_rad": 3.3487129293426,
+        "heading_deg": 191.86711765222162,
+        "target_heading_deg": 320.8545811469571,
+        "rudder_command": 35,
+        "throttle": 33.25,
+        "ground_velocity": {
+          "x": 0.8490548631410515,
+          "y": -0.00694467315443913
+        },
+        "ground_speed": 0.8490832639433495,
+        "water_speed": 0.8490832639433495,
+        "sprite_rotation_deg": 191.86711765222162,
+        "distance_to_destination": 3704.7260964680654
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -391.47410499742193,
+        "current_velocity": {
+          "x": -3.2697431699298956,
+          "y": 6.463330567439523
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 302.4711922908485,
+        "desired_water_heading_deg": 300.8545811469571,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 320.8545811469571,
+        "signed_heading_error_deg": 129.2321862577652,
+        "rudder_before_clamp_deg": 206.77149801242433,
+        "rudder_after_clamp_deg": 35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3704.7267105685405
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": -0.9769124759422542
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507149843,
+      "simulation_time": 14.155215452778021,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.2077209255018379
+      },
+      "ship": {
+        "position": {
+          "x": 50,
+          "y": 2348.0421811641263
+        },
+        "heading_rad": 3.4166987865678764,
+        "heading_deg": 195.76242033780898,
+        "target_heading_deg": 320.9073602436042,
+        "rudder_command": 35,
+        "throttle": 33.25,
+        "ground_velocity": {
+          "x": 0.8260448950360098,
+          "y": -1.871500687786505
+        },
+        "ground_speed": 2.045694256970091,
+        "water_speed": 2.045694256970091,
+        "sprite_rotation_deg": 195.76242033780898,
+        "distance_to_destination": 3703.696577690279
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -389.9325129391116,
+        "current_velocity": {
+          "x": -3.2688736751905125,
+          "y": 6.465023886878977
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 302.54907862956725,
+        "desired_water_heading_deg": 300.9073602436042,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 320.9073602436042,
+        "signed_heading_error_deg": 125.38792656969326,
+        "rudder_before_clamp_deg": 200.62068251150924,
+        "rudder_after_clamp_deg": 35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3703.859990494723
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": -0.14009482026150355
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507150362,
+      "simulation_time": 14.155539619444685,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.20685078819822966
+      },
+      "ship": {
+        "position": {
+          "x": 50,
+          "y": 2344.807338484572
+        },
+        "heading_rad": 3.4465450289557333,
+        "heading_deg": 197.47248406095764,
+        "target_heading_deg": 321.00044945703144,
+        "rudder_command": 35,
+        "throttle": 33.25,
+        "ground_velocity": {
+          "x": 0.8143568536628407,
+          "y": -3.4848985254213205
+        },
+        "ground_speed": 3.5787839858800274,
+        "water_speed": 3.5787839858800274,
+        "sprite_rotation_deg": 197.47248406095764,
+        "distance_to_destination": 3701.9961620487193
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -387.15563582240554,
+        "current_velocity": {
+          "x": -3.2663192702318584,
+          "y": 6.467927511946335
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 302.6902175153782,
+        "desired_water_heading_deg": 301.0004494570315,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 321.00044945703144,
+        "signed_heading_error_deg": 123.77140458446377,
+        "rudder_before_clamp_deg": 198.03424733514203,
+        "rudder_after_clamp_deg": 35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3702.300100470631
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.07531873606557266
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507150624,
+      "simulation_time": 14.156557675000235,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.20049115857133315
+      },
+      "ship": {
+        "position": {
+          "x": 50,
+          "y": 2320.987241417388
+        },
+        "heading_rad": 3.540624487374023,
+        "heading_deg": 202.86283996720215,
+        "target_heading_deg": 321.7462960783936,
+        "rudder_command": 35,
+        "throttle": 33.25,
+        "ground_velocity": {
+          "x": 0.7915521875895882,
+          "y": -8.226698337476298
+        },
+        "ground_speed": 8.264691186094804,
+        "water_speed": 8.264691186094804,
+        "sprite_rotation_deg": 202.86283996720215,
+        "distance_to_destination": 3689.538180001446
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -365.591046194014,
+        "current_velocity": {
+          "x": -3.24574311675955,
+          "y": 6.489534597773952
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 303.8242871858532,
+        "desired_water_heading_deg": 301.7462960783936,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 321.7462960783936,
+        "signed_heading_error_deg": 119.12664132263728,
+        "rudder_before_clamp_deg": 190.60262611621965,
+        "rudder_after_clamp_deg": 35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3690.245105745318
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.29848952138593166
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507150876,
+      "simulation_time": 14.157251841666895,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.1950530745813496
+      },
+      "ship": {
+        "position": {
+          "x": 52.72735609767631,
+          "y": 2302.244551441564
+        },
+        "heading_rad": 0.6058366759778834,
+        "heading_deg": 34.7118846077675,
+        "target_heading_deg": 322.32462568065284,
+        "rudder_command": -35,
+        "throttle": 8.279250000002904,
+        "ground_velocity": {
+          "x": 5.017167304358596,
+          "y": -1.4752859467195925
+        },
+        "ground_speed": 5.229573250707291,
+        "water_speed": 5.229573250707291,
+        "sprite_rotation_deg": 34.7118846077675,
+        "distance_to_destination": 3677.4800378173422
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -347.67556418783863,
+        "current_velocity": {
+          "x": -3.2292927216045575,
+          "y": 6.506662929603686
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 304.712738158235,
+        "desired_water_heading_deg": 302.3246256806529,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 322.32462568065284,
+        "signed_heading_error_deg": -72.39001452711466,
+        "rudder_before_clamp_deg": -115.82402324338346,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3678.3194943499343
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.6279938849138591
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507151298,
+      "simulation_time": 14.157529897222448,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.19476631767997446
+      },
+      "ship": {
+        "position": {
+          "x": 61.18712176926885,
+          "y": 2306.9104801349563
+        },
+        "heading_rad": 0.6045562728736203,
+        "heading_deg": 34.63852291381778,
+        "target_heading_deg": 321.81380756106614,
+        "rudder_command": -35,
+        "throttle": 28.81472030731918,
+        "ground_velocity": {
+          "x": 11.32623615423513,
+          "y": 9.127859276383798
+        },
+        "ground_speed": 14.546526746648793,
+        "water_speed": 14.546526746648793,
+        "sprite_rotation_deg": 34.63852291381778,
+        "distance_to_destination": 3672.6630479524824
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -353.006013684358,
+        "current_velocity": {
+          "x": -3.233797618741461,
+          "y": 6.502450509786672
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 303.9843845650113,
+        "desired_water_heading_deg": 301.81380756106614,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 321.81380756106614,
+        "signed_heading_error_deg": -72.84345346711842,
+        "rudder_before_clamp_deg": -116.54952554738948,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3673.4838790871995
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.9972799082102852
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507151558,
+      "simulation_time": 14.158548508333551,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.1996023135518225
+      },
+      "ship": {
+        "position": {
+          "x": 103.44879188013273,
+          "y": 2350
+        },
+        "heading_rad": 0.5262295644599935,
+        "heading_deg": 30.150733098565127,
+        "target_heading_deg": 318.0164707408676,
+        "rudder_command": -35,
+        "throttle": 25.354566043759235,
+        "ground_velocity": {
+          "x": 9.380090973629155,
+          "y": -1.5090031819031964
+        },
+        "ground_speed": 9.500694568112014,
+        "water_speed": 9.500694568112014,
+        "sprite_rotation_deg": 30.150733098565127,
+        "distance_to_destination": 3659.389209213555
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -409.1767231280271,
+        "current_velocity": {
+          "x": -3.273498602150103,
+          "y": 6.4638850976386655
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 298.48459537252245,
+        "desired_water_heading_deg": 298.01647074086765,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 318.0164707408676,
+        "signed_heading_error_deg": -72.14770492575832,
+        "rudder_before_clamp_deg": -115.43632788121332,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3660.369864323659
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.7739532536957744
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507151824,
+      "simulation_time": 14.159289341666877,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.1932570022578177
+      },
+      "ship": {
+        "position": {
+          "x": 147.98207319231037,
+          "y": 2350
+        },
+        "heading_rad": 0.516533792739099,
+        "heading_deg": 29.59520629983558,
+        "target_heading_deg": 315.4595284498208,
+        "rudder_command": -35,
+        "throttle": 30.00002062552306,
+        "ground_velocity": {
+          "x": 19.625837010663957,
+          "y": -0.511501093214668
+        },
+        "ground_speed": 19.632501413154337,
+        "water_speed": 19.632501413154337,
+        "sprite_rotation_deg": 29.59520629983558,
+        "distance_to_destination": 3621.7831831234057
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -424.831518326895,
+        "current_velocity": {
+          "x": -3.2728126773584636,
+          "y": 6.465198354645984
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 294.89948075500035,
+        "desired_water_heading_deg": 295.4595284498208,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 315.4595284498208,
+        "signed_heading_error_deg": -74.1880684232869,
+        "rudder_before_clamp_deg": -118.70090947725903,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3624.545521219357
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.8563739189166817
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507152284,
+      "simulation_time": 14.159752397222428,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.18902718456126016
+      },
+      "ship": {
+        "position": {
+          "x": 181.6733874880668,
+          "y": 2350
+        },
+        "heading_rad": 0.5053655025599687,
+        "heading_deg": 28.95531040819401,
+        "target_heading_deg": 313.36353512901815,
+        "rudder_command": -35,
+        "throttle": 32.816471410725924,
+        "ground_velocity": {
+          "x": 20.79570531983163,
+          "y": -0.5443576474107072
+        },
+        "ground_speed": 20.802828773932838,
+        "water_speed": 20.802828773932838,
+        "sprite_rotation_deg": 28.95531040819401,
+        "distance_to_destination": 3593.437844153946
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -436.62233867373527,
+        "current_velocity": {
+          "x": -3.271859125352202,
+          "y": 6.466533462130708
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 291.9646944695561,
+        "desired_water_heading_deg": 293.36353512901815,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 313.36353512901815,
+        "signed_heading_error_deg": -75.66555252185952,
+        "rudder_before_clamp_deg": -121.06488403497525,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3596.372877099029
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.8620295681008975
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507152541,
+      "simulation_time": 14.160724341666866,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.18295609959698642
+      },
+      "ship": {
+        "position": {
+          "x": 240.20401468911768,
+          "y": 2350
+        },
+        "heading_rad": 1.1121805967020764,
+        "heading_deg": 63.723254247370505,
+        "target_heading_deg": 309.3997393293711,
+        "rudder_command": -35,
+        "throttle": 32.80478396789782,
+        "ground_velocity": {
+          "x": 13.74883704579565,
+          "y": -0.8541974960831829
+        },
+        "ground_speed": 13.775346582723705,
+        "water_speed": 13.775346582723705,
+        "sprite_rotation_deg": 63.723254247370505,
+        "distance_to_destination": 3544.4170571001396
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -457.6601847188426,
+        "current_velocity": {
+          "x": -3.269758547171569,
+          "y": 6.469514500037166
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 286.4209201838685,
+        "desired_water_heading_deg": 289.3997393293711,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 309.3997393293711,
+        "signed_heading_error_deg": -114.36215467941355,
+        "rudder_before_clamp_deg": -182.9794474870617,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3546.3346232319
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.3862538437602418
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507152808,
+      "simulation_time": 14.161465175000194,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.17999624037743775
+      },
+      "ship": {
+        "position": {
+          "x": 277.49801556660003,
+          "y": 2350
+        },
+        "heading_rad": 1.096130723976932,
+        "heading_deg": 62.80366427849759,
+        "target_heading_deg": 306.7988963126862,
+        "rudder_command": -35,
+        "throttle": 33.24554281993994,
+        "ground_velocity": {
+          "x": 14.176861413805337,
+          "y": -0.8460880522808796
+        },
+        "ground_speed": 14.202086626212894,
+        "water_speed": 14.202086626212894,
+        "sprite_rotation_deg": 62.80366427849759,
+        "distance_to_destination": 3513.334292238238
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -470.77591996979675,
+        "current_velocity": {
+          "x": -3.2681375099285725,
+          "y": 6.4718532951871035
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 282.7899359274461,
+        "desired_water_heading_deg": 286.7988963126862,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 306.7988963126862,
+        "signed_heading_error_deg": -116.07765511738438,
+        "rudder_before_clamp_deg": -185.72424818781502,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3515.2921329499577
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.40324062243328906
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507153075,
+      "simulation_time": 14.161511563889082,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.17983305581773032
+      },
+      "ship": {
+        "position": {
+          "x": 279.8696788713169,
+          "y": 2350
+        },
+        "heading_rad": 1.094816512597495,
+        "heading_deg": 62.728365513067786,
+        "target_heading_deg": 306.6315707789414,
+        "rudder_command": -35,
+        "throttle": 33.24665934354499,
+        "ground_velocity": {
+          "x": 14.20157667494145,
+          "y": -0.8586434030324621
+        },
+        "ground_speed": 14.227510272279273,
+        "water_speed": 14.227510272279273,
+        "sprite_rotation_deg": 62.728365513067786,
+        "distance_to_destination": 3511.3617148301746
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -471.604834332688,
+        "current_velocity": {
+          "x": -3.268022360290785,
+          "y": 6.472013995669262
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 282.55657722295325,
+        "desired_water_heading_deg": 286.6315707789414,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 306.6315707789414,
+        "signed_heading_error_deg": -116.17209349955618,
+        "rudder_before_clamp_deg": -185.8753495992899,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3513.334292238238
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.40373178588540903
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507153341,
+      "simulation_time": 14.161511563889082,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.17983305581773032
+      },
+      "ship": {
+        "position": {
+          "x": 279.8696788713169,
+          "y": 2350
+        },
+        "heading_rad": 1.094816512597495,
+        "heading_deg": 62.728365513067786,
+        "target_heading_deg": 306.6315707789414,
+        "rudder_command": -35,
+        "throttle": 33.24665934354499,
+        "ground_velocity": {
+          "x": 14.20157667494145,
+          "y": -0.8586434030324621
+        },
+        "ground_speed": 14.227510272279273,
+        "water_speed": 14.227510272279273,
+        "sprite_rotation_deg": 62.728365513067786,
+        "distance_to_destination": 3511.3617148301746
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -471.604834332688,
+        "current_velocity": {
+          "x": -3.268022360290785,
+          "y": 6.472013995669262
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 282.55657722295325,
+        "desired_water_heading_deg": 286.6315707789414,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 306.6315707789414,
+        "signed_heading_error_deg": -116.17209349955618,
+        "rudder_before_clamp_deg": -185.8753495992899,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3513.334292238238
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.40373178588540903
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507153607,
+      "simulation_time": 14.161511563889082,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.17983305581773032
+      },
+      "ship": {
+        "position": {
+          "x": 279.8696788713169,
+          "y": 2350
+        },
+        "heading_rad": 1.094816512597495,
+        "heading_deg": 62.728365513067786,
+        "target_heading_deg": 306.6315707789414,
+        "rudder_command": -35,
+        "throttle": 33.24665934354499,
+        "ground_velocity": {
+          "x": 14.20157667494145,
+          "y": -0.8586434030324621
+        },
+        "ground_speed": 14.227510272279273,
+        "water_speed": 14.227510272279273,
+        "sprite_rotation_deg": 62.728365513067786,
+        "distance_to_destination": 3511.3617148301746
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -471.604834332688,
+        "current_velocity": {
+          "x": -3.268022360290785,
+          "y": 6.472013995669262
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 282.55657722295325,
+        "desired_water_heading_deg": 286.6315707789414,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 306.6315707789414,
+        "signed_heading_error_deg": -116.17209349955618,
+        "rudder_before_clamp_deg": -185.8753495992899,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3513.334292238238
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.40373178588540903
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507153873,
+      "simulation_time": 14.161511563889082,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.17983305581773032
+      },
+      "ship": {
+        "position": {
+          "x": 279.8696788713169,
+          "y": 2350
+        },
+        "heading_rad": 1.094816512597495,
+        "heading_deg": 62.728365513067786,
+        "target_heading_deg": 306.6315707789414,
+        "rudder_command": -35,
+        "throttle": 33.24665934354499,
+        "ground_velocity": {
+          "x": 14.20157667494145,
+          "y": -0.8586434030324621
+        },
+        "ground_speed": 14.227510272279273,
+        "water_speed": 14.227510272279273,
+        "sprite_rotation_deg": 62.728365513067786,
+        "distance_to_destination": 3511.3617148301746
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -471.604834332688,
+        "current_velocity": {
+          "x": -3.268022360290785,
+          "y": 6.472013995669262
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 282.55657722295325,
+        "desired_water_heading_deg": 286.6315707789414,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 306.6315707789414,
+        "signed_heading_error_deg": -116.17209349955618,
+        "rudder_before_clamp_deg": -185.8753495992899,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3513.334292238238
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.40373178588540903
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507154141,
+      "simulation_time": 14.161511563889082,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.17983305581773032
+      },
+      "ship": {
+        "position": {
+          "x": 279.8696788713169,
+          "y": 2350
+        },
+        "heading_rad": 1.094816512597495,
+        "heading_deg": 62.728365513067786,
+        "target_heading_deg": 306.6315707789414,
+        "rudder_command": -35,
+        "throttle": 33.24665934354499,
+        "ground_velocity": {
+          "x": 14.20157667494145,
+          "y": -0.8586434030324621
+        },
+        "ground_speed": 14.227510272279273,
+        "water_speed": 14.227510272279273,
+        "sprite_rotation_deg": 62.728365513067786,
+        "distance_to_destination": 3511.3617148301746
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -471.604834332688,
+        "current_velocity": {
+          "x": -3.268022360290785,
+          "y": 6.472013995669262
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 282.55657722295325,
+        "desired_water_heading_deg": 286.6315707789414,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 306.6315707789414,
+        "signed_heading_error_deg": -116.17209349955618,
+        "rudder_before_clamp_deg": -185.8753495992899,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3513.334292238238
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.40373178588540903
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507154407,
+      "simulation_time": 14.161511563889082,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.17983305581773032
+      },
+      "ship": {
+        "position": {
+          "x": 279.8696788713169,
+          "y": 2350
+        },
+        "heading_rad": 1.094816512597495,
+        "heading_deg": 62.728365513067786,
+        "target_heading_deg": 306.6315707789414,
+        "rudder_command": -35,
+        "throttle": 33.24665934354499,
+        "ground_velocity": {
+          "x": 14.20157667494145,
+          "y": -0.8586434030324621
+        },
+        "ground_speed": 14.227510272279273,
+        "water_speed": 14.227510272279273,
+        "sprite_rotation_deg": 62.728365513067786,
+        "distance_to_destination": 3511.3617148301746
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -471.604834332688,
+        "current_velocity": {
+          "x": -3.268022360290785,
+          "y": 6.472013995669262
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 282.55657722295325,
+        "desired_water_heading_deg": 286.6315707789414,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 306.6315707789414,
+        "signed_heading_error_deg": -116.17209349955618,
+        "rudder_before_clamp_deg": -185.8753495992899,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3513.334292238238
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.40373178588540903
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507154664,
+      "simulation_time": 14.161511563889082,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.17983305581773032
+      },
+      "ship": {
+        "position": {
+          "x": 279.8696788713169,
+          "y": 2350
+        },
+        "heading_rad": 1.094816512597495,
+        "heading_deg": 62.728365513067786,
+        "target_heading_deg": 306.6315707789414,
+        "rudder_command": -35,
+        "throttle": 33.24665934354499,
+        "ground_velocity": {
+          "x": 14.20157667494145,
+          "y": -0.8586434030324621
+        },
+        "ground_speed": 14.227510272279273,
+        "water_speed": 14.227510272279273,
+        "sprite_rotation_deg": 62.728365513067786,
+        "distance_to_destination": 3511.3617148301746
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -471.604834332688,
+        "current_velocity": {
+          "x": -3.268022360290785,
+          "y": 6.472013995669262
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 282.55657722295325,
+        "desired_water_heading_deg": 286.6315707789414,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 306.6315707789414,
+        "signed_heading_error_deg": -116.17209349955618,
+        "rudder_before_clamp_deg": -185.8753495992899,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3513.334292238238
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.40373178588540903
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    },
+    {
+      "timestamp_ms": 1788507154924,
+      "simulation_time": 14.161511563889082,
+      "route": {
+        "id": "route_1788507126055",
+        "path_length": 9,
+        "status": "valid",
+        "destination": {
+          "x": 3200,
+          "y": 400
+        },
+        "selected_waypoint_index": 0,
+        "selected_target": {
+          "x": 400,
+          "y": 1800,
+          "riskScore": 0.9826937473424477,
+          "status": "critical",
+          "minClearance": 17.306252657552296
+        },
+        "selected_target_is_forward": true,
+        "route_progress_fraction": 0.17983305581773032
+      },
+      "ship": {
+        "position": {
+          "x": 279.8696788713169,
+          "y": 2350
+        },
+        "heading_rad": 1.094816512597495,
+        "heading_deg": 62.728365513067786,
+        "target_heading_deg": 306.6315707789414,
+        "rudder_command": -35,
+        "throttle": 33.24665934354499,
+        "ground_velocity": {
+          "x": 14.20157667494145,
+          "y": -0.8586434030324621
+        },
+        "ground_speed": 14.227510272279273,
+        "water_speed": 14.227510272279273,
+        "sprite_rotation_deg": 62.728365513067786,
+        "distance_to_destination": 3511.3617148301746
+      },
+      "guidance": {
+        "mode": "ROUTE_RECOVERY",
+        "cross_track_error": -471.604834332688,
+        "current_velocity": {
+          "x": -3.268022360290785,
+          "y": 6.472013995669262
+        },
+        "is_current_limited": false,
+        "lookahead_target": {
+          "x": 2426.8216592694935,
+          "y": 1037.2176551136315
+        },
+        "route_tangent_heading_deg": 339.37646861667474,
+        "desired_ground_heading_deg": 282.55657722295325,
+        "desired_water_heading_deg": 286.6315707789414,
+        "xte_gain_used": 0.08,
+        "max_correction_used_deg": 20,
+        "lookahead_multiplier_used": 0.75,
+        "requested_speed_multiplier": 0.8,
+        "raw_xte_correction_deg": 20,
+        "bounded_xte_correction_deg": 20,
+        "recovery_correction_deg": 20,
+        "final_target_heading_deg": 306.6315707789414,
+        "signed_heading_error_deg": -116.17209349955618,
+        "rudder_before_clamp_deg": -185.8753495992899,
+        "rudder_after_clamp_deg": -35,
+        "route_progress_distance": 0,
+        "remaining_route_distance": 3180.1159615480337,
+        "direct_destination_distance": 3513.334292238238
+      },
+      "integrity": {
+        "route_id_matches_ship_route_id": true,
+        "finite_position": true,
+        "heading_velocity_alignment": 0.40373178588540903
+      },
+      "checks": {
+        "routeIdMatchesShipRouteId": true,
+        "pathSignatureMatchesShipPathSignature": true,
+        "targetOnActivePath": true,
+        "targetForward": true,
+        "headingRudderSignMatches": true,
+        "yawResponseMatchesRudder": true,
+        "groundVelocityTowardTarget": true,
+        "groundVelocityTowardDestination": true,
+        "destinationDistanceDecreasing": true,
+        "crossTrackImproving": true,
+        "spriteMatchesHeading": true,
+        "finiteState": true
+      }
+    }
+  ]
+}

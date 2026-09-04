@@ -14,6 +14,54 @@
  *   => terminal velocity at full throttle = sqrt(maxThrust / dragCoeff) = maxSpeed
  */
 
+function computeLookAheadTarget(shipPos, waypoints, lookAheadDist) {
+  if (!waypoints || waypoints.length === 0) {
+    return { x: shipPos.x, y: shipPos.y, segIdx: 0 };
+  }
+  if (waypoints.length === 1) {
+    return { x: waypoints[0].x, y: waypoints[0].y, segIdx: 0 };
+  }
+
+  // 1. Find nearest point on the polyline to the ship (segment + t)
+  let bestSegIdx = 0, bestT = 0, minDist = Infinity;
+  for (let i = 0; i < waypoints.length - 1; i++) {
+    const A = waypoints[i], B = waypoints[i + 1];
+    const AB = { x: B.x - A.x, y: B.y - A.y };
+    const AP = { x: shipPos.x - A.x, y: shipPos.y - A.y };
+    const segLenSq = AB.x * AB.x + AB.y * AB.y || 1e-6;
+    const t = Math.max(0, Math.min(1, (AP.x * AB.x + AP.y * AB.y) / segLenSq));
+    const proj = { x: A.x + t * AB.x, y: A.y + t * AB.y };
+    const d = Math.hypot(shipPos.x - proj.x, shipPos.y - proj.y);
+    if (d < minDist) { minDist = d; bestSegIdx = i; bestT = t; }
+  }
+
+  // 2. Walk forward along the polyline from that point by lookAheadDist
+  let remaining = lookAheadDist;
+  let segIdx = bestSegIdx;
+  let curPoint = {
+    x: waypoints[segIdx].x + bestT * (waypoints[segIdx + 1].x - waypoints[segIdx].x),
+    y: waypoints[segIdx].y + bestT * (waypoints[segIdx + 1].y - waypoints[segIdx].y),
+  };
+
+  while (segIdx < waypoints.length - 1) {
+    const A = curPoint, B = waypoints[segIdx + 1];
+    const segDist = Math.hypot(B.x - A.x, B.y - A.y);
+    if (segDist >= remaining) {
+      const ratio = remaining / segDist;
+      return {
+        x: A.x + ratio * (B.x - A.x),
+        y: A.y + ratio * (B.y - A.y),
+        segIdx,
+      };
+    }
+    remaining -= segDist;
+    curPoint = B;
+    segIdx++;
+  }
+  // Ran off the end of the path — target is the final waypoint
+  return { x: waypoints[waypoints.length - 1].x, y: waypoints[waypoints.length - 1].y, segIdx: waypoints.length - 1 };
+}
+
 export class Ship {
   constructor({ x = 400, y = 1800, heading = 330 }) {
     this.name = 'V-ALPHA';
@@ -308,10 +356,23 @@ export class Ship {
     state.vessel.heading = this.heading;
   }
 
+  setRouteWaypoints(waypoints) {
+    if (!waypoints || waypoints.length === 0) return;
+    this.routeWaypoints = waypoints;
+    this.waypointIndex = 0;
+    this.targetWaypoint = waypoints[0];
+    this._activeRouteId = null; // force resync check to re-validate on next frame
+  }
+
   updateAutopilotSteering(dt, state, icebergs, maxSpeed, vectorField, simTimeHours) {
     const activeRoute = state?.navigation?.activeRoute;
     if (activeRoute && activeRoute.waypoints && activeRoute.waypoints.length > 0) {
-      if (!this._activeRouteId || this._activeRouteId !== activeRoute.id) {
+      const routeChanged =
+        !this._activeRouteId ||
+        this._activeRouteId !== activeRoute.id ||
+        this.routeWaypoints !== activeRoute.waypoints;
+
+      if (routeChanged) {
         this._activeRouteId = activeRoute.id;
         this.routeWaypoints = activeRoute.waypoints;
         this.waypointIndex = 0;
@@ -322,43 +383,89 @@ export class Ship {
     if (!this.routeWaypoints || this.routeWaypoints.length === 0) return;
 
     const currentSpeed = Math.hypot(this.vx, this.vy);
-    const lookAheadDist = Math.max(50, currentSpeed * 2.5);
+    const waypoints = this.routeWaypoints;
+    const numWps = waypoints.length;
 
-    // Monotonic progress: advance waypointIndex along polyline
-    while (this.waypointIndex < this.routeWaypoints.length - 1) {
-      const wp = this.routeWaypoints[this.waypointIndex];
-      const wpDist = Math.hypot(wp.x - this.x, wp.y - this.y);
-      if (wpDist < lookAheadDist) {
-        this.waypointIndex++;
-        this.targetWaypoint = this.routeWaypoints[this.waypointIndex];
-        this.lastDistToWaypoint = Infinity;
-        this.stuckCounter = 0;
-        this.extraThrustMultiplier = 1.0;
-      } else {
-        break;
+    // Look-Ahead adaptation: shrink look-ahead near destination
+    const directDestinationDistance = Math.hypot(waypoints[numWps - 1].x - this.x, waypoints[numWps - 1].y - this.y);
+    let baseLookAhead = Math.max(50, currentSpeed * 2.5);
+    if (directDestinationDistance <= 250) {
+      baseLookAhead = Math.min(baseLookAhead, Math.max(20, directDestinationDistance * 0.5));
+    }
+    const lookAheadDist = baseLookAhead;
+
+    // Polyline projection look-ahead target selection
+    const lookAheadTargetObj = computeLookAheadTarget({ x: this.x, y: this.y }, waypoints, lookAheadDist);
+    this.targetWaypoint = { x: lookAheadTargetObj.x, y: lookAheadTargetObj.y };
+    this.waypointIndex = lookAheadTargetObj.segIdx;
+
+    // 1. Compute true route progress distance and remaining path distance
+    let currentSegmentIndex = Math.min(this.waypointIndex, numWps - 2);
+    if (currentSegmentIndex < 0) currentSegmentIndex = 0;
+
+    let segmentStart = waypoints[currentSegmentIndex] || { x: this.x, y: this.y };
+    let segmentEnd = waypoints[Math.min(currentSegmentIndex + 1, numWps - 1)] || segmentStart;
+
+    const dxSeg = segmentEnd.x - segmentStart.x;
+    const dySeg = segmentEnd.y - segmentStart.y;
+    const segLength = Math.hypot(dxSeg, dySeg);
+
+    let projectionT = 0.0;
+    if (segLength > 1.0) {
+      const dxShip = this.x - segmentStart.x;
+      const dyShip = this.y - segmentStart.y;
+      projectionT = Math.max(0.0, Math.min(1.0, (dxShip * dxSeg + dyShip * dySeg) / (segLength * segLength)));
+    }
+
+    let accumulatedBefore = 0.0;
+    for (let i = 0; i < currentSegmentIndex; i++) {
+      accumulatedBefore += Math.hypot(waypoints[i + 1].x - waypoints[i].x, waypoints[i + 1].y - waypoints[i].y);
+    }
+
+    let totalRouteLength = accumulatedBefore;
+    for (let i = currentSegmentIndex; i < numWps - 1; i++) {
+      totalRouteLength += Math.hypot(waypoints[i + 1].x - waypoints[i].x, waypoints[i + 1].y - waypoints[i].y);
+    }
+
+    const routeProgressDistance = accumulatedBefore + projectionT * segLength;
+
+    let accumulatedAfter = 0.0;
+    for (let i = currentSegmentIndex + 1; i < numWps - 1; i++) {
+      accumulatedAfter += Math.hypot(waypoints[i + 1].x - waypoints[i].x, waypoints[i + 1].y - waypoints[i].y);
+    }
+    const remainingRouteDistance = (1.0 - projectionT) * segLength + accumulatedAfter;
+
+    let routeProgressFraction = totalRouteLength > 1.0 ? Math.min(1.0, Math.max(0.0, routeProgressDistance / totalRouteLength)) : 0.0;
+
+    // Direct destination distance arrival check
+    const arrivalRadius = Math.max(35, currentSpeed * 1.5);
+    const arrivalSpeedThreshold = 3.5;
+
+    if (directDestinationDistance <= arrivalRadius && currentSpeed <= arrivalSpeedThreshold) {
+      this.autopilotStatus = 'ARRIVED';
+      this.desiredThrottle = 0;
+      state.vessel.throttle = 0;
+      state.vessel.rudder = 0;
+      this.rudder = 0;
+      if (activeRoute) {
+        activeRoute.routeProgressFraction = 1.0;
       }
+      return;
+    }
+
+    // Do not set progress fraction to 1.0 prematurely until ARRIVED condition is met
+    if (directDestinationDistance > arrivalRadius) {
+      routeProgressFraction = Math.min(0.94, routeProgressFraction);
+    }
+    if (activeRoute) {
+      activeRoute.routeProgressFraction = routeProgressFraction;
+      activeRoute.remainingRouteDistance = remainingRouteDistance;
+      activeRoute.directDestinationDistance = directDestinationDistance;
     }
 
     const targetDx = this.targetWaypoint.x - this.x;
     const targetDy = this.targetWaypoint.y - this.y;
     const distToTarget = Math.hypot(targetDx, targetDy);
-
-    const arrivalRadius = Math.max(35, currentSpeed * 2);
-    if (this.waypointIndex === this.routeWaypoints.length - 1 && distToTarget < arrivalRadius) {
-      this.desiredThrottle = 0;
-      state.vessel.throttle = 0;
-      return;
-    }
-
-    let segmentStart = state.navigation.startPoint || { x: this.x, y: this.y };
-    if (this.waypointIndex > 0 && this.routeWaypoints[this.waypointIndex - 1]) {
-      segmentStart = this.routeWaypoints[this.waypointIndex - 1];
-    }
-    const segmentEnd = this.targetWaypoint;
-
-    const dxSeg = segmentEnd.x - segmentStart.x;
-    const dySeg = segmentEnd.y - segmentStart.y;
-    const segLength = Math.hypot(dxSeg, dySeg);
 
     let ux = targetDx / (distToTarget || 1);
     let uy = targetDy / (distToTarget || 1);
@@ -372,8 +479,9 @@ export class Ship {
       xte = dxShip * uy - dyShip * ux;
     }
 
-    // Hysteresis mode management
     const absXte = Math.abs(xte);
+
+    // Hysteresis recovery flag maintenance
     if (!this._inRecoveryMode) {
       if (absXte >= 80.0) {
         this._inRecoveryMode = true;
@@ -384,21 +492,57 @@ export class Ship {
       }
     }
 
-    const modeConfig = this._inRecoveryMode ? {
-      xteGain: 0.08,
-      maxXteCorrectionDeg: 20.0,
-      lookAheadMultiplier: 0.75,
-      speedMultiplier: 0.80
-    } : {
-      xteGain: 0.05,
-      maxXteCorrectionDeg: 15.0,
-      lookAheadMultiplier: 1.0,
-      speedMultiplier: 1.0
+    // Guidance mode state machine with hysteresis and explicit priority hierarchy
+    const finalApproachDistThreshold = 250.0;
+    const captureDistThreshold = 100.0;
+    const arrivalRadiusThreshold = 35.0;
+    const arrivalSpeedThresholdVal = 3.5;
+
+    let targetMode = 'NORMAL_TRACKING';
+    if (directDestinationDistance <= arrivalRadiusThreshold && currentSpeed <= arrivalSpeedThresholdVal) {
+      targetMode = 'ARRIVED';
+    } else if (directDestinationDistance <= captureDistThreshold || (remainingRouteDistance <= captureDistThreshold && directDestinationDistance <= 150.0)) {
+      targetMode = 'DESTINATION_CAPTURE';
+    } else if (directDestinationDistance <= finalApproachDistThreshold || remainingRouteDistance <= finalApproachDistThreshold) {
+      targetMode = 'FINAL_APPROACH';
+    } else if (this._inRecoveryMode || (this._currentGuidanceMode === 'ROUTE_RECOVERY' && absXte > 45.0)) {
+      targetMode = 'ROUTE_RECOVERY';
+    }
+
+    this._currentGuidanceMode = targetMode;
+    this.autopilotStatus = targetMode;
+
+    if (targetMode === 'ARRIVED') {
+      this.desiredThrottle = 0;
+      this.throttle = 0;
+      state.vessel.throttle = 0;
+      state.vessel.rudder = 0;
+      this.rudder = 0;
+      if (activeRoute) {
+        activeRoute.routeProgressFraction = 1.0;
+      }
+      return;
+    }
+
+    const modeConfig = {
+      xteGain: targetMode === 'ROUTE_RECOVERY' ? 0.08 : 0.05,
+      maxXteCorrectionDeg: targetMode === 'ROUTE_RECOVERY' ? 20.0 : 15.0,
+      lookAheadMultiplier: targetMode === 'DESTINATION_CAPTURE' ? 0.4 : (targetMode === 'FINAL_APPROACH' ? 0.65 : (targetMode === 'ROUTE_RECOVERY' ? 0.75 : 1.0)),
+      speedMultiplier: targetMode === 'DESTINATION_CAPTURE' ? 0.4 : (targetMode === 'FINAL_APPROACH' ? 0.65 : (targetMode === 'ROUTE_RECOVERY' ? 0.80 : 1.0))
     };
 
     // --- Vector-Based Guidance & Current Compensation ---
-    // 1. Desired Ground Velocity Vector
-    const requestedGroundSpeed = Math.max(10.0, maxSpeed * 0.75 * modeConfig.speedMultiplier);
+    // 1. Desired Ground Velocity Vector with Speed Profiling
+    let baseGroundSpeed = maxSpeed * 0.75 * modeConfig.speedMultiplier;
+    if (targetMode === 'FINAL_APPROACH') {
+      const approachRatio = Math.max(0.3, directDestinationDistance / finalApproachDistThreshold);
+      baseGroundSpeed = Math.max(8.0, baseGroundSpeed * approachRatio);
+    } else if (targetMode === 'DESTINATION_CAPTURE') {
+      const captureRatio = Math.max(0.15, directDestinationDistance / captureDistThreshold);
+      baseGroundSpeed = Math.max(4.0, baseGroundSpeed * captureRatio);
+    }
+
+    const requestedGroundSpeed = Math.max(4.0, baseGroundSpeed);
     const groundDirX = distToTarget > 1e-6 ? targetDx / distToTarget : Math.cos((this.heading * Math.PI) / 180);
     const groundDirY = distToTarget > 1e-6 ? targetDy / distToTarget : Math.sin((this.heading * Math.PI) / 180);
 
@@ -422,8 +566,6 @@ export class Ship {
       desiredWaterVy *= scale;
       requiredWaterSpeed = maxSpeed;
       this.autopilotStatus = 'FIGHTING_CURRENT';
-    } else {
-      this.autopilotStatus = this._inRecoveryMode ? 'ROUTE_RECOVERY' : 'NORMAL_TRACKING';
     }
 
     // Desired Heading Through Water (radians -> degrees)
@@ -460,11 +602,14 @@ export class Ship {
       requested_speed_multiplier: modeConfig.speedMultiplier,
       raw_xte_correction_deg: xteCorr,
       bounded_xte_correction_deg: xteCorr,
-      recovery_correction_deg: this._inRecoveryMode ? xteCorr : 0,
+      recovery_correction_deg: targetMode === 'ROUTE_RECOVERY' ? xteCorr : 0,
       final_target_heading_deg: targetAngleDeg,
       signed_heading_error_deg: angleDiff,
       rudder_before_clamp_deg: angleDiff * steeringGain,
-      rudder_after_clamp_deg: this.rudder
+      rudder_after_clamp_deg: this.rudder,
+      route_progress_distance: routeProgressDistance,
+      remaining_route_distance: remainingRouteDistance,
+      direct_destination_distance: directDestinationDistance
     };
 
     this.crossTrackError = xte;
@@ -474,49 +619,64 @@ export class Ship {
     state.vessel.crossTrackError = this.crossTrackError;
     state.vessel.environmentalResistance = this.environmentalResistance;
 
-    // Autopilot cruise throttle - starts with set autopilotThrottle
-    let targetThrottle = state.vessel.autopilotThrottle || 65;
+    // Single Authoritative Throttle Pipeline:
+    let finalThrottle = state.vessel.autopilotThrottle || 65;
 
-    // Adaptive speed/throttle: increase propulsion if Fighting Current or recovering
-    if (this.autopilotStatus === 'FIGHTING_CURRENT' || this.autopilotStatus === 'ROUTE_RECOVERY') {
+    // 1. Turn-Anticipation Speed Reduction (Upcoming polyline segment turn angle)
+    let upcomingTurnAngleDeg = 0.0;
+    if (this.waypointIndex < numWps - 1 && currentSegmentIndex + 1 < numWps - 1) {
+      const seg1A = waypoints[currentSegmentIndex];
+      const seg1B = waypoints[currentSegmentIndex + 1];
+      const seg2B = waypoints[currentSegmentIndex + 2];
+      const h1 = Math.atan2(seg1B.y - seg1A.y, seg1B.x - seg1A.x) * 180 / Math.PI;
+      const h2 = Math.atan2(seg2B.y - seg1B.y, seg2B.x - seg1B.x) * 180 / Math.PI;
+      let dTurn = Math.abs((h2 - h1 + 180) % 360 - 180);
+      upcomingTurnAngleDeg = dTurn;
+    }
+    const maxTurnAngle = Math.max(Math.abs(angleDiff), upcomingTurnAngleDeg);
+    if (maxTurnAngle > 90) {
+      finalThrottle = Math.min(finalThrottle, 30);
+    } else if (maxTurnAngle > 45) {
+      finalThrottle = Math.min(finalThrottle, 55);
+    } else if (maxTurnAngle > 20) {
+      finalThrottle = Math.min(finalThrottle, 65);
+    }
+
+    // 2. Mode-Specific Speed / Recovery Limits
+    if (targetMode === 'FINAL_APPROACH') {
+      finalThrottle = Math.min(45, finalThrottle * (directDestinationDistance / finalApproachDistThreshold));
+    } else if (targetMode === 'DESTINATION_CAPTURE') {
+      finalThrottle = Math.min(20, finalThrottle * (directDestinationDistance / captureDistThreshold));
+    } else if (targetMode === 'ROUTE_RECOVERY' || this.autopilotStatus === 'FIGHTING_CURRENT') {
       this.extraThrustMultiplier = Math.min(2.0, this.extraThrustMultiplier + 0.15 * dt);
-      targetThrottle = Math.min(95, targetThrottle * this.extraThrustMultiplier);
+      finalThrottle = Math.min(95, finalThrottle * this.extraThrustMultiplier);
     }
 
-    // 1. Slow down for sharp turns to avoid overshoot
-    if (Math.abs(angleDiff) > 45) {
-      targetThrottle = Math.max(20, targetThrottle * 0.35);
-    } else if (Math.abs(angleDiff) > 20) {
-      targetThrottle = Math.max(30, targetThrottle * 0.65);
-    }
-
-    // 2. Slow down based on proximity hazard system
+    // 3. Proximity Hazard Limits
     let maxDangerScore = 0;
     for (let h of this.hazards) {
-      if (h.score > maxDangerScore) {
-        maxDangerScore = h.score;
-      }
+      if (h.score > maxDangerScore) maxDangerScore = h.score;
     }
-    if (maxDangerScore === 4) { // CRITICAL
-      targetThrottle = 0; // Emergency slowdown
-    } else if (maxDangerScore === 3) { // HIGH
-      targetThrottle = Math.min(targetThrottle, 15);
-    } else if (maxDangerScore === 2) { // MEDIUM
-      targetThrottle = Math.min(targetThrottle, 30);
-    } else if (maxDangerScore === 1) { // LOW
-      targetThrottle = Math.min(targetThrottle, 45);
+    if (maxDangerScore === 4) {
+      finalThrottle = 0;
+    } else if (maxDangerScore === 3) {
+      finalThrottle = Math.min(finalThrottle, 15);
+    } else if (maxDangerScore === 2) {
+      finalThrottle = Math.min(finalThrottle, 30);
+    } else if (maxDangerScore === 1) {
+      finalThrottle = Math.min(finalThrottle, 45);
     }
 
-    // 3. Slow down in high sea ice concentration
+    // 4. Sea Ice Concentration Limits
     if (state.environment && state.environment.seaIce && state.environment.seaIce.enabled && vectorField.getSeaIceConcentration) {
       const iceConc = vectorField.getSeaIceConcentration(this.x, this.y);
       if (iceConc > 0.2) {
-        targetThrottle = Math.min(targetThrottle, (1 - iceConc) * 50 + 10);
+        finalThrottle = Math.min(finalThrottle, (1 - iceConc) * 50 + 10);
       }
     }
 
-    // Never reverse due to autopilot controls
-    this.desiredThrottle = Math.max(0, targetThrottle);
+    // Single Authoritative Assignment
+    this.desiredThrottle = Math.max(0, finalThrottle);
     this.desiredSpeed = (this.desiredThrottle / 100) * maxSpeed;
   }
 

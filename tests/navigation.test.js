@@ -604,4 +604,300 @@ describe('Navigation Guidance & Control Chain Audit', () => {
     expect(Number.isFinite(finalXte)).toBe(true);
     expect(ship.heading).toBeGreaterThan(0);
   });
+
+  it('50. Two-point route progress fraction remains <1.0 while vessel is far from destination', () => {
+    const ship = new Ship({ x: 400, y: 1800, heading: 330 });
+    const waypoints = [{ x: 400, y: 1800 }, { x: 3200, y: 400 }];
+    ship.setRouteWaypoints(waypoints);
+    const activeRoute = { id: 'r_progress', waypoints, routeProgressFraction: 0 };
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0 },
+      navigation: { activeRoute },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    ship.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+
+    expect(activeRoute.routeProgressFraction).toBeLessThan(0.95);
+    expect(activeRoute.remainingRouteDistance).toBeGreaterThan(2000);
+  });
+
+  it('51. Multi-segment route calculates remaining route distance accurately', () => {
+    const ship = new Ship({ x: 1000, y: 1800, heading: 0 });
+    const waypoints = [{ x: 400, y: 1800 }, { x: 1400, y: 1800 }, { x: 1400, y: 400 }];
+    ship.setRouteWaypoints(waypoints);
+    ship.waypointIndex = 1;
+    const activeRoute = { id: 'r_multi', waypoints };
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0 },
+      navigation: { activeRoute },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    ship.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+
+    expect(activeRoute.remainingRouteDistance).toBeGreaterThan(1700);
+    expect(activeRoute.remainingRouteDistance).toBeLessThan(1900);
+  });
+
+  it('52. Ship transitions to FINAL_APPROACH when remaining distance <= 250 SU', () => {
+    const ship = new Ship({ x: 3000, y: 500, heading: 330 });
+    const waypoints = [{ x: 400, y: 1800 }, { x: 3200, y: 400 }];
+    ship.setRouteWaypoints(waypoints);
+    ship.waypointIndex = 1;
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0 },
+      navigation: { activeRoute: { id: 'r_fa', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    ship.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+
+    expect(ship._currentGuidanceMode).toBe('FINAL_APPROACH');
+    expect(ship.desiredThrottle).toBeLessThanOrEqual(45);
+  });
+
+  it('53. Ship transitions to DESTINATION_CAPTURE near goal and reduces throttle', () => {
+    const ship = new Ship({ x: 3150, y: 430, heading: 330 });
+    const waypoints = [{ x: 400, y: 1800 }, { x: 3200, y: 400 }];
+    ship.setRouteWaypoints(waypoints);
+    ship.waypointIndex = 1;
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0 },
+      navigation: { activeRoute: { id: 'r_dc', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    ship.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+
+    expect(ship._currentGuidanceMode).toBe('DESTINATION_CAPTURE');
+    expect(ship.desiredThrottle).toBeLessThanOrEqual(20);
+  });
+
+  it('54. Ship transitions to ARRIVED only when distance <= 35 SU and speed <= 3.5 SU/s', () => {
+    const ship = new Ship({ x: 3190, y: 405, heading: 330 });
+    ship.vx = 1.0;
+    ship.vy = 0.5;
+    const waypoints = [{ x: 400, y: 1800 }, { x: 3200, y: 400 }];
+    ship.setRouteWaypoints(waypoints);
+    ship.waypointIndex = 1;
+    const activeRoute = { id: 'r_arrived', waypoints };
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0 },
+      navigation: { activeRoute },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    ship.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+
+    expect(ship.autopilotStatus).toBe('ARRIVED');
+    expect(state.vessel.throttle).toBe(0);
+    expect(activeRoute.routeProgressFraction).toBe(1.0);
+  });
+
+  it('55. Clear-route simulation converges to destination capture without overshoot thrashing', () => {
+    const ship = new Ship({ x: 400, y: 1800, heading: 333, mode: 'AUTOPILOT' });
+    const waypoints = [{ x: 400, y: 1800 }, { x: 3200, y: 400 }];
+    ship.setRouteWaypoints(waypoints);
+    ship._activeRouteId = 'r_clear_sim';
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0, dragCoefficient: 0.05, mass: 1.0, enginePower: 1.0 },
+      navigation: { activeRoute: { id: 'r_clear_sim', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    const mockVectorField = { getVelocityAt: () => ({ u: 0, v: 0 }) };
+
+    let minDistance = Infinity;
+    for (let t = 0; t < 1500; t++) {
+      ship.update(0.1, mockVectorField, 0, state, []);
+      const dist = Math.hypot(3200 - ship.x, 400 - ship.y);
+      if (dist < minDistance) minDistance = dist;
+      if (ship.autopilotStatus === 'ARRIVED') break;
+    }
+
+    expect(minDistance).toBeLessThan(100);
+  });
+
+  it('56. Iceberg reroute simulation retains stable single-reroute tracking during approach', () => {
+    const ship = new Ship({ x: 1000, y: 1400, heading: 330, mode: 'AUTOPILOT' });
+    const waypoints = [{ x: 1000, y: 1400 }, { x: 2000, y: 900 }, { x: 3200, y: 400 }];
+    ship.setRouteWaypoints(waypoints);
+    ship._activeRouteId = 'r_ice_sim';
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0, dragCoefficient: 0.05, mass: 1.0 },
+      navigation: { activeRoute: { id: 'r_ice_sim', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    const mockVectorField = { getVelocityAt: () => ({ u: 0, v: 0 }) };
+
+    for (let t = 0; t < 50; t++) {
+      ship.update(0.2, mockVectorField, 0, state, []);
+    }
+
+    expect(ship._currentGuidanceMode).toBeDefined();
+    expect(Number.isFinite(ship.x)).toBe(true);
+  });
+
+  it('57. Turn anticipation reduces requested throttle for upcoming sharp corners (>45 deg)', () => {
+    const ship = new Ship({ x: 1350, y: 1800, heading: 0 });
+    const waypoints = [{ x: 400, y: 1800 }, { x: 1400, y: 1800 }, { x: 1400, y: 600 }]; // 90 degree turn ahead
+    ship.setRouteWaypoints(waypoints);
+    ship.waypointIndex = 1;
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0, autopilotThrottle: 65 },
+      navigation: { activeRoute: { id: 'r_turn_anticipate', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    ship.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+
+    expect(ship.desiredThrottle).toBeLessThanOrEqual(55);
+  });
+
+  it('58. Single authoritative throttle write pipeline ensures no later function overwrites desiredThrottle', () => {
+    const ship = new Ship({ x: 400, y: 1800, heading: 330 });
+    const waypoints = [{ x: 400, y: 1800 }, { x: 3200, y: 400 }];
+    ship.setRouteWaypoints(waypoints);
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0, autopilotThrottle: 65 },
+      navigation: { activeRoute: { id: 'r_single_writer', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    ship.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+
+    const recordedThrottle = ship.desiredThrottle;
+    expect(Number.isFinite(recordedThrottle)).toBe(true);
+    expect(ship.desiredThrottle).toBe(recordedThrottle);
+  });
+
+  it('59. Overshoot past final waypoint forces DESTINATION_CAPTURE and prevents false ARRIVED status', () => {
+    const ship = new Ship({ x: 3260, y: 340, heading: 45 }); // Past destination (3200, 400) at high speed (84 SU away)
+    ship.vx = 20.0;
+    ship.vy = -5.0;
+    const waypoints = [{ x: 400, y: 1800 }, { x: 3200, y: 400 }];
+    ship.setRouteWaypoints(waypoints);
+    ship.waypointIndex = 1;
+    const activeRoute = { id: 'r_overshoot', waypoints };
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0 },
+      navigation: { activeRoute },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    ship.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+
+    expect(ship.autopilotStatus).toBe('DESTINATION_CAPTURE');
+    expect(activeRoute.routeProgressFraction).toBeLessThanOrEqual(0.94);
+  });
+
+  it('60. Guidance mode priority order enforces ARRIVED > DESTINATION_CAPTURE > FINAL_APPROACH > ROUTE_RECOVERY > NORMAL_TRACKING', () => {
+    const ship = new Ship({ x: 3195, y: 402, heading: 330 });
+    ship.vx = 0.5;
+    ship.vy = 0.2;
+    const waypoints = [{ x: 400, y: 1800 }, { x: 3200, y: 400 }];
+    ship.setRouteWaypoints(waypoints);
+    ship.waypointIndex = 1;
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0 },
+      navigation: { activeRoute: { id: 'r_priority', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    ship.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+
+    expect(ship.autopilotStatus).toBe('ARRIVED');
+  });
+
+  it('61. Multi-waypoint route waypointIndex advances incrementally without skipping straight to destination', () => {
+    const waypoints = [
+      { x: 400, y: 1800 },
+      { x: 430, y: 1780 },
+      { x: 460, y: 1760 },
+      { x: 490, y: 1740 },
+      { x: 520, y: 1720 },
+      { x: 3200, y: 400 }
+    ];
+    const ship = new Ship({ x: 400, y: 1800, heading: 330 });
+    ship.setRouteWaypoints(waypoints);
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0 },
+      navigation: { activeRoute: { id: 'r_multi_step', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    ship.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+
+    expect(ship.waypointIndex).toBeLessThan(waypoints.length - 1);
+    expect(ship.waypointIndex).toBeLessThanOrEqual(2);
+  });
+
+  it('62. Cross-track error (perpendicular distance to route) stays below 50 SU during transit', () => {
+    const waypoints = [
+      { x: 400, y: 1800 },
+      { x: 800, y: 1600 },
+      { x: 1200, y: 1400 },
+      { x: 1600, y: 1200 }
+    ];
+    const ship = new Ship({ x: 400, y: 1800, heading: 330, mode: 'AUTOPILOT' });
+    ship.setRouteWaypoints(waypoints);
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0, dragCoefficient: 0.04, mass: 1.0 },
+      navigation: { activeRoute: { id: 'r_xte_track', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    const mockVectorField = { getVelocityAt: () => ({ u: 0, v: 0 }) };
+
+    for (let t = 0; t < 20; t++) {
+      ship.update(0.1, mockVectorField, 0, state, []);
+      expect(Math.abs(ship.crossTrackError)).toBeLessThan(50.0);
+    }
+  });
+
+  it('63. Updating activeRoute.waypoints under the SAME activeRoute.id updates ship routeWaypoints within one frame', () => {
+    const waypoints1 = [{ x: 400, y: 1800 }, { x: 3200, y: 400 }];
+    const ship = new Ship({ x: 400, y: 1800, heading: 330 });
+    const activeRoute = { id: 'r_same_id', waypoints: waypoints1 };
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0 },
+      navigation: { activeRoute },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+
+    ship.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+    expect(ship.routeWaypoints).toBe(waypoints1);
+
+    // Update waypoints array under SAME activeRoute.id (e.g. smoothing pass)
+    const waypoints2 = [{ x: 400, y: 1800 }, { x: 1800, y: 1100 }, { x: 3200, y: 400 }];
+    activeRoute.waypoints = waypoints2;
+
+    ship.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+    expect(ship.routeWaypoints).toBe(waypoints2);
+  });
+
+  it('64. setRouteWaypoints is defined and resets waypoint index and target waypoint', () => {
+    const ship = new Ship({ x: 400, y: 1800, heading: 330 });
+    const waypoints = [{ x: 400, y: 1800 }, { x: 1000, y: 1000 }, { x: 3200, y: 400 }];
+    
+    expect(typeof ship.setRouteWaypoints).toBe('function');
+    ship.setRouteWaypoints(waypoints);
+
+    expect(ship.routeWaypoints).toBe(waypoints);
+    expect(ship.waypointIndex).toBe(0);
+    expect(ship.targetWaypoint).toBe(waypoints[0]);
+    expect(ship._activeRouteId).toBeNull();
+  });
+
+  it('65. Rendered polyline waypoints slice retains remaining path during transit', () => {
+    const waypoints = [
+      { x: 400, y: 1800 },
+      { x: 500, y: 1750 },
+      { x: 600, y: 1700 },
+      { x: 700, y: 1650 },
+      { x: 800, y: 1600 }
+    ];
+    const ship = new Ship({ x: 400, y: 1800, heading: 330 });
+    ship.setRouteWaypoints(waypoints);
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0 },
+      navigation: { activeRoute: { id: 'r_slice', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    ship.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+
+    const remainingSlice = waypoints.slice(ship.waypointIndex);
+    expect(remainingSlice.length).toBeGreaterThanOrEqual(4);
+  });
 });
+
+

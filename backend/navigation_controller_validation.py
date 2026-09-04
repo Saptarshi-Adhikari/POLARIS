@@ -38,7 +38,20 @@ class SimulatedShip:
             return
 
         current_speed = math.hypot(self.vx, self.vy)
-        look_ahead_dist = max(50.0, current_speed * 2.5)
+        dest_wp = self.route_waypoints[-1]
+        direct_dest_dist = math.hypot(dest_wp['x'] - self.x, dest_wp['y'] - self.y)
+
+        arrival_radius = max(35.0, current_speed * 1.5)
+        if direct_dest_dist <= arrival_radius and current_speed <= 3.5:
+            self.autopilot_status = 'ARRIVED'
+            self.throttle = 0.0
+            self.rudder = 0.0
+            return
+
+        base_look_ahead = max(50.0, current_speed * 2.5)
+        if direct_dest_dist <= 250.0:
+            base_look_ahead = min(base_look_ahead, max(20.0, direct_dest_dist * 0.5))
+        look_ahead_dist = base_look_ahead
 
         # Monotonic forward progression
         while self.waypoint_index < len(self.route_waypoints) - 1:
@@ -54,12 +67,44 @@ class SimulatedShip:
         target_dy = target_wp['y'] - self.y
         dist_to_target = math.hypot(target_dx, target_dy)
 
-        if self.waypoint_index == len(self.route_waypoints) - 1 and dist_to_target < max(35.0, current_speed * 2.0):
-            self.throttle = 0.0
-            return
+        # Mode determination
+        seg_start = self.route_waypoints[max(0, self.waypoint_index - 1)]
+        dx_seg = target_wp['x'] - seg_start['x']
+        dy_seg = target_wp['y'] - seg_start['y']
+        seg_len = math.hypot(dx_seg, dy_seg)
 
-        # Desired Ground Velocity
-        requested_ground_speed = max(10.0, self.max_speed * 0.75)
+        xte = 0.0
+        if seg_len > 1.0:
+            ux = dx_seg / seg_len
+            uy = dy_seg / seg_len
+            dx_ship = self.x - seg_start['x']
+            dy_ship = self.y - seg_start['y']
+            xte = dx_ship * uy - dy_ship * ux
+
+        abs_xte = abs(xte)
+        target_mode = 'NORMAL_TRACKING'
+        if abs_xte >= 80.0 and direct_dest_dist > 250.0:
+            target_mode = 'ROUTE_RECOVERY'
+        elif direct_dest_dist <= 100.0:
+            target_mode = 'DESTINATION_CAPTURE'
+        elif direct_dest_dist <= 250.0:
+            target_mode = 'FINAL_APPROACH'
+
+        self.autopilot_status = target_mode
+        xte_gain = 0.08 if target_mode == 'ROUTE_RECOVERY' else 0.05
+        max_corr = 20.0 if target_mode == 'ROUTE_RECOVERY' else 15.0
+
+        # Ground velocity profiling
+        self.throttle = 65.0
+        base_speed = self.max_speed * 0.75
+        if target_mode == 'FINAL_APPROACH':
+            base_speed = max(8.0, base_speed * (direct_dest_dist / 250.0))
+            self.throttle = min(45.0, self.throttle)
+        elif target_mode == 'DESTINATION_CAPTURE':
+            base_speed = max(4.0, base_speed * (direct_dest_dist / 100.0))
+            self.throttle = min(20.0, self.throttle)
+
+        requested_ground_speed = max(4.0, base_speed)
         ground_dir_x = target_dx / dist_to_target if dist_to_target > 1e-6 else math.cos(math.radians(self.heading))
         ground_dir_y = target_dy / dist_to_target if dist_to_target > 1e-6 else math.sin(math.radians(self.heading))
 
@@ -76,29 +121,13 @@ class SimulatedShip:
             desired_water_vx *= scale
             desired_water_vy *= scale
             self.autopilot_status = 'FIGHTING_CURRENT'
-        else:
-            self.autopilot_status = 'NORMAL_TRACKING'
 
         desired_heading_deg = (math.degrees(math.atan2(desired_water_vy, desired_water_vx)) + 360.0) % 360.0
 
-        # Stanley XTE Correction
-        seg_start = self.route_waypoints[max(0, self.waypoint_index - 1)]
-        dx_seg = target_wp['x'] - seg_start['x']
-        dy_seg = target_wp['y'] - seg_start['y']
-        seg_len = math.hypot(dx_seg, dy_seg)
-
-        xte = 0.0
-        if seg_len > 1.0:
-            ux = dx_seg / seg_len
-            uy = dy_seg / seg_len
-            dx_ship = self.x - seg_start['x']
-            dy_ship = self.y - seg_start['y']
-            xte = dx_ship * uy - dy_ship * ux
-
         xte_corr = 0.0
-        if abs(xte) > 1.5:
-            xte_corr = math.degrees(math.atan(xte * 0.18))
-            xte_corr = max(-35.0, min(35.0, xte_corr))
+        if abs_xte > 1.5:
+            xte_corr = math.degrees(math.atan((xte_gain * xte) / max(1.0, current_speed)))
+            xte_corr = max(-max_corr, min(max_corr, -xte_corr))
 
         target_angle_deg = desired_heading_deg + xte_corr
         angle_diff = target_angle_deg - self.heading
@@ -202,7 +231,7 @@ def run_scenario(scenario_id, seed, route_type, current_mag, current_angle_deg, 
         ship.step_physics(dt, current_x, current_y)
 
         dest_dist = math.hypot(ship.x - dest_x, ship.y - dest_y)
-        if dest_dist < 40.0:
+        if dest_dist < 40.0 or ship.autopilot_status == 'ARRIVED':
             termination_reason = 'goal_reached'
             break
 

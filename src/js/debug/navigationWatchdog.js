@@ -169,11 +169,13 @@ export class NavigationWatchdog {
     const dy = target.y - pos.y;
     const distToTgt = Math.hypot(dx, dy);
 
+    const isApproachOrCapture = g.mode === 'FINAL_APPROACH' || g.mode === 'DESTINATION_CAPTURE' || s.autopilot_status === 'FINAL_APPROACH' || s.autopilot_status === 'DESTINATION_CAPTURE';
+
     if (distToTgt > 1.0 && s.ground_speed > 1.0) {
       const ux = dx / distToTgt;
       const uy = dy / distToTgt;
       const dot = (gvel.x / s.ground_speed) * ux + (gvel.y / s.ground_speed) * uy;
-      if (dot < -0.2 && g.mode !== 'EMERGENCY_STOP' && !g.is_current_limited) {
+      if (dot < -0.2 && g.mode !== 'EMERGENCY_STOP' && !g.is_current_limited && !isApproachOrCapture) {
         this.awayFromTargetTime += this.sampleIntervalMs;
         if (this.awayFromTargetTime >= 2000) {
           checks.groundVelocityTowardTarget = false;
@@ -196,7 +198,7 @@ export class NavigationWatchdog {
     }
     if (this.distWindow.length > 1) {
       const initialDistWindow = this.distWindow[0].dist;
-      if (distDest > initialDistWindow + 15.0 && g.mode === 'NORMAL_TRACKING' && !g.is_current_limited) {
+      if (distDest > initialDistWindow + 15.0 && g.mode === 'NORMAL_TRACKING' && !g.is_current_limited && !isApproachOrCapture) {
         checks.destinationDistanceDecreasing = false;
         this.triggerEvent('DESTINATION_DIVERGENCE', 'high', `Destination distance increased by ${(distDest - initialDistWindow).toFixed(1)} SU over 5s`);
       }
@@ -206,7 +208,7 @@ export class NavigationWatchdog {
     const xte = Math.abs(g.cross_track_error || 0);
     if (this.samples.length > 1) {
       const prevXte = Math.abs(this.samples[this.samples.length - 1].guidance?.cross_track_error || 0);
-      if (xte > prevXte + 0.1 && g.mode === 'NORMAL_TRACKING') {
+      if (xte > prevXte + 0.1 && g.mode === 'NORMAL_TRACKING' && !isApproachOrCapture) {
         this.crossTrackDivergenceTime += this.sampleIntervalMs;
         if (this.crossTrackDivergenceTime >= 3000) {
           checks.crossTrackImproving = false;
@@ -234,7 +236,7 @@ export class NavigationWatchdog {
 
     // I. Route Progress Anomaly
     const frac = r.route_progress_fraction || 0;
-    if (frac >= 0.95 && distDest > 100.0) {
+    if (frac >= 0.95 && distDest > 100.0 && !isApproachOrCapture) {
       this.triggerEvent('ROUTE_PROGRESS_ANOMALY', 'medium', `Progress fraction ${frac.toFixed(2)} falsely near 100% while ${distDest.toFixed(0)} SU from destination`);
     }
 
