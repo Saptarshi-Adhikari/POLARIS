@@ -1,0 +1,30 @@
+{
+  "data_provenance": "synthetic",
+  "synthetic_only": true,
+  "not_field_validated": true,
+  "test_row_count": 2208,
+  "test_track_count": 8,
+  "horizons": {
+    "10m": {
+      "physics_ade": 10.542336391511357,
+      "physics_p95": 21.4838506268743,
+      "rf_ade": 0.9973844144542608,
+      "rf_p95": 7.598887751872415,
+      "uncertainty_envelope_95_m": 7.598887751872415
+    },
+    "30m": {
+      "physics_ade": 10.906582365136424,
+      "physics_p95": 21.810412939446973,
+      "rf_ade": 3.143563723282789,
+      "rf_p95": 22.71949552491208,
+      "uncertainty_envelope_95_m": 22.71949552491208
+    },
+    "60m": {
+      "physics_ade": 29.775554365768247,
+      "physics_p95": 54.065104868779436,
+      "rf_ade": 6.789339179100022,
+      "rf_p95": 46.700219938555776,
+      "uncertainty_envelope_95_m": 46.700219938555776
+    }
+  }
+}

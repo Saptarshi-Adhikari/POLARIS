@@ -18,27 +18,50 @@ export class AIClient {
     setInterval(() => this.pollStatus(), 5000);
   }
 
+  async fetchWithFallback(url, options = {}, mockData) {
+    const timeout = 5000;
+    const maxRetries = 3;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        return await response.json();
+        
+      } catch (error) {
+        console.warn(`[API] Attempt ${attempt} failed for ${url}:`, error.message);
+        if (attempt === maxRetries) {
+          console.error(`[API] All attempts failed for ${url}, using mock data`);
+          return mockData;
+        }
+        // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      }
+    }
+  }
+
   async pollStatus() {
     try {
-      const res = await fetch(`${this.baseUrl}/health`);
-      if (res.ok) {
-        const data = await res.json();
-        this.status = data.status === 'ONLINE' ? 'ONLINE' : 'OFFLINE';
-      } else {
-        this.status = 'OFFLINE';
-      }
+      const data = await this.fetchWithFallback(`${this.baseUrl}/health`, {}, { status: 'OFFLINE' });
+      this.status = data.status === 'ONLINE' ? 'ONLINE' : 'OFFLINE';
     } catch (e) {
       this.status = 'OFFLINE';
     }
 
     try {
-      const copilotRes = await fetch(`${this.baseUrl}/copilot/health`);
-      if (copilotRes.ok) {
-        const copilotData = await copilotRes.json();
-        this.copilotStatus = copilotData.status;
-      } else {
-        this.copilotStatus = 'OFFLINE';
-      }
+      const copilotData = await this.fetchWithFallback(`${this.baseUrl}/copilot/health`, {}, { status: 'OFFLINE' });
+      this.copilotStatus = copilotData.status;
     } catch (e) {
       this.copilotStatus = 'OFFLINE';
     }
@@ -75,7 +98,7 @@ export class AIClient {
 
     for (let ice of this.engine.icebergs) {
       try {
-        const res = await fetch(`${this.baseUrl}/predict/iceberg`, {
+        const data = await this.fetchWithFallback(`${this.baseUrl}/predict/iceberg`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -89,10 +112,9 @@ export class AIClient {
             current_speed: env.ocean.currentSpeed,
             current_dir: env.ocean.currentDirection
           })
-        });
+        }, { predictions: [] });
 
-        if (res.ok) {
-          const data = await res.json();
+        if (data && data.predictions && data.predictions.length > 0) {
           // Store predictions
           ice.mlTrajectory = data.predictions.map(p => ({
             hour: p.time === 10 ? 2 : (p.time === 30 ? 6 : 12), // maps to +2h, +6h, +12h visual indicators
@@ -119,6 +141,8 @@ export class AIClient {
           let sumConf = data.predictions.reduce((acc, p) => acc + p.confidence, 0);
           totalConfidence += sumConf / data.predictions.length;
           count++;
+        } else {
+          ice.mlTrajectory = null;
         }
       } catch (e) {
         // Fallback silently
@@ -191,13 +215,12 @@ export class AIClient {
     };
 
     try {
-      const res = await fetch(`${this.baseUrl}/predict/sea-ice`, {
+      const data = await this.fetchWithFallback(`${this.baseUrl}/predict/sea-ice`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        const data = await res.json();
+      }, null);
+      if (data) {
         this.seaIceForecast = data;
         this.updateSeaIceUI('ONLINE');
         return;
@@ -320,14 +343,13 @@ export class AIClient {
     }
 
     try {
-      const res = await fetch(`${this.baseUrl}/copilot/explain`, {
+      const data = await this.fetchWithFallback(`${this.baseUrl}/copilot/explain`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...payload, questionType })
-      });
+      }, null);
 
-      if (res.ok) {
-        const data = await res.json();
+      if (data) {
         this.updateCopilotUI(data.status, data.explanation, data.riskLevel);
         return;
       }

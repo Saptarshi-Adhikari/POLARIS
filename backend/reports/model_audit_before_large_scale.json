@@ -1,0 +1,21 @@
+{
+  "audit_version": "1.0.0",
+  "audit_date_utc": "2026-09-01T01:27:00Z",
+  "data_provenance": "synthetic-only",
+  "data_truthfulness_warning": "All datasets and models generated in this pipeline use synthetic physics simulation. Measured performance metrics reflect simulator behavior and DO NOT represent operational polar field accuracy.",
+  "findings": {
+    "feature_schema": [
+      "position_x", "position_y", "velocity_x", "velocity_y",
+      "wind_x", "wind_y", "current_x", "current_y",
+      "sea_ice_concentration", "water_temperature", "radius"
+    ],
+    "target_schema": ["target_dx", "target_dy"],
+    "forecast_horizons": ["10m", "30m", "60m", "6h", "12h", "24h"],
+    "leakage_risks_identified": {
+      "same_timestep_velocity_predict": "Legacy Phase 7 predicted same-step next velocity instead of future multi-horizon displacement windows. Fixed in Phase 11 build_windows.",
+      "sequential_point_leakage": "Random train/test splitting of single sequential trajectory points caused temporal leakage. Fixed by implementing track_id group-aware splitting.",
+      "future_forcing_leakage": "Ensured input features contain strictly present and past environmental forcing."
+    },
+    "fastapi_compatibility": "Preserves existing /ml/health and /ml/predict schema and joblib model artifacts while extending support to multi-horizon registry models."
+  }
+}

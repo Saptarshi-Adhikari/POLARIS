@@ -1,0 +1,2502 @@
+[
+  {
+    "scenario_id": 0,
+    "seed": 42,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 37.72906262382094,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 1,
+    "seed": 43,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 861.3828925029258,
+    "max_cross_track_error": 740.0470372370149,
+    "mean_cross_track_error": 315.06337605946555,
+    "wrong_way_ticks": 1186,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 2,
+    "seed": 44,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1119.4961083645912,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 55,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 3,
+    "seed": 45,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1207.112448139787,
+    "max_cross_track_error": 695.3402939267812,
+    "mean_cross_track_error": 324.668291569112,
+    "wrong_way_ticks": 1326,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 4,
+    "seed": 46,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 36.99523351005655,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 5,
+    "seed": 47,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 331.42916923561256,
+    "max_cross_track_error": 617.4541583180473,
+    "mean_cross_track_error": 277.82145658501213,
+    "wrong_way_ticks": 1057,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 6,
+    "seed": 48,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 39.92493129236391,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 1024,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 7,
+    "seed": 49,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 716.3741369940213,
+    "max_cross_track_error": 903.6677987685921,
+    "mean_cross_track_error": 421.0558935956238,
+    "wrong_way_ticks": 1026,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 8,
+    "seed": 50,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 1.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 36.59639972072955,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 9,
+    "seed": 51,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 1.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 214.90749228195986,
+    "max_cross_track_error": 580.7981173072923,
+    "mean_cross_track_error": 240.81428603226493,
+    "wrong_way_ticks": 1017,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 10,
+    "seed": 52,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 1.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 39.919995059342455,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 591,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 11,
+    "seed": 53,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 1.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 38.171554640433214,
+    "max_cross_track_error": 1081.1721369449983,
+    "mean_cross_track_error": 454.0553090428491,
+    "wrong_way_ticks": 541,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 12,
+    "seed": 54,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 2.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 36.87430867958847,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 13,
+    "seed": 55,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 2.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 36.797679827359225,
+    "max_cross_track_error": 237.12566581989523,
+    "mean_cross_track_error": 110.73366383821651,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 14,
+    "seed": 56,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 2.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 38.05109207055102,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 459,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 15,
+    "seed": 57,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 2.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1916.6911180741329,
+    "max_cross_track_error": 1372.2949597013585,
+    "mean_cross_track_error": 665.6700540832803,
+    "wrong_way_ticks": 1318,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 16,
+    "seed": 58,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 3.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": true,
+    "final_distance_to_goal": 36.57611348774208,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 17,
+    "seed": 59,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 3.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": true,
+    "final_distance_to_goal": 38.87846622100733,
+    "max_cross_track_error": 288.40983658422937,
+    "mean_cross_track_error": 169.7989027161413,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 18,
+    "seed": 60,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 3.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": true,
+    "final_distance_to_goal": 37.248698196023724,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 388,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 19,
+    "seed": 61,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 3.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 3618.5119640384096,
+    "max_cross_track_error": 3859.956512358117,
+    "mean_cross_track_error": 2272.0485397516018,
+    "wrong_way_ticks": 2800,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 20,
+    "seed": 62,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 37.72906262382094,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 21,
+    "seed": 63,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 861.3828925029258,
+    "max_cross_track_error": 740.0470372370149,
+    "mean_cross_track_error": 315.06337605946555,
+    "wrong_way_ticks": 1186,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 22,
+    "seed": 64,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1119.4961083645912,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 55,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 23,
+    "seed": 65,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1207.112448139787,
+    "max_cross_track_error": 695.3402939267812,
+    "mean_cross_track_error": 324.668291569112,
+    "wrong_way_ticks": 1326,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 24,
+    "seed": 66,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 3.061616997868383e-17,
+    "current_y": 0.5,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 38.37434076324832,
+    "max_cross_track_error": 335.40857483331865,
+    "mean_cross_track_error": 136.922440166738,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 25,
+    "seed": 67,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 3.061616997868383e-17,
+    "current_y": 0.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 746.2120370348791,
+    "max_cross_track_error": 776.0003681058163,
+    "mean_cross_track_error": 311.85756700893273,
+    "wrong_way_ticks": 1116,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 26,
+    "seed": 68,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 3.061616997868383e-17,
+    "current_y": 0.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1051.2638757400816,
+    "max_cross_track_error": 122.74983174592421,
+    "mean_cross_track_error": 59.21532686686465,
+    "wrong_way_ticks": 1289,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 27,
+    "seed": 69,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 3.061616997868383e-17,
+    "current_y": 0.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 2840.196770471192,
+    "max_cross_track_error": 950.1570032625007,
+    "mean_cross_track_error": 365.7396881851199,
+    "wrong_way_ticks": 1558,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 28,
+    "seed": 70,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 9.184850993605148e-17,
+    "current_y": 1.5,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 38.57060644145306,
+    "max_cross_track_error": 207.62993004732334,
+    "mean_cross_track_error": 94.05423887901176,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 29,
+    "seed": 71,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 9.184850993605148e-17,
+    "current_y": 1.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1133.6152644744968,
+    "max_cross_track_error": 1749.9646449614881,
+    "mean_cross_track_error": 609.3102749978464,
+    "wrong_way_ticks": 902,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 30,
+    "seed": 72,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 9.184850993605148e-17,
+    "current_y": 1.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1232.865314966509,
+    "max_cross_track_error": 1779.269333787909,
+    "mean_cross_track_error": 720.8701498060187,
+    "wrong_way_ticks": 948,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 31,
+    "seed": 73,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 9.184850993605148e-17,
+    "current_y": 1.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 2168.438022650395,
+    "max_cross_track_error": 729.2804549637929,
+    "mean_cross_track_error": 266.24060882380223,
+    "wrong_way_ticks": 1171,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 32,
+    "seed": 74,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 1.5308084989341916e-16,
+    "current_y": 2.5,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 39.1658979559944,
+    "max_cross_track_error": 325.6489542278305,
+    "mean_cross_track_error": 249.20224362112748,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 33,
+    "seed": 75,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 1.5308084989341916e-16,
+    "current_y": 2.5,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 39.239056010383834,
+    "max_cross_track_error": 595.6078535664524,
+    "mean_cross_track_error": 281.5502889326374,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 34,
+    "seed": 76,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 1.5308084989341916e-16,
+    "current_y": 2.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 6024.0095877108215,
+    "max_cross_track_error": 316.06529273834167,
+    "mean_cross_track_error": 194.6377170633939,
+    "wrong_way_ticks": 2325,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 35,
+    "seed": 77,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 1.5308084989341916e-16,
+    "current_y": 2.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1969.180311228098,
+    "max_cross_track_error": 672.8459648086366,
+    "mean_cross_track_error": 255.15401397873,
+    "wrong_way_ticks": 1375,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 36,
+    "seed": 78,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 2.143131898507868e-16,
+    "current_y": 3.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 3895.9878861989564,
+    "max_cross_track_error": 3248.240334875706,
+    "mean_cross_track_error": 1735.6719169199446,
+    "wrong_way_ticks": 2206,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 37,
+    "seed": 79,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 2.143131898507868e-16,
+    "current_y": 3.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 5401.747244550781,
+    "max_cross_track_error": 2687.451857283355,
+    "mean_cross_track_error": 1685.0075377675882,
+    "wrong_way_ticks": 2641,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 38,
+    "seed": 80,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 2.143131898507868e-16,
+    "current_y": 3.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 4663.53046721896,
+    "max_cross_track_error": 3246.0234883519142,
+    "mean_cross_track_error": 1737.4448438284812,
+    "wrong_way_ticks": 2649,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 39,
+    "seed": 81,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 2.143131898507868e-16,
+    "current_y": 3.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 5796.488418416589,
+    "max_cross_track_error": 3230.5041632825205,
+    "mean_cross_track_error": 1728.1203343795744,
+    "wrong_way_ticks": 2772,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 40,
+    "seed": 82,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 37.72906262382094,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 41,
+    "seed": 83,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 861.3828925029258,
+    "max_cross_track_error": 740.0470372370149,
+    "mean_cross_track_error": 315.06337605946555,
+    "wrong_way_ticks": 1186,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 42,
+    "seed": 84,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1119.4961083645912,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 55,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 43,
+    "seed": 85,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1207.112448139787,
+    "max_cross_track_error": 695.3402939267812,
+    "mean_cross_track_error": 324.668291569112,
+    "wrong_way_ticks": 1326,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 44,
+    "seed": 86,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -0.5,
+    "current_y": 6.123233995736766e-17,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 39.70079089333149,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 45,
+    "seed": 87,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -0.5,
+    "current_y": 6.123233995736766e-17,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 410.26474689284066,
+    "max_cross_track_error": 722.6325945536727,
+    "mean_cross_track_error": 287.98089192608813,
+    "wrong_way_ticks": 958,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 46,
+    "seed": 88,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -0.5,
+    "current_y": 6.123233995736766e-17,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 4056.792831226111,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 2517,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 47,
+    "seed": 89,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -0.5,
+    "current_y": 6.123233995736766e-17,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 2009.1624122548283,
+    "max_cross_track_error": 1111.636963638282,
+    "mean_cross_track_error": 421.13723377115286,
+    "wrong_way_ticks": 1201,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 48,
+    "seed": 90,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -1.5,
+    "current_y": 1.8369701987210297e-16,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 38.23772000851932,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 49,
+    "seed": 91,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -1.5,
+    "current_y": 1.8369701987210297e-16,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1396.0767324742112,
+    "max_cross_track_error": 976.9390714643404,
+    "mean_cross_track_error": 333.8330224259055,
+    "wrong_way_ticks": 907,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 50,
+    "seed": 92,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -1.5,
+    "current_y": 1.8369701987210297e-16,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 5919.846904213024,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 2400,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 51,
+    "seed": 93,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -1.5,
+    "current_y": 1.8369701987210297e-16,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1075.563068933201,
+    "max_cross_track_error": 1394.3589403634526,
+    "mean_cross_track_error": 438.70102478237243,
+    "wrong_way_ticks": 1080,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 52,
+    "seed": 94,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -2.5,
+    "current_y": 3.061616997868383e-16,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 39.384248847371964,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 53,
+    "seed": 95,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -2.5,
+    "current_y": 3.061616997868383e-16,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1184.207112138588,
+    "max_cross_track_error": 532.8702613306548,
+    "mean_cross_track_error": 204.07206790909467,
+    "wrong_way_ticks": 715,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 54,
+    "seed": 96,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -2.5,
+    "current_y": 3.061616997868383e-16,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 6282.559994930136,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 2001,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 55,
+    "seed": 97,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -2.5,
+    "current_y": 3.061616997868383e-16,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1408.370006250445,
+    "max_cross_track_error": 555.162489922026,
+    "mean_cross_track_error": 197.33112984635616,
+    "wrong_way_ticks": 728,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 56,
+    "seed": 98,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -3.5,
+    "current_y": 4.286263797015736e-16,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 5618.0989884633045,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 2997,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 57,
+    "seed": 99,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -3.5,
+    "current_y": 4.286263797015736e-16,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 5876.8137214581675,
+    "max_cross_track_error": 282.9781544127362,
+    "mean_cross_track_error": 103.30690426918926,
+    "wrong_way_ticks": 2997,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 58,
+    "seed": 100,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -3.5,
+    "current_y": 4.286263797015736e-16,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 5618.0989884633045,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 2997,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 59,
+    "seed": 101,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -3.5,
+    "current_y": 4.286263797015736e-16,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 5744.826911593804,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 2997,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 60,
+    "seed": 102,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -0.0,
+    "current_y": -0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 37.72906262382094,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 61,
+    "seed": 103,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -0.0,
+    "current_y": -0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 861.3828925029258,
+    "max_cross_track_error": 740.0470372370149,
+    "mean_cross_track_error": 315.06337605946555,
+    "wrong_way_ticks": 1186,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 62,
+    "seed": 104,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -0.0,
+    "current_y": -0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1119.4961083645912,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 55,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 63,
+    "seed": 105,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -0.0,
+    "current_y": -0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1207.112448139787,
+    "max_cross_track_error": 695.3402939267812,
+    "mean_cross_track_error": 324.668291569112,
+    "wrong_way_ticks": 1326,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 64,
+    "seed": 106,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -9.184850993605148e-17,
+    "current_y": -0.5,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 38.37434076324314,
+    "max_cross_track_error": 335.4085748333098,
+    "mean_cross_track_error": 136.92244016673266,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 65,
+    "seed": 107,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -9.184850993605148e-17,
+    "current_y": -0.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1009.8525506242929,
+    "max_cross_track_error": 1060.1912716652987,
+    "mean_cross_track_error": 389.42877885234566,
+    "wrong_way_ticks": 1211,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 66,
+    "seed": 108,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -9.184850993605148e-17,
+    "current_y": -0.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1051.263875740063,
+    "max_cross_track_error": 122.74983174592285,
+    "mean_cross_track_error": 59.21532686686388,
+    "wrong_way_ticks": 1289,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 67,
+    "seed": 109,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -9.184850993605148e-17,
+    "current_y": -0.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1961.8915524467188,
+    "max_cross_track_error": 950.1570032625073,
+    "mean_cross_track_error": 365.7396881851259,
+    "wrong_way_ticks": 1558,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 68,
+    "seed": 110,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -2.755455298081545e-16,
+    "current_y": -1.5,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 38.57060644145331,
+    "max_cross_track_error": 207.6299300473229,
+    "mean_cross_track_error": 94.054238879012,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 69,
+    "seed": 111,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -2.755455298081545e-16,
+    "current_y": -1.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 715.5320148662616,
+    "max_cross_track_error": 926.9433614679306,
+    "mean_cross_track_error": 386.02445835177235,
+    "wrong_way_ticks": 1020,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 70,
+    "seed": 112,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -2.755455298081545e-16,
+    "current_y": -1.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1232.865314966532,
+    "max_cross_track_error": 1779.2693337879152,
+    "mean_cross_track_error": 720.8701498060226,
+    "wrong_way_ticks": 948,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 71,
+    "seed": 113,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -2.755455298081545e-16,
+    "current_y": -1.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1265.4897819131995,
+    "max_cross_track_error": 971.9337659073601,
+    "mean_cross_track_error": 345.2432251275851,
+    "wrong_way_ticks": 1196,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 72,
+    "seed": 114,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -4.592425496802574e-16,
+    "current_y": -2.5,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 39.16589795599215,
+    "max_cross_track_error": 325.6489542278209,
+    "mean_cross_track_error": 249.20224362112168,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 73,
+    "seed": 115,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -4.592425496802574e-16,
+    "current_y": -2.5,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 39.0122044770601,
+    "max_cross_track_error": 503.48737326865023,
+    "mean_cross_track_error": 165.13619890958302,
+    "wrong_way_ticks": 582,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 74,
+    "seed": 116,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -4.592425496802574e-16,
+    "current_y": -2.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 6024.009587711042,
+    "max_cross_track_error": 316.0652927383437,
+    "mean_cross_track_error": 194.6377170633956,
+    "wrong_way_ticks": 2325,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 75,
+    "seed": 117,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -4.592425496802574e-16,
+    "current_y": -2.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1990.8930586825975,
+    "max_cross_track_error": 888.6605970650555,
+    "mean_cross_track_error": 433.1380398002836,
+    "wrong_way_ticks": 921,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 76,
+    "seed": 118,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -6.429395695523604e-16,
+    "current_y": -3.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 3895.98788619896,
+    "max_cross_track_error": 3248.2403348757107,
+    "mean_cross_track_error": 1735.671916919944,
+    "wrong_way_ticks": 2206,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 77,
+    "seed": 119,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -6.429395695523604e-16,
+    "current_y": -3.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 2923.847818451325,
+    "max_cross_track_error": 2902.4740154514343,
+    "mean_cross_track_error": 1256.7464838192589,
+    "wrong_way_ticks": 2037,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 78,
+    "seed": 120,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -6.429395695523604e-16,
+    "current_y": -3.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 4663.530467218969,
+    "max_cross_track_error": 3246.0234883519197,
+    "mean_cross_track_error": 1737.4448438284842,
+    "wrong_way_ticks": 2649,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 79,
+    "seed": 121,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": -6.429395695523604e-16,
+    "current_y": -3.5,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 4253.570030113725,
+    "max_cross_track_error": 3230.5041632825223,
+    "mean_cross_track_error": 1728.1203343795746,
+    "wrong_way_ticks": 2772,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 80,
+    "seed": 122,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 37.72906262382094,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 81,
+    "seed": 123,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 861.3828925029258,
+    "max_cross_track_error": 740.0470372370149,
+    "mean_cross_track_error": 315.06337605946555,
+    "wrong_way_ticks": 1186,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 82,
+    "seed": 124,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1119.4961083645912,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 55,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 83,
+    "seed": 125,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.0,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1207.112448139787,
+    "max_cross_track_error": 695.3402939267812,
+    "mean_cross_track_error": 324.668291569112,
+    "wrong_way_ticks": 1326,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 84,
+    "seed": 126,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 36.99523351005655,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 85,
+    "seed": 127,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 331.42916923561256,
+    "max_cross_track_error": 617.4541583180473,
+    "mean_cross_track_error": 277.82145658501213,
+    "wrong_way_ticks": 1057,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 86,
+    "seed": 128,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 39.92493129236391,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 1024,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 87,
+    "seed": 129,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 0.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 716.3741369940213,
+    "max_cross_track_error": 903.6677987685921,
+    "mean_cross_track_error": 421.0558935956238,
+    "wrong_way_ticks": 1026,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 88,
+    "seed": 130,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 1.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 36.59639972072955,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 89,
+    "seed": 131,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 1.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 214.90749228195986,
+    "max_cross_track_error": 580.7981173072923,
+    "mean_cross_track_error": 240.81428603226493,
+    "wrong_way_ticks": 1017,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 90,
+    "seed": 132,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 1.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 39.919995059342455,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 591,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 91,
+    "seed": 133,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 1.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 38.171554640433214,
+    "max_cross_track_error": 1081.1721369449983,
+    "mean_cross_track_error": 454.0553090428491,
+    "wrong_way_ticks": 541,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 92,
+    "seed": 134,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 2.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 36.87430867958847,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 93,
+    "seed": 135,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 2.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 36.797679827359225,
+    "max_cross_track_error": 237.12566581989523,
+    "mean_cross_track_error": 110.73366383821651,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 94,
+    "seed": 136,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 2.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": false,
+    "final_distance_to_goal": 38.05109207055102,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 459,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 95,
+    "seed": 137,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 2.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": false,
+    "final_distance_to_goal": 1916.6911180741329,
+    "max_cross_track_error": 1372.2949597013585,
+    "mean_cross_track_error": 665.6700540832803,
+    "wrong_way_ticks": 1318,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 96,
+    "seed": 138,
+    "route_type": "straight_east",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 3.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": true,
+    "final_distance_to_goal": 36.57611348774208,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 97,
+    "seed": 139,
+    "route_type": "diagonal",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 3.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": true,
+    "final_distance_to_goal": 38.87846622100733,
+    "max_cross_track_error": 288.40983658422937,
+    "mean_cross_track_error": 169.7989027161413,
+    "wrong_way_ticks": 0,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 98,
+    "seed": 140,
+    "route_type": "one_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 1800.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 3.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": true,
+    "current_limited": true,
+    "final_distance_to_goal": 37.248698196023724,
+    "max_cross_track_error": 0.0,
+    "mean_cross_track_error": 0.0,
+    "wrong_way_ticks": 388,
+    "invalid_state": false,
+    "collision_flag": false
+  },
+  {
+    "scenario_id": 99,
+    "seed": 141,
+    "route_type": "two_turn",
+    "start": {
+      "x": 400.0,
+      "y": 1800.0
+    },
+    "destination": {
+      "x": 2800.0,
+      "y": 600.0
+    },
+    "initial_heading_rad": 0.0,
+    "current_x": 3.5,
+    "current_y": 0.0,
+    "max_water_speed": 30.0,
+    "completed": false,
+    "current_limited": true,
+    "final_distance_to_goal": 3618.5119640384096,
+    "max_cross_track_error": 3859.956512358117,
+    "mean_cross_track_error": 2272.0485397516018,
+    "wrong_way_ticks": 2800,
+    "invalid_state": false,
+    "collision_flag": false
+  }
+]

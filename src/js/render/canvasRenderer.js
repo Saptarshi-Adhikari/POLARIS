@@ -471,91 +471,38 @@ export class CanvasRenderer {
 
   drawSafeRoute(ctx, aiNavigator, ship) {
     this.drawHypotheticalRoute(ctx);
-    if (!ship.routeWaypoints || ship.routeWaypoints.length === 0) return;
-    ctx.save();
-    const remaining = ship.routeWaypoints.slice(ship.waypointIndex);
-    if (remaining.length === 0) { ctx.restore(); return; }
+    const state = window.simEngine && window.simEngine.state;
+    const activeRoute = state && state.navigation && state.navigation.activeRoute;
+    
+    if (!activeRoute || activeRoute.status !== 'valid' || !activeRoute.waypoints || activeRoute.waypoints.length === 0) {
+      if (!ship.routeWaypoints || ship.routeWaypoints.length === 0) return;
+    }
 
-    const pts = [{ x: ship.x, y: ship.y }, ...remaining];
-    const icebergs = this.getIcebergs ? this.getIcebergs() : [];
+    ctx.save();
+    
+    const waypoints = (activeRoute && activeRoute.status === 'valid') ? activeRoute.waypoints : ship.routeWaypoints;
+    const pts = [{ x: ship.x, y: ship.y }, ...waypoints.slice(ship.waypointIndex)];
+    if (pts.length < 2) { ctx.restore(); return; }
 
     ctx.lineWidth = Math.max(2.0, 3 / this.camera.zoom);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.setLineDash([8 / this.camera.zoom, 6 / this.camera.zoom]);
 
-    let shipSpeed = 20.0;
-    const currentSpeed = Math.hypot(ship.vx, ship.vy);
-    if (currentSpeed > 5.0) {
-      shipSpeed = currentSpeed;
-    } else {
-      const state = window.simEngine && window.simEngine.state;
-      const throttle = ship.throttle || 65;
-      const maxSpd = (state && state.vessel && state.vessel.maxSpeed) || 30.0;
-      shipSpeed = maxSpd * Math.sqrt(throttle / 100);
-    }
+    for (let i = 0; i < pts.length - 1; i++) {
+      const ptCurr = pts[i];
+      const ptNext = pts[i + 1];
 
-    let accumulatedDistance = 0;
+      const riskScore = ptCurr.riskScore || 0;
+      let strokeColor = '#22c55e';
+      if (riskScore > 0.75) strokeColor = '#ef4444';
+      else if (riskScore > 0.50) strokeColor = '#f97316';
+      else if (riskScore > 0.25) strokeColor = '#eab308';
 
-    for (let i = 1; i < pts.length; i++) {
-      const ptA = pts[i - 1];
-      const ptB = pts[i];
-
-      // Safeguard: Ensure points are finite world coordinates
-      if (!Number.isFinite(ptA.x) || !Number.isFinite(ptA.y) || !Number.isFinite(ptB.x) || !Number.isFinite(ptB.y)) {
-        continue;
-      }
-
-      let isCritical = false;
-      const dx = ptB.x - ptA.x;
-      const dy = ptB.y - ptA.y;
-      const segLen = Math.hypot(dx, dy);
-      const segLen2 = dx * dx + dy * dy;
-
-      const numSamples = Math.max(3, Math.ceil(segLen / 40));
-      for (let k = 0; k <= numSamples; k++) {
-        const ratio = k / numSamples;
-        const sx = ptA.x + ratio * dx;
-        const sy = ptA.y + ratio * dy;
-        const sampleDist = accumulatedDistance + ratio * segLen;
-        const etaSample = sampleDist / (3600 * shipSpeed);
-
-        for (let ice of icebergs) {
-          const icePos = ice.getPositionAt(etaSample);
-          // Physical collision boundary only — no soft margin
-          const hardR = ice.collisionRadius + 15;
-          
-          if (Math.hypot(icePos.x - sx, icePos.y - sy) < hardR) {
-            isCritical = true;
-            break;
-          }
-        }
-        if (isCritical) break;
-      }
-
-      // 2. Sample risk check using RiskIntelligenceEngine
-      if (!isCritical) {
-        const samples = 3;
-        const ri = window.simEngine && window.simEngine.riskIntelligenceEngine;
-        if (ri) {
-          for (let s = 0; s <= samples; s++) {
-            const sx = ptA.x + (s / samples) * dx;
-            const sy = ptA.y + (s / samples) * dy;
-            const riskObj = ri.getRiskAt(sx, sy);
-            if (riskObj && riskObj.risk > 0.6) {
-              isCritical = true;
-              break;
-            }
-          }
-        }
-      }
-
-      ctx.strokeStyle = isCritical ? '#ef4444' : '#fcd34d';
-      accumulatedDistance += segLen;
-
+      ctx.strokeStyle = strokeColor;
       ctx.beginPath();
-      ctx.moveTo(ptA.x, ptA.y);
-      ctx.lineTo(ptB.x, ptB.y);
+      ctx.moveTo(ptCurr.x, ptCurr.y);
+      ctx.lineTo(ptNext.x, ptNext.y);
       ctx.stroke();
     }
 
@@ -564,12 +511,55 @@ export class CanvasRenderer {
     const r = Math.max(4, 5 / this.camera.zoom);
     for (let i = 0; i < pts.length; i++) {
       if (i === 0 || i === pts.length - 1) {
-        ctx.fillStyle = i === 0 ? (aiNavigator.riskScore > 0.65 ? '#ef4444' : '#fcd34d') : '#fcd34d';
+        ctx.fillStyle = i === 0 ? (aiNavigator.riskScore > 0.75 ? '#ef4444' : (aiNavigator.riskScore > 0.35 ? '#f97316' : '#22c55e')) : '#22c55e';
         ctx.beginPath();
         ctx.arc(pts[i].x, pts[i].y, i === pts.length - 1 ? r : r * 0.6, 0, Math.PI * 2);
         ctx.fill();
       }
     }
+    this.drawDebugVectors(ctx, ship);
+    ctx.restore();
+  }
+
+  drawDebugVectors(ctx, ship) {
+    if (!this.showDebugOverlay) return;
+
+    ctx.save();
+    // 1. Green Arrow: selected forward target
+    if (ship.targetWaypoint) {
+      ctx.strokeStyle = '#22c55e';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(ship.x, ship.y);
+      ctx.lineTo(ship.targetWaypoint.x, ship.targetWaypoint.y);
+      ctx.stroke();
+
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath();
+      ctx.arc(ship.targetWaypoint.x, ship.targetWaypoint.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 2. White Arrow: Physical Heading
+    const radHdg = (ship.heading * Math.PI) / 180;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(ship.x, ship.y);
+    ctx.lineTo(ship.x + Math.cos(radHdg) * 45, ship.y + Math.sin(radHdg) * 45);
+    ctx.stroke();
+
+    // 3. Cyan Arrow: Ground Velocity
+    const spdG = Math.hypot(ship.vx, ship.vy);
+    if (spdG > 0.1) {
+      ctx.strokeStyle = '#a1eff8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(ship.x, ship.y);
+      ctx.lineTo(ship.x + ship.vx * 3.0, ship.y + ship.vy * 3.0);
+      ctx.stroke();
+    }
+
     ctx.restore();
   }
 
@@ -659,6 +649,50 @@ export class CanvasRenderer {
       ctx.save();
       ctx.translate(ice.x, ice.y);
       ctx.rotate((ice.heading * Math.PI) / 180);
+      
+      // ── STEP 3 & 5: DRAW EXPANDING OBSERVATION UNCERTAINTY & LAYERED SAFETY ENVELOPES ──
+      const baseR = ice.collisionRadius;
+      const uncertaintyR = ice.uncertaintyRadius || baseR;
+      const totalR = baseR + uncertaintyR;
+
+      // Draw Expanding observation uncertainty circle (Purple dashed)
+      ctx.beginPath();
+      ctx.arc(0, 0, uncertaintyR, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(147, 51, 234, 0.08)';  // Purple 8% opacity
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(147, 51, 234, 0.4)';  // Purple outline
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 5]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Zone 1: Hard Collision (< 1.0R) - Red
+      ctx.beginPath();
+      ctx.arc(0, 0, totalR * 1.0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.15)'; // Red 15% opacity
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Zone 2: Critical Danger (< 1.5R) - Orange
+      ctx.beginPath();
+      ctx.arc(0, 0, totalR * 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(249, 115, 22, 0.1)'; // Orange 10% opacity
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(249, 115, 22, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Zone 3: Caution (< 2.5R) - Yellow
+      ctx.beginPath();
+      ctx.arc(0, 0, totalR * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(234, 179, 8, 0.05)'; // Yellow 5% opacity
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(234, 179, 8, 0.3)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
       const r = Math.max(10, ice.size / 35);
       if (ice.isSelected || ice === this.hoveredEntity) {
         ctx.strokeStyle = '#a4d64c'; ctx.lineWidth = 1;
@@ -724,7 +758,10 @@ export class CanvasRenderer {
   drawShip(ctx, ship) {
     ctx.save();
     ctx.translate(ship.x, ship.y);
-    ctx.rotate((ship.heading * Math.PI) / 180);
+    // Ship sprite asset natively points East (+X / 0 deg). Offset is 0 radians.
+    const SHIP_SPRITE_FORWARD_OFFSET = 0;
+    const visualRotation = ((ship.heading * Math.PI) / 180) + SHIP_SPRITE_FORWARD_OFFSET;
+    ctx.rotate(visualRotation);
     if (ship.speedKnots > 2.0) {
       const wakeLength = Math.min(60, ship.speedKnots * 2);
       const wakeSpread = Math.min(20, ship.speedKnots * 0.8);

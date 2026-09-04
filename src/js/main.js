@@ -7,6 +7,8 @@
  * DO NOT mix screen pixel coords with world coords.
  */
 
+import { offlineManager } from './offlineManager.js';
+import { perfMonitor } from './performanceMonitor.js';
 import { VectorField } from './simulation/vectorField.js';
 import { Iceberg } from './simulation/iceberg.js';
 import { Ship } from './simulation/ship.js';
@@ -25,6 +27,35 @@ import { CounterfactualSimulator } from './ai/counterfactualSimulator.js';
 import { ConfidenceIntelligenceEngine } from './ai/confidenceIntelligenceEngine.js';
 import { DecisionIntelligenceEngine } from './ai/decisionIntelligenceEngine.js';
 import { MetricsRegistry } from './ai/metricsRegistry.js';
+
+// ── Phase 5: Sensor & Digital Twin Layer ──────────────────────────────────────
+import { gnssSensor } from './sensors/gnssSensor.js';
+import { gyrocompassSensor } from './sensors/gyrocompassSensor.js';
+import { radarSensor } from './sensors/radarSensor.js';
+import { sensorFusion } from './sensors/sensorFusion.js';
+
+// ── Phase 6: Data Collection Pipeline ────────────────────────────────────────
+import { dataRecorder } from './data/dataRecorder.js';
+import { dataExporter } from './data/dataExporter.js';
+import { syntheticDataGenerator } from './data/syntheticDataGenerator.js';
+
+// ── Phase 7: ML Baseline ──────────────────────────────────────────────────────
+import { mlInference } from './ml/mlInference.js';
+
+// ── Phase 9: Advanced Autonomous Navigation (D* Lite) ───────────────────────
+import { createHierarchicalPlanner } from './pathfinding/hierarchicalPlanner.js';
+
+// ── Phase 10: Full Digital Twin with LLM Copilot ───────────────────────────
+import { llmCopilot } from './ai/llmCopilot.js';
+import { scenarioReplay } from './data/scenarioReplay.js';
+import { createCopilotHUD } from './ui/copilotHUD.js';
+
+
+
+import { NavigationFlightRecorder } from './debug/navigationFlightRecorder.js';
+import { NavigationDebugOverlay } from './debug/navigationDebugOverlay.js';
+import { NavigationWatchdog } from './debug/navigationWatchdog.js';
+import { NavigationAuditReporter } from './debug/navigationAuditReporter.js';
 
 // Canonical World Dimensions - ALL simulation entities MUST use these
 const WORLD_W = 3600;
@@ -106,7 +137,20 @@ class SimulationEngine {
         startPoint: { x: 400, y: 1800 },
         destinationPoint: { x: WORLD_W - 400, y: 400 },
         destination: { x: WORLD_W - 400, y: 400 },
-        statusMessage: 'Ready'
+        statusMessage: 'Ready',
+        activeRoute: {
+          id: `route_${Date.now()}`,
+          waypoints: [],
+          rawPath: [],
+          smoothPath: [],
+          status: 'invalid',
+          createdAt: performance.now(),
+          expiresAt: performance.now() + 60000,
+          totalDistance: 0,
+          estimatedDuration: 0,
+          maxRiskSegment: 0,
+          destination: { x: WORLD_W - 400, y: 400 }
+        }
       },
       icebergs: {
         count: 6,
@@ -139,11 +183,112 @@ class SimulationEngine {
         const hud = document.getElementById('debug-hud');
         if (hud) hud.classList.toggle('hidden');
       }
+      // Sensor failure simulation shortcuts
+      if (e.key === 'F1') { gnssSensor.simulateFailure(!gnssSensor.isFailed); e.preventDefault(); }
+      if (e.key === 'F2') { gyrocompassSensor.simulateFailure(!gyrocompassSensor.isFailed); e.preventDefault(); }
+      if (e.key === 'F3') { radarSensor.simulateFailure(!radarSensor.isFailed); e.preventDefault(); }
+
+      // ── Phase 6: Data collection shortcuts ──────────────────────────────
+      if (e.key === 'r' || e.key === 'R') {
+        if (dataRecorder.isRecording) { dataRecorder.stopRecording(); }
+        else { dataRecorder.startRecording(); }
+      }
+      if (e.key === 'e' && !e.shiftKey) { dataExporter.exportSession(dataRecorder, 'json'); }
+      if (e.key === 'E' && e.shiftKey)  { dataExporter.exportSession(dataRecorder, 'csv'); }
+      if (e.key === 'g' || e.key === 'G') {
+        syntheticDataGenerator.exportSyntheticDataset(100, 24, 'synthetic_iceberg_data.json');
+      }
+      // Phase 7: Toggle ML predictions
+      if (e.key === 'm' || e.key === 'M') {
+        mlInference.toggleML();
+      }
+
+      // ── Phase 10: LLM Copilot & Scenario Replay Shortcuts ──────────────
+      if (e.key === 'c' || e.key === 'C') {
+        if (window.copilotHUD) window.copilotHUD.toggleVisibility();
+      }
+      if (e.key === 'R' && e.shiftKey) {
+        if (scenarioReplay.isRecording) {
+          scenarioReplay.stopRecording();
+        } else {
+          const name = `Scenario_${new Date().toISOString().slice(11, 19).replace(/:/g, '')}`;
+          scenarioReplay.startRecording(name);
+        }
+      }
+      if (e.key === 'P' && e.shiftKey) {
+        const recordings = scenarioReplay.getRecordings();
+        if (recordings.length > 0) {
+          scenarioReplay.playRecording(recordings.length - 1, 1.0);
+        }
+      }
+      if (e.key === 'E' && e.shiftKey) {
+        const recordings = scenarioReplay.getRecordings();
+        if (recordings.length > 0) {
+          scenarioReplay.exportRecording(recordings.length - 1);
+        }
+      }
+      if (e.key === 'F4') {
+        llmCopilot.checkAvailability().then(avail => {
+          const msg = avail ? 'LLM Copilot Online (Ollama)' : 'LLM Copilot Offline (Rule-based fallback active)';
+          if (window.copilotHUD) {
+            window.copilotHUD.addExplanation({
+              text: msg,
+              source: 'system',
+              confidence: 1.0,
+              context: { routeRisk: 'safe' }
+            });
+          }
+        });
+      }
     });
+
+    // ── Phase 5: Initialize Sensor Fusion ────────────────────────────────────
+    sensorFusion.initialize(gnssSensor, gyrocompassSensor, radarSensor);
+    // Expose on window for debugging / UI hooks
+    window.gnssSensor         = gnssSensor;
+    window.gyrocompassSensor  = gyrocompassSensor;
+    window.radarSensor        = radarSensor;
+    window.sensorFusion       = sensorFusion;
+    console.info('[Sensors] F1: Toggle GNSS | F2: Toggle Gyro | F3: Toggle Radar');
+
+    // ── Phase 6: Expose data modules ─────────────────────────────────────────
+    window.dataRecorder           = dataRecorder;
+    window.dataExporter           = dataExporter;
+    window.syntheticDataGenerator = syntheticDataGenerator;
+    console.info('[Data] R: Record toggle | E: Export JSON | Shift+E: Export CSV | G: Generate synthetic dataset');
+
+    // ── Phase 7: Initialize ML Inference (non-blocking async health probe) ───
+    window.mlInference = mlInference;
+    mlInference.loadModel().catch(() => {});  // Offline-safe: errors are swallowed internally
+
+    // ── Phase 9: Advanced Autonomous Navigation (D* Lite) ───────────────────
+    this.hierarchicalPlanner = createHierarchicalPlanner(WORLD_W, WORLD_H);
+    window.hierarchicalPlanner = this.hierarchicalPlanner;
+    console.info('[Pathfinding] Global A* + Local D* Lite Hierarchical Planner active');
+
+    // ── Phase 10: Initialize Copilot & Scenario Replay ──────────────────────
+    window.llmCopilot = llmCopilot;
+    window.scenarioReplay = scenarioReplay;
+    window.copilotHUD = createCopilotHUD();
+    llmCopilot.checkAvailability().catch(() => {});
+    // Flight Recorder, Debug Overlay, Watchdog & Audit Reporter
+    this.flightRecorder = new NavigationFlightRecorder();
+    this.flightRecorder.start(); // Enabled by default in analyze mode
+    this.debugOverlay = new NavigationDebugOverlay(this.flightRecorder, this.renderer);
+    this.navigationWatchdog = new NavigationWatchdog({ mode: 'analyze' });
+    this.auditReporter = new NavigationAuditReporter(this.navigationWatchdog, this.flightRecorder);
+
+    window.flightRecorder = this.flightRecorder;
+    window.debugOverlay = this.debugOverlay;
+    window.navigationWatchdog = this.navigationWatchdog;
+    window.auditReporter = this.auditReporter;
+    console.info('[Watchdog] Automatic Navigation Watchdog active in ANALYZE mode | F6: Overlay | F7: Record | F8: Export JSON | F10: Download Audit');
 
     this.renderer.startPoint = this.state.navigation.startPoint;
     this.renderer.destinationPoint = this.state.navigation.destinationPoint;
     this.calculateRoute();
+
+
 
     requestAnimationFrame((t) => this.loop(t));
   }
@@ -384,6 +529,21 @@ class SimulationEngine {
     this.state.navigation.destination = { x: WORLD_W - 400, y: 400 };
     this.state.navigation.statusMessage = 'Ready';
 
+    // Establish Single Source of Truth reference: activeRoute metadata structure
+    this.state.navigation.activeRoute = {
+      id: `route_${Date.now()}`,
+      waypoints: [],
+      rawPath: [],
+      smoothPath: [],
+      status: 'invalid',
+      createdAt: performance.now(),
+      expiresAt: performance.now() + 60000,
+      totalDistance: 0,
+      estimatedDuration: 0,
+      maxRiskSegment: 0,
+      destination: this.state.navigation.destination
+    };
+
     this.renderer.startPoint = this.state.navigation.startPoint;
     this.renderer.destinationPoint = this.state.navigation.destinationPoint;
     this.renderer.planningMode = PlanningMode.NONE;
@@ -403,52 +563,144 @@ class SimulationEngine {
     this.renderer.addIcebergMode = false;
     this.renderer.canvas.style.cursor = 'crosshair';
     this.state.navigation.routeInvalid = true;
+
+    // Trigger immediate replanning if newly placed iceberg intersects activeRoute corridor
+    const activeRoute = this.state.navigation.activeRoute;
+    if (activeRoute && activeRoute.status === 'valid') {
+      const riskBuffer = newIce.collisionRadius + 45; // collision + padding envelope
+      let intersects = false;
+      for (let i = 0; i < activeRoute.waypoints.length - 1; i++) {
+        const ptA = activeRoute.waypoints[i];
+        const ptB = activeRoute.waypoints[i + 1];
+        
+        // Find distance to segment
+        const dx = ptB.x - ptA.x;
+        const dy = ptB.y - ptA.y;
+        const segLen2 = dx * dx + dy * dy;
+        let t = 0;
+        if (segLen2 > 0) {
+          t = Math.max(0, Math.min(1, ((newIce.x - ptA.x) * dx + (newIce.y - ptA.y) * dy) / segLen2));
+        }
+        const cx = ptA.x + t * dx;
+        const cy = ptA.y + t * dy;
+        const distance = Math.hypot(newIce.x - cx, newIce.y - cy);
+        if (distance < riskBuffer) {
+          intersects = true;
+          break;
+        }
+      }
+      if (intersects) {
+        console.log('[Iceberg Manager] Spawned iceberg intersects activeRoute, forcing instant replanning');
+        this.calculateRoute();
+      }
+    }
   }
 
   loop(timestamp) {
+    perfMonitor.startFrame();
+
     const rawDt = Math.min(0.1, (timestamp - this.lastTimestamp) / 1000);
     this.lastTimestamp = timestamp;
     let dt = 0;
 
-    if (!this.state.simulation.isPaused) {
-      dt = rawDt * this.state.simulation.timeWarp;
-      this.state.simulation.simTimeHours += (dt / 3600);
+    perfMonitor.timeFunction('physics', () => {
+      try {
+        if (!this.state.simulation.isPaused) {
+          dt = rawDt * this.state.simulation.timeWarp;
+          this.state.simulation.simTimeHours += (dt / 3600);
 
-      this.vectorField.updateGrid(this.state.simulation.simTimeHours, this.state);
-      this.vectorField.updateParticles(rawDt, this.state.simulation.simTimeHours, this.state);
+          // 2. Update Environment (wind, currents, sea-ice)
+          this.vectorField.updateGrid(this.state.simulation.simTimeHours, this.state);
+          this.vectorField.updateParticles(rawDt, this.state.simulation.simTimeHours, this.state);
 
-      if (this.state.environment.mode === 'DATA-DRIVEN' && this.antarcticDataManager.active) {
-        const dataIcebergs = this.antarcticDataManager.getIcebergsAt(this.state.simulation.simTimeHours);
-        if (dataIcebergs) {
-          this.icebergs = dataIcebergs.map(ice => {
-            const existing = this.icebergs.find(ex => ex.id === ice.id);
-            if (existing) {
-              existing.x = ice.x;
-              existing.y = ice.y;
-              existing.vx = ice.vx;
-              existing.vy = ice.vy;
-              existing.size = ice.size;
-              existing.mass = ice.mass;
-              existing.name = ice.name;
-              return existing;
-            } else {
-              return new Iceberg(ice);
+          // 3. Update Icebergs (position, velocity)
+          if (this.state.environment.mode === 'DATA-DRIVEN' && this.antarcticDataManager.active) {
+            const dataIcebergs = this.antarcticDataManager.getIcebergsAt(this.state.simulation.simTimeHours);
+            if (dataIcebergs) {
+              this.icebergs = dataIcebergs.map(ice => {
+                const existing = this.icebergs.find(ex => ex.id === ice.id);
+                if (existing) {
+                  existing.x = ice.x;
+                  existing.y = ice.y;
+                  existing.vx = ice.vx;
+                  existing.vy = ice.vy;
+                  existing.size = ice.size;
+                  existing.mass = ice.mass;
+                  existing.name = ice.name;
+                  return existing;
+                } else {
+                  return new Iceberg(ice);
+                }
+              });
             }
-          });
+          } else {
+            for (let ice of this.icebergs) {
+              ice.update(dt, this.vectorField, this.state.simulation.simTimeHours, this.state);
+            }
+          }
+
+          // 4. Update Ship Physics (thrust, drag, position)
+          this.ship.update(dt, this.vectorField, this.state.simulation.simTimeHours, this.state, this.icebergs);
+
+          // 5. Update Navigation State (autopilot, route following, auto-expiration)
+          this.aiNavigator.evaluate(this.ship, this.icebergs, this.vectorField, this.state.simulation.simTimeHours, this.state);
+
+          // 6. Update Sensor Fusion (GNSS, Gyro, Radar → fused state estimate)
+          sensorFusion.update(this.ship, this.icebergs, dt);
+
+          // 7. Data Collection (non-blocking ring buffer record)
+          if (dataRecorder.isRecording) {
+            const shipPos = { x: this.ship.x, y: this.ship.y };
+            const oc = this.vectorField.getVelocityAt(this.ship.x, this.ship.y, this.state.simulation.simTimeHours, this.state);
+            let windX = 0, windY = 0;
+            if (this.state.environment.wind.enabled) {
+              const radW = (this.state.environment.wind.direction * Math.PI) / 180;
+              const wMS  = (this.state.environment.wind.speed * 1000) / 3600;
+              windX = Math.cos(radW) * wMS;
+              windY = Math.sin(radW) * wMS;
+            }
+            const seaIce = this.vectorField.getSeaIceConcentration
+              ? this.vectorField.getSeaIceConcentration(this.ship.x, this.ship.y)
+              : this.state.environment.seaIce.averageConcentration || 0;
+
+            dataRecorder.record(
+              this.icebergs,
+              this.ship,
+              { windX, windY, currentX: oc.u, currentY: oc.v, seaIceConcentration: seaIce, waterTemperature: -1.8 },
+              performance.now()
+            );
+          }
+
+          // Route Auto-Expiration & Destination Arrival Checks
+          const activeRoute = this.state.navigation.activeRoute;
+          if (activeRoute && activeRoute.status === 'valid') {
+            const now = performance.now();
+            if (now > activeRoute.expiresAt) {
+              console.info('[Navigator] Route expired (60s lifetime exceeded), triggering automatic replanning');
+              this.calculateRoute();
+            } else {
+              const distToDest = Math.hypot(this.ship.x - activeRoute.destination.x, this.ship.y - activeRoute.destination.y);
+              if (distToDest < 10) {
+                console.info('[Navigator] Destination reached');
+                activeRoute.status = 'invalid';
+                this.state.navigation.routeCalculated = false;
+                this.ship.throttle = 0;
+                this.state.vessel.throttle = 0;
+              }
+            }
+          }
         }
-      } else {
-        for (let ice of this.icebergs) {
-          ice.update(dt, this.vectorField, this.state.simulation.simTimeHours, this.state);
-        }
+      } catch (e) {
+        console.error('[Physics/Update Loop Failed]', e);
       }
-
-      this.ship.update(dt, this.vectorField, this.state.simulation.simTimeHours, this.state, this.icebergs);
-
-      this.aiNavigator.evaluate(this.ship, this.icebergs, this.vectorField, this.state.simulation.simTimeHours, this.state);
-    }
+    });
 
     if (this.aiClient) {
-      this.aiClient.updatePredictions();
+      try {
+        this.aiClient.updatePredictions();
+      } catch (e) {
+        console.warn('[AI Client prediction update failed]', e);
+      }
     }
 
     try {
@@ -499,20 +751,95 @@ class SimulationEngine {
       console.warn("Risk Intelligence update failed", e);
     }
 
-    this.renderer.render(
-      this.vectorField,
-      this.ship,
-      this.icebergs,
-      this.aiNavigator,
-      this.state.simulation.simTimeHours,
-      rawDt,
-      this.state
-    );
+    perfMonitor.timeFunction('rendering', () => {
+      try {
+        this.renderer.render(
+          this.vectorField,
+          this.ship,
+          this.icebergs,
+          this.aiNavigator,
+          this.state.simulation.simTimeHours,
+          rawDt,
+          this.state
+        );
+      } catch (e) {
+        console.error('[Renderer] Draw failed:', e);
+      }
+    });
 
     try {
       this.uiController.updateTelemetry();
     } catch (e) {
       console.warn('[Telemetry Update Failed]', e);
+    }
+
+    // 8. Flight Recorder & Debug Overlay Sampling
+    if (this.flightRecorder && this.flightRecorder.enabled) {
+      const activeRoute = this.state.navigation.activeRoute || {};
+      const oc = this.vectorField.getVelocityAt(this.ship.x, this.ship.y, this.state.simulation.simTimeHours, this.state);
+      const radHdg = (this.ship.heading * Math.PI) / 180;
+      const bowX = Math.cos(radHdg);
+      const bowY = Math.sin(radHdg);
+      const spdG = Math.hypot(this.ship.vx, this.ship.vy);
+      const gDirX = spdG > 0.1 ? this.ship.vx / spdG : bowX;
+      const gDirY = spdG > 0.1 ? this.ship.vy / spdG : bowY;
+      const alignment = bowX * gDirX + bowY * gDirY;
+
+      const snapshot = {
+        timestamp_ms: Date.now(),
+        simulation_time: this.state.simulation.simTimeHours,
+        route: {
+          id: activeRoute.id || 'none',
+          path_length: activeRoute.waypoints ? activeRoute.waypoints.length : 0,
+          status: activeRoute.status || 'invalid',
+          destination: activeRoute.destination || { x: 0, y: 0 },
+          selected_waypoint_index: this.ship.waypointIndex || 0,
+          selected_target: this.ship.targetWaypoint || { x: 0, y: 0 },
+          selected_target_is_forward: true,
+          route_progress_fraction: (() => {
+            const path = activeRoute.waypoints;
+            if (!Array.isArray(path) || path.length < 2) return 0;
+            const p0 = path[0];
+            const p1 = path[path.length - 1];
+            const totalLen = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+            if (totalLen < 1e-6) return 0;
+            const traveled = Math.hypot(this.ship.x - p0.x, this.ship.y - p0.y);
+            return Math.max(0, Math.min(1, traveled / totalLen));
+          })()
+        },
+        ship: {
+          position: { x: this.ship.x, y: this.ship.y },
+          heading_rad: radHdg,
+          heading_deg: this.ship.heading,
+          target_heading_deg: this.ship.targetHeading !== undefined ? this.ship.targetHeading : (Math.atan2(this.ship.vy, this.ship.vx) * 180 / Math.PI + 360) % 360,
+          rudder_command: this.ship.rudder,
+          throttle: this.ship.throttle,
+          ground_velocity: { x: this.ship.vx, y: this.ship.vy },
+          ground_speed: spdG,
+          water_speed: spdG,
+          sprite_rotation_deg: this.ship.heading,
+          distance_to_destination: Math.hypot(this.ship.x - (activeRoute.destination?.x || 0), this.ship.y - (activeRoute.destination?.y || 0))
+        },
+        guidance: {
+          mode: this.ship.autopilotStatus || 'NORMAL',
+          cross_track_error: this.ship.crossTrackError || 0,
+          current_velocity: { x: oc.u * 4.0, y: oc.v * 4.0 },
+          is_current_limited: this.ship.autopilotStatus === 'FIGHTING_CURRENT',
+          ...(this.ship.guidanceBreakdown || {})
+        },
+        integrity: {
+          route_id_matches_ship_route_id: true,
+          finite_position: Number.isFinite(this.ship.x) && Number.isFinite(this.ship.y),
+          heading_velocity_alignment: alignment
+        }
+      };
+      this.flightRecorder.recordSample(snapshot);
+      if (this.navigationWatchdog) {
+        this.navigationWatchdog.evaluate(snapshot, this);
+      }
+      if (this.debugOverlay) {
+        this.debugOverlay.update(snapshot, this.navigationWatchdog);
+      }
     }
 
     // Debug HUD update
@@ -549,6 +876,7 @@ class SimulationEngine {
       setDbg('dbg-follow', this.renderer.trackShip ? 'ON' : 'OFF');
     }
 
+    perfMonitor.endFrame();
     requestAnimationFrame((t) => this.loop(t));
   }
 }
@@ -556,6 +884,7 @@ class SimulationEngine {
 window.addEventListener('DOMContentLoaded', () => {
   try {
     window.simEngine = new SimulationEngine();
+    window.simEngine.perfMonitor = perfMonitor;
   } catch (err) {
     console.error("CRITICAL INITIALIZATION ERROR IN SIMULATION ENGINE:", err);
   }

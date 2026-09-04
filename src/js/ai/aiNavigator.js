@@ -1,4 +1,15 @@
 import routeCalibration from '../../data/routeCalibration.json';
+import { createHierarchicalPlanner } from '../pathfinding/hierarchicalPlanner.js';
+import { llmCopilot } from './llmCopilot.js';
+
+const hierarchicalPlanner = createHierarchicalPlanner(3600, 2400, {
+  globalResolution: 40,
+  localResolution: 20,
+  globalCooldown: 5000,
+  localUpdateInterval: 100
+});
+
+
 
 /**
  * HARD COLLISION CHECK — returns true ONLY when a ship physically cannot occupy
@@ -231,6 +242,61 @@ export class AINavigator {
       }
     }
 
+    // ── STEP 2 & 4: CALCULATE CPA AND PERFORM PREDICTIVE AVOIDANCE ──
+    let imminentCollisionDetected = false;
+    let highestRiskIceberg = null;
+    let shortestT_CPA = Infinity;
+
+    if (isNavigating) {
+      for (const ice of icebergs) {
+        // Relative position
+        const rx = ice.x - ship.x;
+        const ry = ice.y - ship.y;
+        
+        // Relative velocity
+        const rvx = ice.vx - ship.vx;
+        const rvy = ice.vy - ship.vy;
+        
+        const rvSq = rvx * rvx + rvy * rvy;
+        let tCPA = 0;
+        if (rvSq > 0.001) {
+          tCPA = -(rx * rvx + ry * rvy) / rvSq;
+        }
+        if (tCPA < 0) tCPA = 0;
+
+        // Distance at closest approach
+        const futureRx = rx + rvx * tCPA;
+        const futureRy = ry + rvy * tCPA;
+        const dCPA = Math.sqrt(futureRx * futureRx + futureRy * futureRy);
+        const safeMargin = ice.collisionRadius + ship.collisionRadius;
+
+        // Emergency avoidance trigger check
+        if (tCPA > 0 && tCPA < 30 && dCPA < safeMargin * 1.5) {
+          imminentCollisionDetected = true;
+          if (tCPA < shortestT_CPA) {
+            shortestT_CPA = tCPA;
+            highestRiskIceberg = ice;
+          }
+        }
+      }
+    }
+
+    if (imminentCollisionDetected && highestRiskIceberg) {
+      console.error('[Autopilot] Emergency collision avoidance override active!');
+      ship.throttle = 0;
+      state.vessel.throttle = 0;
+      
+      const dx = highestRiskIceberg.x - ship.x;
+      const dy = highestRiskIceberg.y - ship.y;
+      const bearing = Math.atan2(dy, dx) * 180 / Math.PI;
+      
+      // Steer perpendicular (90 degrees away)
+      const escapeHeading = (bearing + 90 + 360) % 360;
+      ship.heading = escapeHeading;
+      ship.angularVelocity = 0;
+      isObstructed = true;
+    }
+
     const timeSinceLastRoute = currentTime - (this.lastRouteTime || 0);
 
     let needsReroute = isNavigating && (
@@ -241,7 +307,14 @@ export class AINavigator {
     if (isNavigating && this.optimalRoute.length === 0) needsReroute = true;
 
     if (needsReroute && timeSinceLastRoute > 500) {
-      this.generateOptimalRouteAStar(ship, icebergs, vectorField, dest, mode, state, ship);
+      const pm = window.simEngine && window.simEngine.perfMonitor;
+      if (pm) {
+        pm.timeFunction('routePlanning', () => {
+          this.generateOptimalRouteAStar(ship, icebergs, vectorField, dest, mode, state, ship);
+        });
+      } else {
+        this.generateOptimalRouteAStar(ship, icebergs, vectorField, dest, mode, state, ship);
+      }
       this.lastRouteTime = currentTime;
       this.lastMode = mode;
       this.lastDest = { x: dest.x, y: dest.y };
@@ -576,8 +649,6 @@ export class AINavigator {
       if (rawValResult.valid) {
         finalPath = waypoints;
       } else if (this.lastValidRoute && this.lastValidRoute.length >= 2) {
-        // Revalidate lastValidRoute against CURRENT iceberg positions before reusing.
-        // A previously safe route may now collide with icebergs that have since moved.
         const lastRouteVal = this.validateRoute(this.lastValidRoute, icebergs, shipSpeed, state);
         if (lastRouteVal.valid) {
           console.warn("Using revalidated lastValidRoute as fallback.");
@@ -598,20 +669,220 @@ export class AINavigator {
       }
     }
 
+    // ── STEP 2 & 4: TURNING-RADIUS-AWARE TURN CURVING & SAFETY CHECK ──
+    if (finalPath.length >= 3) {
+      const curvedPath = [];
+      curvedPath.push(finalPath[0]);
+
+      // Estimate turning radius based on ship physical limits:
+      // rudder max 35deg gives 30deg/sec at max speed 30 SU/s.
+      // turning speed = ~10 SU/s -> 10 deg/sec = 0.174 rad/sec
+      // Radius = Speed / AngularSpeed = 10 / 0.174 ≈ 57 SU. Let's start with a safe, conservative 60-80 SU radius.
+      let turnRadius = 80.0; 
+
+      for (let i = 1; i < finalPath.length - 1; i++) {
+        const ptPrev = finalPath[i - 1];
+        const ptCurr = finalPath[i];
+        const ptNext = finalPath[i + 1];
+
+        // Directions and distances
+        const dx1 = ptCurr.x - ptPrev.x;
+        const dy1 = ptCurr.y - ptPrev.y;
+        const len1 = Math.hypot(dx1, dy1);
+
+        const dx2 = ptNext.x - ptCurr.x;
+        const dy2 = ptNext.y - ptCurr.y;
+        const len2 = Math.hypot(dx2, dy2);
+
+        if (len1 < 5.0 || len2 < 5.0) {
+          curvedPath.push(ptCurr);
+          continue;
+        }
+
+        const ux1 = dx1 / len1;
+        const uy1 = dy1 / len1;
+        const ux2 = dx2 / len2;
+        const uy2 = dy2 / len2;
+
+        // Angle between incoming and outgoing segments
+        const cosAngle = ux1 * ux2 + uy1 * uy2;
+        const angle = Math.acos(Math.max(-1.0, Math.min(1.0, cosAngle)));
+
+        // Skip curving for almost straight segments (less than 5 degrees change)
+        if (angle < 0.08) {
+          curvedPath.push(ptCurr);
+          continue;
+        }
+
+        // Calculate fillet tangent distance: T = R * tan(theta / 2)
+        // Since it's a corner transition, turn angle = 180 - angle. Half turn angle = (pi - angle)/2
+        const halfTurnAngle = (Math.PI - angle) / 2;
+        let tangentDist = turnRadius * Math.tan(halfTurnAngle);
+
+        // Keep tangent distance within segment bounds to avoid overlaps
+        const maxTangent = Math.min(len1 * 0.45, len2 * 0.45);
+        let currentRadius = turnRadius;
+        if (tangentDist > maxTangent) {
+          tangentDist = maxTangent;
+          currentRadius = tangentDist / Math.tan(halfTurnAngle);
+        }
+
+        // Tangency start and end points
+        const tStart = {
+          x: ptCurr.x - ux1 * tangentDist,
+          y: ptCurr.y - uy1 * tangentDist
+        };
+        const tEnd = {
+          x: ptCurr.x + ux2 * tangentDist,
+          y: ptCurr.y + uy2 * tangentDist
+        };
+
+        // Generate quadratic Bezier curve samples as turn fillet
+        const curveSamples = [];
+        const numSamples = 6;
+        for (let k = 0; k <= numSamples; k++) {
+          const t = k / numSamples;
+          const sx = (1 - t) * (1 - t) * tStart.x + 2 * (1 - t) * t * ptCurr.x + t * t * tEnd.x;
+          const sy = (1 - t) * (1 - t) * tStart.y + 2 * (1 - t) * t * ptCurr.y + t * t * tEnd.y;
+          curveSamples.push({ x: sx, y: sy });
+        }
+
+        // Step 4: Validate curve samples against collisions
+        let curveSafe = true;
+        let accumDist = 0;
+        // Approximate time along route for validation
+        for (let k = 0; k < curveSamples.length - 1; k++) {
+          const cA = curveSamples[k];
+          const cB = curveSamples[k + 1];
+          const dS = Math.hypot(cB.x - cA.x, cB.y - cA.y);
+          const etaSample = (accumDist + dS) / (3600 * shipSpeed);
+          if (isHardBlocked(cB.x, cB.y, etaSample, icebergs)) {
+            curveSafe = false;
+            break;
+          }
+          accumDist += dS;
+        }
+
+        if (curveSafe) {
+          curvedPath.push(tStart);
+          for (let k = 1; k < curveSamples.length - 1; k++) {
+            curvedPath.push(curveSamples[k]);
+          }
+          curvedPath.push(tEnd);
+        } else {
+          // If unsafe, fallback directly to the raw corner point
+          curvedPath.push(ptCurr);
+        }
+      }
+      curvedPath.push(finalPath[finalPath.length - 1]);
+      finalPath = curvedPath;
+    }
+
     this.optimalRoute = finalPath;
-    // Only update lastValidRoute when this is a real navigation route (realShip provided),
-    // not a strategy-comparison run from computeRouteStrategy.
     if (realShip) {
       this.lastValidRoute = finalPath;
     }
 
-    // Only push waypoints to the actual vessel when an explicit realShip is provided.
-    // When realShip is null (e.g. called from computeRouteStrategy for comparison purposes),
-    // we must NOT overwrite ship.routeWaypoints — the first-arg `ship` is just a position object
-    // but happens to be the real vessel, and calling setRouteWaypoints on it would reset
-    // waypointIndex to 0 every second, destroying active navigation and erasing the route display.
-    if (realShip && realShip.setRouteWaypoints) {
-      realShip.setRouteWaypoints(this.optimalRoute);
+    // Populate the Single Source of Truth navigation.activeRoute object in the state
+    if (state && state.navigation) {
+      // Risk scoring segments for coloring
+      const segmentsWithRisk = [];
+      let maxRisk = 0;
+      
+      for (let i = 0; i < finalPath.length - 1; i++) {
+        const ptA = finalPath[i];
+        const ptB = finalPath[i + 1];
+        
+        let minClearance = Infinity;
+        for (const iceberg of icebergs) {
+          const dx = ptB.x - ptA.x;
+          const dy = ptB.y - ptA.y;
+          const segLen2 = dx * dx + dy * dy;
+          let t = 0;
+          if (segLen2 > 0) {
+            t = Math.max(0, Math.min(1, ((iceberg.x - ptA.x) * dx + (iceberg.y - ptA.y) * dy) / segLen2));
+          }
+          const cx = ptA.x + t * dx;
+          const cy = ptA.y + t * dy;
+          const dist = Math.hypot(iceberg.x - cx, iceberg.y - cy);
+          const clearance = dist - iceberg.collisionRadius;
+          minClearance = Math.min(minClearance, clearance);
+        }
+        
+        // Normalize 0-1 risk score (under 50 world units = critical, 500 = caution, 1000 = safe)
+        const riskScore = Math.max(0, Math.min(1.0, 1.0 - (minClearance / 1000.0)));
+        let status = 'safe';
+        if (riskScore > 0.75) status = 'critical';
+        else if (riskScore > 0.50) status = 'danger';
+        else if (riskScore > 0.25) status = 'caution';
+
+        ptA.riskScore = riskScore;
+        ptA.status = status;
+        ptA.minClearance = minClearance;
+        maxRisk = Math.max(maxRisk, riskScore);
+      }
+
+      let totalRouteDistance = 0;
+      for (let i = 0; i < finalPath.length - 1; i++) {
+        totalRouteDistance += Math.hypot(finalPath[i+1].x - finalPath[i].x, finalPath[i+1].y - finalPath[i].y);
+      }
+
+      const activeRoute = state.navigation.activeRoute;
+      const isUrgentOrInvalid = !activeRoute || activeRoute.status !== 'valid' || state.navigation.routeInvalid === true;
+      const timeSinceLastRoute = performance.now() - (this.lastRouteTime || 0);
+
+      // Route similarity check: compute max distance deviation between paths
+      let isGeometricallySimilar = false;
+      if (activeRoute && activeRoute.waypoints && activeRoute.waypoints.length > 1) {
+        const actPath = activeRoute.waypoints;
+        if (actPath.length === finalPath.length) {
+          let maxDiff = 0;
+          for (let k = 0; k < finalPath.length; k++) {
+            maxDiff = Math.max(maxDiff, Math.hypot(finalPath[k].x - actPath[k].x, finalPath[k].y - actPath[k].y));
+          }
+          if (maxDiff < 40.0) {
+            isGeometricallySimilar = true;
+          }
+        }
+      }
+
+      // Adoption Gate
+      let shouldAdopt = isUrgentOrInvalid;
+      if (!shouldAdopt && timeSinceLastRoute >= 5000) {
+        // Adopt if candidate is materially safer or significantly shorter, and not just jitter
+        if (maxRisk < (activeRoute.maxRiskSegment || 1.0) - 0.15) {
+          shouldAdopt = true;
+        } else if (totalRouteDistance < (activeRoute.totalDistance || Infinity) - 100.0) {
+          shouldAdopt = true;
+        }
+      }
+
+      if (isGeometricallySimilar) {
+        // Refresh metadata without generating new route ID or resetting progress
+        activeRoute.expiresAt = performance.now() + 60000;
+        activeRoute.maxRiskSegment = maxRisk;
+        activeRoute.totalDistance = totalRouteDistance;
+      } else if (shouldAdopt) {
+        state.navigation.activeRoute = {
+          id: `route_${Date.now()}`,
+          waypoints: finalPath,
+          rawPath: waypoints,
+          smoothPath: finalPath,
+          status: 'valid',
+          createdAt: performance.now(),
+          expiresAt: performance.now() + 60000,
+          totalDistance: totalRouteDistance,
+          estimatedDuration: totalRouteDistance / (shipSpeed * 3600),
+          maxRiskSegment: maxRisk,
+          destination: dest
+        };
+
+        if (realShip && realShip.setRouteWaypoints) {
+          // Project current ship position onto new route to preserve progress
+          realShip.setRouteWaypoints(finalPath);
+        }
+        this.lastRouteTime = performance.now();
+      }
     }
   }
 

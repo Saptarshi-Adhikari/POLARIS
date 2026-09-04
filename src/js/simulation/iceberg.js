@@ -43,6 +43,13 @@ export class Iceberg {
 
     // AI Forecast trajectories (array of { hour, x, y, lat, lon })
     this.trajectoryForecast = [];
+    
+    // Nomoto/Wagner predictive parameters
+    this.predictedTrajectory = [];
+    this.uncertaintyRadius = this.collisionRadius;
+    this.uncertaintyGrowthRate = 0.5; // meters/second
+    this.lastPredictionUpdate = 0;
+    this.acceleration = { x: 0, y: 0 };
   }
 
   update(dt, vectorField, simTimeHours, state) {
@@ -97,6 +104,31 @@ export class Iceberg {
     // Position update
     this.x += this.vx * dt;
     this.y += this.vy * dt;
+
+    // ── STEP 1 & 5: DYNAMIC ICEBERG OBSERVATION AND UNCERTAINTY GROWTH ──
+    const now = performance.now();
+    if (now - this.lastPredictionUpdate > 10000) {
+      this.lastPredictionUpdate = now;
+      
+      const windFactor = 0.02; // 2% wind drift coupling rule
+      this.acceleration.x = oceanVel.u * 0.1 + windVx * windFactor * 0.1;
+      this.acceleration.y = oceanVel.v * 0.1 + windVy * windFactor * 0.1;
+      
+      // Update trajectory predictions (10m, 30m, 60m future frames)
+      const times = [600, 1800, 3600];
+      this.predictedTrajectory = times.map(tSec => {
+        const futureX = this.x + this.vx * tSec;
+        const futureY = this.y + this.vy * tSec;
+        const uncertainty = this.collisionRadius + this.uncertaintyGrowthRate * tSec;
+        return { t: tSec, x: futureX, y: futureY, uncertainty };
+      });
+    }
+
+    // Uncertainty grows quadratically with elapsed time since last observation
+    const elapsedSec = (now - this.lastPredictionUpdate) / 1000;
+    this.uncertaintyRadius = this.collisionRadius + this.uncertaintyGrowthRate * elapsedSec;
+    // Cap uncertainty at 3x base collision radius
+    this.uncertaintyRadius = Math.min(this.uncertaintyRadius, this.collisionRadius * 3.0);
 
     // Heading rotation
     this.heading = (this.heading + this.angularVelocity * dt * 10 + 360) % 360;

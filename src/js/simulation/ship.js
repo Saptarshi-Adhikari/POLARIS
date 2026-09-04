@@ -73,6 +73,7 @@ export class Ship {
     this.routeWaypoints = waypoints;
     this.waypointIndex = 0;
     this.targetWaypoint = waypoints.length > 0 ? waypoints[0] : null;
+    this._activeRouteId = null;
   }
 
   setManualControls({ throttle, rudder, mode }) {
@@ -83,6 +84,11 @@ export class Ship {
 
   update(dt, vectorField, simTimeHours, state, icebergs = []) {
     if (!state || dt <= 0) return;
+
+    // Nomoto parameters
+    const nomotoT = 15.0; // Time constant (seconds)
+    const nomotoK = 0.5;  // Gain constant
+    const maxTurnRateDeg = 3.0; // Max turn rate: 3 degrees/sec (approx 0.052 rad/sec)
 
     // Sync controls from central state
     const maxSpeed    = state.vessel.maxSpeed;     // SU/sec
@@ -117,7 +123,7 @@ export class Ship {
     }
 
     // Smooth acceleration and deceleration
-    const accelRate = this.desiredThrottle > this.throttle ? 1.5 : 3.5; // Decelerate faster for safety
+    const accelRate = this.desiredThrottle > this.throttle ? 1.5 : 3.5;
     this.throttle += (this.desiredThrottle - this.throttle) * dt * accelRate;
     this.throttle = Math.max(0, Math.min(100, this.throttle));
 
@@ -126,37 +132,30 @@ export class Ship {
       this.throttle = 0;
     }
 
-    // --- 1. Angular Physics (smooth heading rotation) ---
-    // Turning rate is proportional to rudder angle and forward speed
-    const currentSpeed = Math.hypot(this.vx, this.vy);
-    // At max speed, full rudder gives 30 deg/sec. At zero speed, minimal turning.
-    const speedRatio = Math.min(1.0, currentSpeed / (maxSpeed * 0.3 + 1.0));
-    const targetAngularVel = (this.rudder / 35) * 30 * Math.max(0.2, speedRatio);
-    
-    // Smooth angular velocity change (angular inertia)
-    const angularAcceleration = (targetAngularVel - this.angularVelocity) * 3.0;
+    // --- 1. Nomoto Steering Dynamics ---
+    // Convert rudder to normalized rudder command [-1, 1] (full port to full starboard)
+    const rudderCommand = this.rudder / 35.0;
+
+    // d²ψ/dt² = (K * δ - dψ/dt) / T
+    // Positive rudder commands clockwise (+ heading rate) turn
+    const angularAcceleration = (nomotoK * rudderCommand * maxTurnRateDeg - this.angularVelocity) / nomotoT;
     this.angularVelocity += angularAcceleration * dt;
-    this.angularVelocity *= 0.85; // angular damping
-    
+    this.angularVelocity = Math.max(-maxTurnRateDeg, Math.min(maxTurnRateDeg, this.angularVelocity));
     this.heading = (this.heading + this.angularVelocity * dt + 360) % 360;
 
-    // --- 2. Linear Physics Forces (Simulation Units) ---
+    // --- 2. Linear Physics Forces (Newtonian Thrust + Drag + Environment) ---
     const radHeading = (this.heading * Math.PI) / 180;
     const forwardX = Math.cos(radHeading);
     const forwardY = Math.sin(radHeading);
 
-    // a) Thrust Force — balanced so terminal velocity at full throttle = maxSpeed
-    //    F_drag = dragCoeff * v^2  =>  F_thrust = dragCoeff * maxSpeed^2 for balance
-    // a) Thrust Force — balanced so terminal velocity at full throttle = maxSpeed
-    //    F_drag = dragCoeff * v^2  =>  F_thrust = dragCoeff * maxSpeed^2 for balance
+    // a) Engine Thrust
     const enginePowerMultiplier = state.vessel.enginePower || 1.0;
     const maxThrustForce = dragCoeff * maxSpeed * maxSpeed * enginePowerMultiplier;
-    // If fuel is empty, engine provides 0 thrust
     const thrustMag = this.fuel > 0 ? ((this.throttle / 100) * maxThrustForce * this.extraThrustMultiplier) : 0;
     let fx = forwardX * thrustMag;
     let fy = forwardY * thrustMag;
 
-    // b) Drag Force (quadratic, opposing velocity direction)
+    // b) Hydrodynamic Drag
     const speedSq = this.vx * this.vx + this.vy * this.vy;
     if (speedSq > 0.001) {
       const spd = Math.sqrt(speedSq);
@@ -166,52 +165,62 @@ export class Ship {
     }
 
     // c) Ocean Current Influence
-    // Currents exert a mild drift force on the vessel (not instant velocity override)
     const oceanVel = vectorField.getVelocityAt(this.x, this.y, simTimeHours, state);
-    // Scale: oceanVel is in m/s. Map to ~SU/sec where 1 m/s ocean ~ 8 SU/sec force coupling
-    const currentCoupling = 4.0; // Reduced to 4.0 for controllability
-    fx += oceanVel.u * currentCoupling;
-    fy += oceanVel.v * currentCoupling;
+    const currentInfluence = 0.8;
+    // Current coupling: ocean velocity contributes directly to forces
+    const currentCoupling = 4.0;
+    fx += oceanVel.u * currentCoupling * currentInfluence;
+    fy += oceanVel.v * currentCoupling * currentInfluence;
 
-    // d) Wind Force (much smaller than propulsion)
+    // d) Wind Force
     if (state.environment.wind.enabled) {
       const radWind = (state.environment.wind.direction * Math.PI) / 180;
-      // Wind: 45 km/h ~ 12.5 m/s, ~2% coupling to vessel
       const windMS = state.environment.wind.speed / 3.6;
-      const windCoupling = 0.25; // Reduced for balance
-      fx += Math.cos(radWind) * windMS * windCoupling;
-      fy += Math.sin(radWind) * windMS * windCoupling;
+      const windDrag = 0.1;
+      const windCoupling = 0.25;
+      fx += Math.cos(radWind) * windMS * windCoupling * windDrag;
+      fy += Math.sin(radWind) * windMS * windCoupling * windDrag;
     }
 
-    // e) Sea Ice Resistance (additional drag in ice)
+    // e) Sea Ice Resistance
+    let iceConcentration = 0.0;
     if (state.environment.seaIce.enabled && vectorField.getSeaIceConcentration) {
-      const iceConc = vectorField.getSeaIceConcentration(this.x, this.y);
-      if (iceConc > 0.1 && speedSq > 0.001) {
+      iceConcentration = vectorField.getSeaIceConcentration(this.x, this.y);
+      if (iceConcentration > 0.1 && speedSq > 0.001) {
         const spd = Math.sqrt(speedSq);
-        const iceResist = dragCoeff * speedSq * iceConc * 1.5 * state.environment.seaIce.resistanceFactor;
-        fx -= (this.vx / spd) * iceResist;
-        fy -= (this.vy / spd) * iceResist;
+        const iceResist = dragCoeff * speedSq * iceConcentration * 1.5 * state.environment.seaIce.resistanceFactor;
+        const iceDragMultiplier = 1.0 + (iceConcentration * 5.0);
+        fx -= (this.vx / spd) * iceResist * iceDragMultiplier;
+        fy -= (this.vy / spd) * iceResist * iceDragMultiplier;
       }
     }
 
-    // --- 3. Integrate (Semi-Implicit Euler) ---
-    // F = m*a => a = F/m  (mass = 1.0 normalized)
-    const ax = fx / mass;
-    const ay = fy / mass;
+    // --- 3. Integrate Equations of Motion (F = m*a with Added Mass) ---
+    const addedMassMultiplier = 1.2;
+    const effectiveMass = mass * addedMassMultiplier;
+    const ax = fx / effectiveMass;
+    const ay = fy / effectiveMass;
 
     this.vx += ax * dt;
     this.vy += ay * dt;
 
-    // Safety clamp: prevent runaway velocity (cap at 2x maxSpeed)
-    const velMag = Math.hypot(this.vx, this.vy);
-    if (velMag > maxSpeed * 2) {
-      this.vx = (this.vx / velMag) * maxSpeed * 2;
-      this.vy = (this.vy / velMag) * maxSpeed * 2;
+    // Dynamic speed limit clamping due to sea ice concentration
+    const speedReductionFactor = 1.0 - (iceConcentration * 0.9);
+    const maxSpeedInIce = maxSpeed * speedReductionFactor;
+    const currentSpeed = Math.hypot(this.vx, this.vy);
+    if (currentSpeed > maxSpeedInIce) {
+      const scale = maxSpeedInIce / currentSpeed;
+      this.vx *= scale;
+      this.vy *= scale;
     }
 
-    // NaN/Infinity guard
-    if (!Number.isFinite(this.vx)) this.vx = 0;
-    if (!Number.isFinite(this.vy)) this.vy = 0;
+    // NaN / State Integrity Protection
+    if (!Number.isFinite(this.vx) || isNaN(this.vx)) this.vx = 0;
+    if (!Number.isFinite(this.vy) || isNaN(this.vy)) this.vy = 0;
+    if (!Number.isFinite(this.x) || isNaN(this.x)) this.x = this.lastValidX;
+    if (!Number.isFinite(this.y) || isNaN(this.y)) this.y = this.lastValidY;
+    if (!Number.isFinite(this.heading) || isNaN(this.heading)) this.heading = heading;
+    if (!Number.isFinite(this.angularVelocity) || isNaN(this.angularVelocity)) this.angularVelocity = 0;
 
     // --- 4. Integrate Position with Continuous Collision Detection ---
     let proposedX = this.x + this.vx * dt;
@@ -300,51 +309,47 @@ export class Ship {
   }
 
   updateAutopilotSteering(dt, state, icebergs, maxSpeed, vectorField, simTimeHours) {
-    if (!this.targetWaypoint) return;
-
-    const dx = this.targetWaypoint.x - this.x;
-    const dy = this.targetWaypoint.y - this.y;
-    const dist = Math.hypot(dx, dy);
-
-    // Stuck / Progress Detection
-    if (this.lastDistToWaypoint === Infinity) {
-      this.lastDistToWaypoint = dist;
-    }
-    if (dist < this.lastDistToWaypoint - 1.0) {
-      this.lastDistToWaypoint = dist;
-      this.stuckCounter = 0;
-      this.extraThrustMultiplier = 1.0;
-    } else {
-      this.stuckCounter += dt;
-      if (this.stuckCounter > 6.0) {
-        this.extraThrustMultiplier = Math.min(3.0, this.extraThrustMultiplier + 0.15 * dt);
-        if (this.stuckCounter > 12.0) {
-          state.navigation.routeInvalid = true;
-          this.stuckCounter = 0;
-        }
+    const activeRoute = state?.navigation?.activeRoute;
+    if (activeRoute && activeRoute.waypoints && activeRoute.waypoints.length > 0) {
+      if (!this._activeRouteId || this._activeRouteId !== activeRoute.id) {
+        this._activeRouteId = activeRoute.id;
+        this.routeWaypoints = activeRoute.waypoints;
+        this.waypointIndex = 0;
+        this.targetWaypoint = this.routeWaypoints[0];
       }
     }
 
-    // Arrival radius: larger when moving fast to prevent overshoot
-    const currentSpeed = Math.hypot(this.vx, this.vy);
-    const arrivalRadius = Math.max(40, currentSpeed * 3);
+    if (!this.routeWaypoints || this.routeWaypoints.length === 0) return;
 
-    if (dist < arrivalRadius) {
-      if (this.waypointIndex < this.routeWaypoints.length - 1) {
+    const currentSpeed = Math.hypot(this.vx, this.vy);
+    const lookAheadDist = Math.max(50, currentSpeed * 2.5);
+
+    // Monotonic progress: advance waypointIndex along polyline
+    while (this.waypointIndex < this.routeWaypoints.length - 1) {
+      const wp = this.routeWaypoints[this.waypointIndex];
+      const wpDist = Math.hypot(wp.x - this.x, wp.y - this.y);
+      if (wpDist < lookAheadDist) {
         this.waypointIndex++;
         this.targetWaypoint = this.routeWaypoints[this.waypointIndex];
         this.lastDistToWaypoint = Infinity;
         this.stuckCounter = 0;
         this.extraThrustMultiplier = 1.0;
       } else {
-        // Destination reached
-        this.desiredThrottle = 0;
-        state.vessel.throttle = 0;
+        break;
       }
+    }
+
+    const targetDx = this.targetWaypoint.x - this.x;
+    const targetDy = this.targetWaypoint.y - this.y;
+    const distToTarget = Math.hypot(targetDx, targetDy);
+
+    const arrivalRadius = Math.max(35, currentSpeed * 2);
+    if (this.waypointIndex === this.routeWaypoints.length - 1 && distToTarget < arrivalRadius) {
+      this.desiredThrottle = 0;
+      state.vessel.throttle = 0;
       return;
     }
 
-    // Segment tracking calculation
     let segmentStart = state.navigation.startPoint || { x: this.x, y: this.y };
     if (this.waypointIndex > 0 && this.routeWaypoints[this.waypointIndex - 1]) {
       segmentStart = this.routeWaypoints[this.waypointIndex - 1];
@@ -355,104 +360,118 @@ export class Ship {
     const dySeg = segmentEnd.y - segmentStart.y;
     const segLength = Math.hypot(dxSeg, dySeg);
 
-    let routeAngleRad = Math.atan2(dy, dx);
-    let ux = dx / dist;
-    let uy = dy / dist;
+    let ux = targetDx / (distToTarget || 1);
+    let uy = targetDy / (distToTarget || 1);
     let xte = 0.0;
 
     if (segLength > 1.0) {
       ux = dxSeg / segLength;
       uy = dySeg / segLength;
-      routeAngleRad = Math.atan2(dySeg, dxSeg);
-      
-      // Vector from segment start to ship
       const dxShip = this.x - segmentStart.x;
       const dyShip = this.y - segmentStart.y;
-      
-      // Cross-track error (perpendicular distance to route segment line)
       xte = dxShip * uy - dyShip * ux;
     }
 
-    // Heading error
-    const routeHdgDeg = (routeAngleRad * 180 / Math.PI + 360) % 360;
-    let headingError = routeHdgDeg - this.heading;
-    while (headingError > 180) headingError -= 360;
-    while (headingError < -180) headingError += 360;
+    // Hysteresis mode management
+    const absXte = Math.abs(xte);
+    if (!this._inRecoveryMode) {
+      if (absXte >= 80.0) {
+        this._inRecoveryMode = true;
+      }
+    } else {
+      if (absXte <= 45.0) {
+        this._inRecoveryMode = false;
+      }
+    }
 
-    // Get environmental velocities to calculate drift compensation (crabbing)
+    const modeConfig = this._inRecoveryMode ? {
+      xteGain: 0.08,
+      maxXteCorrectionDeg: 20.0,
+      lookAheadMultiplier: 0.75,
+      speedMultiplier: 0.80
+    } : {
+      xteGain: 0.05,
+      maxXteCorrectionDeg: 15.0,
+      lookAheadMultiplier: 1.0,
+      speedMultiplier: 1.0
+    };
+
+    // --- Vector-Based Guidance & Current Compensation ---
+    // 1. Desired Ground Velocity Vector
+    const requestedGroundSpeed = Math.max(10.0, maxSpeed * 0.75 * modeConfig.speedMultiplier);
+    const groundDirX = distToTarget > 1e-6 ? targetDx / distToTarget : Math.cos((this.heading * Math.PI) / 180);
+    const groundDirY = distToTarget > 1e-6 ? targetDy / distToTarget : Math.sin((this.heading * Math.PI) / 180);
+
+    const desiredGroundVx = groundDirX * requestedGroundSpeed;
+    const desiredGroundVy = groundDirY * requestedGroundSpeed;
+
+    // 2. Ocean Current Vector (world units)
     const oceanVel = vectorField.getVelocityAt(this.x, this.y, simTimeHours, state);
     const currentCoupling = 4.0;
-    let driftX = oceanVel.u * currentCoupling;
-    let driftY = oceanVel.v * currentCoupling;
-    if (state.environment.wind.enabled) {
-      const radWind = (state.environment.wind.direction * Math.PI) / 180;
-      const windMS = state.environment.wind.speed / 3.6;
-      driftX += Math.cos(radWind) * windMS * 0.25;
-      driftY += Math.sin(radWind) * windMS * 0.25;
+    const currentVx = oceanVel.u * currentCoupling;
+    const currentVy = oceanVel.v * currentCoupling;
+
+    // 3. Required Water Relative Velocity: v_water = v_ground - v_current
+    let desiredWaterVx = desiredGroundVx - currentVx;
+    let desiredWaterVy = desiredGroundVy - currentVy;
+
+    let requiredWaterSpeed = Math.hypot(desiredWaterVx, desiredWaterVy);
+    if (requiredWaterSpeed > maxSpeed && requiredWaterSpeed > 1e-6) {
+      const scale = maxSpeed / requiredWaterSpeed;
+      desiredWaterVx *= scale;
+      desiredWaterVy *= scale;
+      requiredWaterSpeed = maxSpeed;
+      this.autopilotStatus = 'FIGHTING_CURRENT';
+    } else {
+      this.autopilotStatus = this._inRecoveryMode ? 'ROUTE_RECOVERY' : 'NORMAL_TRACKING';
     }
 
-    const driftMag = Math.hypot(driftX, driftY);
-    this.environmentalResistance = driftMag;
+    // Desired Heading Through Water (radians -> degrees)
+    let desiredHeadingRad = Math.atan2(desiredWaterVy, desiredWaterVx);
+    let desiredHeadingDeg = (desiredHeadingRad * 180 / Math.PI + 360) % 360;
 
-    // Calculate lateral environmental component relative to route direction
-    const driftLateral = driftX * uy - driftY * ux;
-
-    // Closed-loop Cross-track steering correction (Stanley-like controller)
+    // Apply Stanley Cross-Track Correction to heading
     let xteCorr = 0.0;
-    if (Math.abs(xte) > 1.5) {
-      const xteGain = 0.18; 
-      xteCorr = Math.atan(xte * xteGain) * 180 / Math.PI;
-      xteCorr = Math.max(-45, Math.min(45, xteCorr));
+    if (absXte > 1.5) {
+      const rawCorr = Math.atan((modeConfig.xteGain * xte) / Math.max(1.0, currentSpeed)) * 180 / Math.PI;
+      xteCorr = Math.max(-modeConfig.maxXteCorrectionDeg, Math.min(modeConfig.maxXteCorrectionDeg, -rawCorr));
     }
 
-    // Crab angle calculation to offset lateral drift
-    const vShip = Math.max(2.0, Math.hypot(this.vx, this.vy));
-    let crabAngleDeg = 0.0;
-    if (driftMag > 1.5 && Math.abs(driftLateral) < vShip) {
-      const ratio = Math.max(-1.0, Math.min(1.0, -driftLateral / vShip));
-      const crabRad = Math.asin(ratio);
-      crabAngleDeg = (crabRad * 180) / Math.PI;
-      crabAngleDeg = Math.max(-30, Math.min(30, crabAngleDeg));
-    }
+    let targetAngleDeg = (desiredHeadingDeg + xteCorr + 360) % 360;
+    this.targetHeading = targetAngleDeg;
+    state.vessel.targetHeading = targetAngleDeg;
 
-    // Combine desired segment angle, XTE correction, and crab angle
-    let targetAngle = routeHdgDeg + xteCorr + crabAngleDeg;
-    let angleDiff = targetAngle - this.heading;
+    let angleDiff = targetAngleDeg - this.heading;
     while (angleDiff > 180) angleDiff -= 360;
     while (angleDiff < -180) angleDiff += 360;
 
-    // Proportional rudder control
     const steeringGain = 1.6;
     this.rudder = Math.max(-35, Math.min(35, angleDiff * steeringGain));
     state.vessel.rudder = this.rudder;
 
-    // Track metrics
+    this.guidanceBreakdown = {
+      lookahead_target: { x: segmentEnd.x, y: segmentEnd.y },
+      route_tangent_heading_deg: (Math.atan2(dySeg, dxSeg) * 180 / Math.PI + 360) % 360,
+      desired_ground_heading_deg: (Math.atan2(desiredGroundVy, desiredGroundVx) * 180 / Math.PI + 360) % 360,
+      desired_water_heading_deg: desiredHeadingDeg,
+      xte_gain_used: modeConfig.xteGain,
+      max_correction_used_deg: modeConfig.maxXteCorrectionDeg,
+      lookahead_multiplier_used: modeConfig.lookAheadMultiplier,
+      requested_speed_multiplier: modeConfig.speedMultiplier,
+      raw_xte_correction_deg: xteCorr,
+      bounded_xte_correction_deg: xteCorr,
+      recovery_correction_deg: this._inRecoveryMode ? xteCorr : 0,
+      final_target_heading_deg: targetAngleDeg,
+      signed_heading_error_deg: angleDiff,
+      rudder_before_clamp_deg: angleDiff * steeringGain,
+      rudder_after_clamp_deg: this.rudder
+    };
+
     this.crossTrackError = xte;
-    this.crabAngle = crabAngleDeg;
+    this.crabAngle = (Math.atan2(-currentVy, maxSpeed) * 180 / Math.PI);
     this.driftCorrection = xteCorr;
 
-    // Autopilot state detection & transitions
-    if (Math.abs(xte) > 15.0) {
-      this.highXteTicks = (this.highXteTicks || 0) + 1;
-    } else {
-      this.highXteTicks = 0;
-    }
-
-    if (Math.abs(xte) > 40.0) {
-      this.autopilotStatus = 'ROUTE_RECOVERY';
-    } else if (this.highXteTicks > 4 && driftMag > 4.5) {
-      this.autopilotStatus = 'FIGHTING_CURRENT';
-    } else if (driftMag > 1.5 || Math.abs(crabAngleDeg) > 2.0) {
-      this.autopilotStatus = 'COMPENSATING_DRIFT';
-    } else {
-      this.autopilotStatus = 'NORMAL_TRACKING';
-    }
-
-    // Write all telemetry properties to central state for rendering/UI
     state.vessel.crossTrackError = this.crossTrackError;
-    state.vessel.crabAngle = this.crabAngle;
-    state.vessel.driftCorrection = this.driftCorrection;
-    state.vessel.autopilotStatus = this.autopilotStatus;
     state.vessel.environmentalResistance = this.environmentalResistance;
 
     // Autopilot cruise throttle - starts with set autopilotThrottle
@@ -489,7 +508,7 @@ export class Ship {
     }
 
     // 3. Slow down in high sea ice concentration
-    if (state.environment.seaIce.enabled && vectorField.getSeaIceConcentration) {
+    if (state.environment && state.environment.seaIce && state.environment.seaIce.enabled && vectorField.getSeaIceConcentration) {
       const iceConc = vectorField.getSeaIceConcentration(this.x, this.y);
       if (iceConc > 0.2) {
         targetThrottle = Math.min(targetThrottle, (1 - iceConc) * 50 + 10);

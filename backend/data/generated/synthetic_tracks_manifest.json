@@ -1,0 +1,11 @@
+{
+  "data_provenance": "synthetic",
+  "synthetic_only": true,
+  "not_field_validated": true,
+  "generator_version": "1.0.0",
+  "random_seed": 42,
+  "track_count": 500,
+  "hours": 24,
+  "cadence_minutes": 5,
+  "row_count": 144000
+}

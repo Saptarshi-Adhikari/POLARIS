@@ -1,0 +1,42 @@
+[
+  {
+    "file": "src/js/simulation/ship.js",
+    "function": "updateAutopilotSteering",
+    "expression": "let desiredHeadingRad = Math.atan2(desiredWaterVy, desiredWaterVx); let desiredHeadingDeg = (desiredHeadingRad * 180 / Math.PI + 360) % 360;",
+    "unit_before": "radians",
+    "unit_after": "degrees",
+    "classification": "Navigation/control heading assignment",
+    "correct": true,
+    "fix_required": false
+  },
+  {
+    "file": "src/js/simulation/ship.js",
+    "function": "updateAutopilotSteering",
+    "expression": "this.targetHeading = targetAngleDeg; state.vessel.targetHeading = targetAngleDeg;",
+    "unit_before": "unknown",
+    "unit_after": "degrees",
+    "classification": "Navigation/control heading assignment",
+    "correct": true,
+    "fix_required": true
+  },
+  {
+    "file": "src/js/simulation/ship.js",
+    "function": "update",
+    "expression": "const radHeading = (this.heading * Math.PI) / 180; const forwardX = Math.cos(radHeading);",
+    "unit_before": "degrees",
+    "unit_after": "radians",
+    "classification": "Physics trig conversion only",
+    "correct": true,
+    "fix_required": false
+  },
+  {
+    "file": "src/js/render/canvasRenderer.js",
+    "function": "drawShip",
+    "expression": "const visualRotation = ((ship.heading * Math.PI) / 180) + SHIP_SPRITE_FORWARD_OFFSET; ctx.rotate(visualRotation);",
+    "unit_before": "degrees",
+    "unit_after": "radians",
+    "classification": "Canvas draw only",
+    "correct": true,
+    "fix_required": false
+  }
+]

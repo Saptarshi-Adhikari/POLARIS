@@ -1,0 +1,7 @@
+{
+  "source_dataset": "synthetic_tracks",
+  "data_provenance": "synthetic",
+  "row_count": 144000,
+  "track_count": 500,
+  "canonical_path": "backend\\data\\canonical\\synthetic_tracks_canonical.csv"
+}

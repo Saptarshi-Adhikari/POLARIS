@@ -6,6 +6,9 @@ import joblib
 import numpy as np
 import os
 
+# Phase 7: ML drift prediction router
+from ml_api import router as ml_router
+
 app = FastAPI(
     title="Astralis ML Iceberg Prediction Service",
     description="Provides scikit-learn random forest trajectory predictions for Antarctic icebergs."
@@ -19,6 +22,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount Phase 7 ML router
+app.include_router(ml_router)
+
 
 # Global model state
 MODEL_PATH = "backend/model.joblib"

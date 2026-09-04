@@ -1,0 +1,200 @@
+{
+  "provenance": {
+    "source": "live browser flight recorder",
+    "data_provenance": "runtime simulation telemetry",
+    "is_real_vessel_field_telemetry": false
+  },
+  "sessionId": "session_1788282899378",
+  "sampleCount": 247,
+  "eventCount": 57,
+  "duration_sim_hours": 0.07350702777733353,
+  "routeIds": [
+    "route_1788282963399",
+    "route_1788282904910",
+    "route_1788282964926",
+    "route_1788282968710",
+    "route_1788282905665",
+    "route_1788282961685",
+    "route_1788282970833",
+    "route_1788282944633",
+    "route_1788282942472",
+    "route_1788282947117",
+    "route_1788282933836",
+    "route_1788282929087",
+    "route_1788282932317",
+    "route_1788282898309",
+    "route_1788282921803",
+    "route_1788282903255",
+    "route_1788282899799",
+    "route_1788282943109",
+    "route_1788282926705",
+    "route_1788282957382",
+    "route_1788282958834",
+    "route_1788282918329",
+    "route_1788282969306",
+    "route_1788282950618",
+    "route_1788282909940",
+    "route_1788282954153",
+    "route_1788282949107",
+    "route_1788282955673",
+    "route_1788282908101"
+  ],
+  "guidanceModes": [
+    "NORMAL_TRACKING",
+    "ROUTE_RECOVERY"
+  ],
+  "routeConvergence": {
+    "initialDistance": 3088.87205613997,
+    "finalDistance": 3125.662613867438,
+    "minimumDistance": 634.1150251028089,
+    "maximumDistance": 3475.200053960848,
+    "netDistanceReduction": -36.790557727467785,
+    "percentageDistanceReduction": -1.1910677120580824,
+    "distDecreasedSamples": 125,
+    "distIncreasedSamples": 70
+  },
+  "headingControlAgreement": {
+    "agreements": 93,
+    "disagreements": 151,
+    "saturatedRudderSamples": 204,
+    "posErrNegRudderSamples": 119,
+    "negErrPosRudderSamples": 32
+  },
+  "groundTrackAgreement": {
+    "towardTargetCount": 114,
+    "awayTargetCount": 125,
+    "maxConsecutiveAway": 56
+  },
+  "rootCauseClassification": {
+    "categories": [
+      {
+        "category": "B. Stale route ID/path state & frequent rerouting",
+        "evidence_sample_count": 28,
+        "confidence": "HIGH",
+        "recommendation": "Synchronize activeRoute waypoints directly upon route_id update"
+      }
+    ],
+    "evidence_samples": [
+      {
+        "idx": 0,
+        "reason": "Positive heading error with negative rudder",
+        "err": 25.93335614925428,
+        "rudder": -5.446427328595383
+      },
+      {
+        "idx": 1,
+        "reason": "Positive heading error with negative rudder",
+        "err": 26.29705614351809,
+        "rudder": -5.074216199134208
+      },
+      {
+        "idx": 2,
+        "reason": "Positive heading error with negative rudder",
+        "err": 26.497726586713952,
+        "rudder": -11.074861911425614
+      },
+      {
+        "idx": 3,
+        "reason": "Positive heading error with negative rudder",
+        "err": 26.93178076830867,
+        "rudder": -10.222948772055497
+      },
+      {
+        "idx": 4,
+        "reason": "Positive heading error with negative rudder",
+        "err": 27.187866249352282,
+        "rudder": -9.75673808242027
+      },
+      {
+        "idx": 5,
+        "reason": "Positive heading error with negative rudder",
+        "err": 27.28238393282095,
+        "rudder": -9.569210679267234
+      },
+      {
+        "idx": 6,
+        "reason": "Positive heading error with negative rudder",
+        "err": 27.596038786008023,
+        "rudder": -8.872896497194779
+      },
+      {
+        "idx": 7,
+        "reason": "Positive heading error with negative rudder",
+        "err": 27.792678802682076,
+        "rudder": -8.36047808377225
+      },
+      {
+        "idx": 8,
+        "reason": "Positive heading error with negative rudder",
+        "err": 27.893330814260366,
+        "rudder": -8.070086505475047
+      },
+      {
+        "idx": 9,
+        "reason": "Positive heading error with negative rudder",
+        "err": 28.10346670506823,
+        "rudder": -7.387266170894691
+      },
+      {
+        "idx": 10,
+        "reason": "Positive heading error with negative rudder",
+        "err": 28.241637517703964,
+        "rudder": -6.8627647551275
+      },
+      {
+        "idx": 11,
+        "reason": "Positive heading error with negative rudder",
+        "err": 28.289249554407718,
+        "rudder": -6.665283552265101
+      },
+      {
+        "idx": 12,
+        "reason": "Positive heading error with negative rudder",
+        "err": 29.22865573207696,
+        "rudder": -35
+      },
+      {
+        "idx": 13,
+        "reason": "Positive heading error with negative rudder",
+        "err": 30.261169246067084,
+        "rudder": -35
+      },
+      {
+        "idx": 14,
+        "reason": "Positive heading error with negative rudder",
+        "err": 31.016283742379528,
+        "rudder": -35
+      },
+      {
+        "idx": 15,
+        "reason": "Positive heading error with negative rudder",
+        "err": 32.45183787762801,
+        "rudder": -35
+      },
+      {
+        "idx": 16,
+        "reason": "Positive heading error with negative rudder",
+        "err": 33.4158745995004,
+        "rudder": -35
+      },
+      {
+        "idx": 17,
+        "reason": "Positive heading error with negative rudder",
+        "err": 34.00327318221878,
+        "rudder": -10.704549013519681
+      },
+      {
+        "idx": 18,
+        "reason": "Positive heading error with negative rudder",
+        "err": 34.46463218811198,
+        "rudder": -9.530333617890028
+      },
+      {
+        "idx": 19,
+        "reason": "Positive heading error with negative rudder",
+        "err": 34.56156781089561,
+        "rudder": -35
+      }
+    ]
+  }
+}

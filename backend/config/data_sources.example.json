@@ -1,0 +1,10 @@
+{
+  "source_name": "example_csv_dataset",
+  "data_provenance": "synthetic",
+  "column_mappings": {
+    "lat": "latitude",
+    "lon": "longitude",
+    "u_curr": "ocean_current_u_mps",
+    "v_curr": "ocean_current_v_mps"
+  }
+}

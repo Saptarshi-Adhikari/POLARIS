@@ -1,0 +1,15 @@
+{
+  "recommended_config": {
+    "name": "baseline",
+    "look_ahead_base": 50.0,
+    "xte_gain": 0.18,
+    "steering_gain": 1.6
+  },
+  "parameters": {
+    "baseLookAhead": 50.0,
+    "speedLookAheadMultiplier": 2.5,
+    "xteGain": 0.18,
+    "steeringGain": 1.6,
+    "nominalSmoothingRadius": 80.0
+  }
+}
