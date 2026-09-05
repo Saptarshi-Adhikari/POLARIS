@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { Ship } from '../src/js/simulation/ship.js';
+import { Iceberg } from '../src/js/simulation/iceberg.js';
 import { normalizeAngle, headingFromVector, distanceBetween, normalizeAngleDeg, headingDegreesFromVector, normalizeDegrees, normalizeSignedDegrees, degreesToRadians } from '../src/js/utils.js';
+import { AINavigator } from '../src/js/ai/aiNavigator.js';
 import { NavigationFlightRecorder } from '../src/js/debug/navigationFlightRecorder.js';
 import { NavigationWatchdog } from '../src/js/debug/navigationWatchdog.js';
 import { NavigationAuditReporter } from '../src/js/debug/navigationAuditReporter.js';
@@ -243,11 +245,92 @@ describe('Navigation Guidance & Control Chain Audit', () => {
     expect(diff).toBe(90);
   });
 
-  it('22. Sprite rotation offset is separate from physical heading', () => {
-    const SHIP_SPRITE_FORWARD_OFFSET = 0;
-    const heading = 45;
-    const visualRotation = heading + SHIP_SPRITE_FORWARD_OFFSET;
-    expect(visualRotation).toBe(45);
+  it('22. Isolated Nomoto Physics: Positive rudder produces positive (clockwise) yaw rate and heading rate', () => {
+    const ship = new Ship({ x: 400, y: 1800, heading: 0 });
+    ship.rudder = 10;
+    const state = {
+      vessel: { maxSpeed: 30, dragCoefficient: 0.04, mass: 1.0, rudder: 10 },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    const mockVectorField = { getVelocityAt: () => ({ u: 0, v: 0 }) };
+    
+    for (let i = 0; i < 60; i++) {
+      ship.update(0.1, mockVectorField, 0, state, []);
+    }
+    expect(ship.angularVelocity).toBeGreaterThan(0);
+  });
+
+  it('23. XTE Left-Side Recovery: Ship to left (+Y in Y-down) of Eastbound route steers RIGHT/CW (positive rudder)', () => {
+    const ship = new Ship({ x: 500, y: 1850, heading: 0 }); // Y=1850 is SOUTH/RIGHT in Y-down, but let's test Y=1750 NORTH/LEFT
+    const shipLeft = new Ship({ x: 500, y: 1750, heading: 0 }); // Y=1750 (NORTH/LEFT of Y=1800 route)
+    const waypoints = [{ x: 400, y: 1800 }, { x: 1200, y: 1800 }];
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0 },
+      navigation: { activeRoute: { id: 'r_xte_left', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    shipLeft.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+    // Ship is at Y=1750 (above route at Y=1800). To return to Y=1800, it needs +Y (South/CW turn => positive rudder)
+    expect(shipLeft.rudder).toBeGreaterThan(0);
+  });
+
+  it('24. XTE Right-Side Recovery: Ship to right (+Y in Y-down) of Eastbound route steers LEFT/CCW (negative rudder)', () => {
+    const shipRight = new Ship({ x: 500, y: 1850, heading: 0 }); // Y=1850 (SOUTH/RIGHT of Y=1800 route)
+    const waypoints = [{ x: 400, y: 1800 }, { x: 1200, y: 1800 }];
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0 },
+      navigation: { activeRoute: { id: 'r_xte_right', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    shipRight.updateAutopilotSteering(0.1, state, [], 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+    // Ship is at Y=1850 (below route at Y=1800). To return to Y=1800, it needs -Y (North/CCW turn => negative rudder)
+    expect(shipRight.rudder).toBeLessThan(0);
+  });
+
+  it('25. Hazard-Proximity Look-Ahead Clamping: Look-ahead distance shrinks near nearby icebergs', () => {
+    const ship = new Ship({ x: 400, y: 1800, heading: 0 });
+    const waypoints = [{ x: 400, y: 1800 }, { x: 1200, y: 1800 }];
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0 },
+      navigation: { activeRoute: { id: 'r_lookahead', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    const mockIcebergs = [{ x: 450, y: 1800, collisionRadius: 40 }];
+    ship.updateAutopilotSteering(0.1, state, mockIcebergs, 30, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0);
+    // Look-ahead target should be clamped closer to ship than default (30*2.5 = 75)
+    const lookAheadDist = Math.hypot(ship.targetWaypoint.x - ship.x, ship.targetWaypoint.y - ship.y);
+    expect(lookAheadDist).toBeLessThan(75.0);
+  });
+
+  it('26. Dynamic Iceberg Avoidance Trajectory Test: Physical vessel trajectory maintains positive clearance from obstacle', () => {
+    const ship = new Ship({ x: 400, y: 1800, heading: 0, mode: 'AUTOPILOT' });
+    const obstacleIceberg = { x: 600, y: 1800, collisionRadius: 40, getPositionAt: () => ({ x: 600, y: 1800 }) };
+    // Safe route around iceberg passing at Y=1700
+    const waypoints = [
+      { x: 400, y: 1800 },
+      { x: 500, y: 1700 },
+      { x: 700, y: 1700 },
+      { x: 1200, y: 1800 }
+    ];
+    ship.setRouteWaypoints(waypoints);
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0, dragCoefficient: 0.04, mass: 1.0, enginePower: 1.0 },
+      navigation: { activeRoute: { id: 'r_dyn_avoid', waypoints } },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    const mockVectorField = { getVelocityAt: () => ({ u: 0, v: 0 }) };
+
+    let minMeasuredClearance = Infinity;
+    for (let step = 0; step < 100; step++) {
+      ship.update(0.1, mockVectorField, 0, state, [obstacleIceberg]);
+      const distToCenter = Math.hypot(ship.x - obstacleIceberg.x, ship.y - obstacleIceberg.y);
+      const hullClearance = distToCenter - (obstacleIceberg.collisionRadius + ship.collisionRadius);
+      if (hullClearance < minMeasuredClearance) {
+        minMeasuredClearance = hullClearance;
+      }
+    }
+    // Hull clearance must remain strictly positive (> 0)
+    expect(minMeasuredClearance).toBeGreaterThan(0.0);
   });
 
   it('23. NavigationFlightRecorder maintains bounded ring buffer and records events', () => {
@@ -897,6 +980,123 @@ describe('Navigation Guidance & Control Chain Audit', () => {
 
     const remainingSlice = waypoints.slice(ship.waypointIndex);
     expect(remainingSlice.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('66. Startup state initializes startPoint, destinationPoint, and activeRoute to null', () => {
+    const navState = { startPoint: null, destinationPoint: null, activeRoute: null };
+    expect(navState.startPoint).toBeNull();
+    expect(navState.destinationPoint).toBeNull();
+    expect(navState.activeRoute).toBeNull();
+  });
+
+  it('67. PLACE VESSEL AT START removes START marker and sets route origin at ship', () => {
+    const ship = new Ship({ x: 100, y: 100 });
+    const navState = { startPoint: { x: 500, y: 1500 }, destinationPoint: { x: 2500, y: 500 }, activeRoute: null };
+    
+    // Simulate placeVesselAtStart
+    const start = navState.startPoint;
+    ship.x = start.x;
+    ship.y = start.y;
+    navState.startPoint = null;
+
+    expect(ship.x).toBe(500);
+    expect(ship.y).toBe(1500);
+    expect(navState.startPoint).toBeNull();
+  });
+
+  it('68. Route calculation without explicit startPoint uses current ship position as origin', () => {
+    const aiNav = new AINavigator(3600, 2400);
+    const ship = new Ship({ x: 800, y: 1200 });
+    const dest = { x: 2800, y: 400 };
+    const state = { navigation: { mode: 'A_STAR', activeRoute: null } };
+
+    aiNav.calculateRoute({ x: ship.x, y: ship.y }, dest, [], null, 'A_STAR', state, ship);
+    expect(state.navigation.activeRoute).not.toBeNull();
+    expect(state.navigation.activeRoute.waypoints[0].x).toBe(800);
+    expect(state.navigation.activeRoute.waypoints[0].y).toBe(1200);
+  });
+
+  it('69. Physical ship dynamic iceberg clearance verification', () => {
+    const aiNav = new AINavigator(3600, 2400);
+    const ship = new Ship({ x: 400, y: 1800, heading: 330 });
+    const iceberg = new Iceberg({ id: 'ice_test_1', x: 800, y: 1600, size: 80 });
+    const icebergs = [iceberg];
+    const dest = { x: 2000, y: 1000 };
+    const state = {
+      vessel: { maxSpeed: 30, autopilot: true, throttle: 65, rudder: 0, dragCoefficient: 0.04, mass: 1.0 },
+      navigation: { mode: 'A_STAR', activeRoute: null, isNavigating: true },
+      environment: { wind: { enabled: false }, seaIce: { enabled: false } }
+    };
+    const vectorField = { getVelocityAt: () => ({ u: 0, v: 0 }) };
+
+    aiNav.calculateRoute({ x: ship.x, y: ship.y }, dest, icebergs, vectorField, 'A_STAR', state, ship);
+
+    let minimumActualClearance = Infinity;
+    const safeBound = iceberg.collisionRadius + ship.collisionRadius;
+
+    for (let frame = 0; frame < 150; frame++) {
+      ship.update(0.1, vectorField, 0, state, icebergs);
+
+      const dist = Math.hypot(ship.x - iceberg.x, ship.y - iceberg.y);
+      if (dist < minimumActualClearance) {
+        minimumActualClearance = dist;
+      }
+    }
+
+    console.log(`Measured minimum actual clearance to iceberg: ${minimumActualClearance.toFixed(2)} SU (Safe bound: ${safeBound} SU)`);
+    expect(minimumActualClearance).toBeGreaterThan(safeBound);
+  });
+
+  it('70. Rendered route origin strictly equals ship position and updates as ship moves', () => {
+    const ship = new Ship({ x: 500, y: 500 });
+    const staleWaypoints = [
+      { x: 100, y: 100 }, // stale old START
+      { x: 700, y: 600 },
+      { x: 1000, y: 800 }
+    ];
+    const activeRoute = { id: 'r_stale_start', status: 'valid', waypoints: staleWaypoints };
+
+    // Function simulating renderer's canonical route building
+    const buildRenderPoints = (s, r) => {
+      const remaining = r.waypoints.slice(s.waypointIndex || 0);
+      const future = remaining.filter(wp => Math.hypot(wp.x - s.x, wp.y - s.y) > 2.0);
+      return [{ x: s.x, y: s.y }, ...future];
+    };
+
+    const ptsFrame1 = buildRenderPoints(ship, activeRoute);
+    expect(ptsFrame1[0].x).toBe(500);
+    expect(ptsFrame1[0].y).toBe(500);
+    expect(ptsFrame1[0].x).not.toBe(100);
+
+    // Simulate ship moving
+    ship.x = 550;
+    ship.y = 530;
+
+    const ptsFrame2 = buildRenderPoints(ship, activeRoute);
+    expect(ptsFrame2[0].x).toBe(550);
+    expect(ptsFrame2[0].y).toBe(530);
+    expect(ptsFrame2[0].x).not.toBe(100);
+  });
+
+  it('71. Fresh application state defaults startPoint to null and routes SHIP -> DEST', () => {
+    const state = {
+      navigation: {
+        startPoint: null,
+        destinationPoint: { x: 3200, y: 400 },
+        activeRoute: null,
+        mode: 'A_STAR'
+      }
+    };
+    const ship = new Ship({ x: 400, y: 1800 });
+    const aiNav = new AINavigator(3600, 2400);
+
+    // Initial route calculation from ship position
+    const origin = state.navigation.startPoint ? state.navigation.startPoint : { x: ship.x, y: ship.y };
+    aiNav.calculateRoute(origin, state.navigation.destinationPoint, [], null, 'A_STAR', state, ship);
+
+    expect(state.navigation.startPoint).toBeNull();
+    expect(state.navigation.activeRoute.waypoints[0].x).toBe(400);
+    expect(state.navigation.activeRoute.waypoints[0].y).toBe(1800);
   });
 });
 

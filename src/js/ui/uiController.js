@@ -7,12 +7,14 @@ import { PlanningMode } from '../render/canvasRenderer.js';
 export class UIController {
   constructor(simulationEngine) {
     this.engine = simulationEngine;
+    if (typeof document === 'undefined') return;
     this.bindElements();
     this.attachEventListeners();
     this.initCollapsibleDraggablePanels();
   }
 
   bindElements() {
+    if (typeof document === 'undefined') return;
     // Drawer Toggles
     this.envDrawer = document.getElementById('env-drawer');
     this.toggleEnvDrawerBtn = document.getElementById('toggle-env-drawer');
@@ -148,6 +150,14 @@ export class UIController {
                 state.navigation.routeInvalid = true;
             });
         }
+        const activeModeSel = document.getElementById('active-mode-selector');
+        if (activeModeSel) {
+            activeModeSel.addEventListener('change', (e) => {
+                state.navigation.mode = e.target.value;
+                state.navigation.routeInvalid = true;
+                this.engine.calculateRoute();
+            });
+        }
 
         // Presets
         document.querySelectorAll('.preset-btn').forEach(btn => {
@@ -179,41 +189,64 @@ export class UIController {
       });
     }
 
-    // Time Play / Pause
-    if (this.playPauseBtn) {
-      this.playPauseBtn.addEventListener('click', () => {
+    // Time Play / Pause & Playback Bar
+    const togglePlayPause = () => {
+      if (this.engine && this.engine.state && this.engine.state.simulation) {
         this.engine.state.simulation.isPaused = !this.engine.state.simulation.isPaused;
-        if (this.playPauseIcon) {
-          this.playPauseIcon.textContent = this.engine.state.simulation.isPaused ? 'play_arrow' : 'pause';
-        }
-      });
-    }
+        this.updatePlaybackUI();
+      }
+    };
 
-    // Time Warp Buttons
-    const warpBtns = [
-      { btn: this.timeWarp1x, speed: 1 },
-      { btn: this.timeWarp10x, speed: 10 },
-      { btn: this.timeWarp100x, speed: 100 }
+    this.bottomPlayPauseBtn = document.getElementById('bottom-play-pause-btn');
+    this.bottomPlayPauseIcon = document.getElementById('bottom-play-pause-icon');
+    this.bottomPlayPauseLabel = document.getElementById('bottom-play-pause-label');
+    this.bottomSpawnIcebergBtn = document.getElementById('bottom-spawn-iceberg-btn');
+
+    if (this.bottomPlayPauseBtn) this.bottomPlayPauseBtn.addEventListener('click', togglePlayPause);
+    if (this.playPauseBtn) this.playPauseBtn.addEventListener('click', togglePlayPause);
+
+    // Time Warp Speed Buttons (1x, 2x, 5x, 15x)
+    const speedOptions = [
+      { id: 'timewarp-1x', speed: 1 },
+      { id: 'timewarp-2x', speed: 2 },
+      { id: 'timewarp-5x', speed: 5 },
+      { id: 'timewarp-15x', speed: 15 }
     ];
 
-    warpBtns.forEach(({ btn, speed }) => {
+    speedOptions.forEach(({ id, speed }) => {
+      const btn = document.getElementById(id);
       if (btn) {
         btn.addEventListener('click', () => {
-          warpBtns.forEach(b => b.btn && b.btn.classList.remove('bg-outline/30', 'text-secondary'));
-          btn.classList.add('bg-outline/30', 'text-secondary');
-          this.engine.state.simulation.timeWarp = speed;
+          if (this.engine && this.engine.state && this.engine.state.simulation) {
+            this.engine.state.simulation.timeWarp = speed;
+            this.updateSpeedUI(speed);
+          }
         });
       }
     });
 
-    // Add Iceberg
+    // Spawn Iceberg Button (Click-to-place mode with random weighted size)
+    this.bottomResetBtn = document.getElementById('bottom-reset-btn');
+
+    if (this.bottomSpawnIcebergBtn) {
+      this.bottomSpawnIcebergBtn.addEventListener('click', () => {
+        this.toggleIcebergPlacementMode();
+      });
+    }
+
+    // Reset Button (Vessel-only reset to initial start position)
+    if (this.bottomResetBtn) {
+      this.bottomResetBtn.addEventListener('click', () => {
+        if (this.engine && typeof this.engine.resetShip === 'function') {
+          this.engine.resetShip();
+        }
+      });
+    }
+
+    // Add Iceberg (Legacy map placement mode)
     if (this.addIcebergBtn) {
       this.addIcebergBtn.addEventListener('click', () => {
-        this.engine.renderer.addIcebergMode = true;
-        this.engine.renderer.pendingIcebergCfg = { mass: 8.0, size: 1000 };
-        this.engine.renderer.onPlaceIceberg = (wx, wy) => {
-          this.engine.spawnIcebergAt(wx, wy, 8.0, 1000);
-        };
+        this.toggleIcebergPlacementMode();
       });
     }
 
@@ -282,6 +315,7 @@ export class UIController {
           const rec = aiNav.aiRecommendation;
           state.navigation.mode = rec.recommendedMode;
           state.navigation.routeInvalid = true;
+          this.updateSlidersFromState();
           
           if (rec.status === 'REDUCE SPEED' || rec.status === 'CRITICAL COLLISION RISK') {
             state.vessel.autopilotThrottle = 25; // Safe speed
@@ -413,9 +447,10 @@ export class UIController {
     const nav = this.engine.state.navigation;
     if (this.navStatus) this.navStatus.textContent = nav.statusMessage;
     if (this.startStatus) {
+      const ship = this.engine.ship;
       this.startStatus.textContent = nav.startPoint
-        ? `${nav.startPoint.x}, ${nav.startPoint.y}` : 'NOT SET';
-      this.startStatus.className = nav.startPoint ? 'text-secondary' : 'text-on-surface-variant';
+        ? `${nav.startPoint.x}, ${nav.startPoint.y}` : `SHIP (${Math.round(ship.x)}, ${Math.round(ship.y)})`;
+      this.startStatus.className = 'text-secondary';
     }
     if (this.destStatus) {
       this.destStatus.textContent = nav.destinationPoint
@@ -442,6 +477,81 @@ export class UIController {
     if (this.setDestBtn) {
       this.setDestBtn.classList.toggle('ring-1', mode === PlanningMode.SET_DESTINATION);
       this.setDestBtn.classList.toggle('ring-secondary', mode === PlanningMode.SET_DESTINATION);
+    }
+  }
+
+  updatePlaybackUI() {
+    const isPaused = !!(this.engine && this.engine.state && this.engine.state.simulation && this.engine.state.simulation.isPaused);
+    if (this.bottomPlayPauseIcon) {
+      this.bottomPlayPauseIcon.textContent = isPaused ? 'play_arrow' : 'pause';
+      this.bottomPlayPauseIcon.className = isPaused ? 'material-symbols-outlined text-base text-amber-400' : 'material-symbols-outlined text-base text-secondary';
+    }
+    if (this.bottomPlayPauseLabel) {
+      this.bottomPlayPauseLabel.textContent = isPaused ? 'PLAY' : 'PAUSE';
+    }
+    if (this.playPauseIcon) {
+      this.playPauseIcon.textContent = isPaused ? 'play_arrow' : 'pause';
+    }
+  }
+
+  updateSpeedUI(activeSpeed) {
+    const currentSpeed = activeSpeed !== undefined 
+      ? activeSpeed 
+      : (this.engine && this.engine.state && this.engine.state.simulation ? this.engine.state.simulation.timeWarp : 1);
+
+    const speedOptions = [
+      { id: 'timewarp-1x', speed: 1 },
+      { id: 'timewarp-2x', speed: 2 },
+      { id: 'timewarp-5x', speed: 5 },
+      { id: 'timewarp-15x', speed: 15 }
+    ];
+    speedOptions.forEach(({ id, speed }) => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        if (speed === currentSpeed) {
+          btn.className = 'px-2 py-0.5 rounded text-xs font-bold bg-secondary/20 text-secondary border border-secondary/40 cursor-pointer transition-all';
+        } else {
+          btn.className = 'px-2 py-0.5 rounded text-xs font-bold text-on-surface-variant hover:text-on-surface hover:bg-outline/20 border border-transparent cursor-pointer transition-all';
+        }
+      }
+    });
+  }
+
+  toggleIcebergPlacementMode() {
+    const renderer = this.engine && this.engine.renderer;
+    if (!renderer) return;
+
+    renderer.addIcebergMode = !renderer.addIcebergMode;
+
+    if (renderer.addIcebergMode) {
+      renderer.onPlaceIceberg = (wx, wy) => {
+        const specs = typeof this.engine.generateRandomIcebergSpecs === 'function' 
+          ? this.engine.generateRandomIcebergSpecs() 
+          : { size: 800, mass: 4.0 };
+        this.engine.spawnIcebergAt(wx, wy, specs.mass, specs.size);
+        
+        renderer.addIcebergMode = false;
+        renderer.onPlaceIceberg = null;
+        if (renderer.canvas) renderer.canvas.style.cursor = 'crosshair';
+        this.updateSpawnIcebergBtnUI(false);
+      };
+      if (renderer.canvas) renderer.canvas.style.cursor = 'cell';
+      this.updateSpawnIcebergBtnUI(true);
+    } else {
+      renderer.onPlaceIceberg = null;
+      if (renderer.canvas) renderer.canvas.style.cursor = 'crosshair';
+      this.updateSpawnIcebergBtnUI(false);
+    }
+  }
+
+  updateSpawnIcebergBtnUI(active) {
+    if (!this.bottomSpawnIcebergBtn) return;
+    if (active) {
+      this.bottomSpawnIcebergBtn.className = 'flex items-center space-x-1.5 px-3 py-1 rounded bg-sky-500/20 text-sky-300 font-semibold border border-sky-400/60 cursor-pointer transition-all animate-pulse';
+      this.bottomSpawnIcebergBtn.innerHTML = '<span class="material-symbols-outlined text-base text-sky-400">ac_unit</span><span class="tracking-wide">CLICK CANVAS TO PLACE</span>';
+    } else {
+      this.bottomSpawnIcebergBtn.className = 'flex items-center space-x-1.5 px-3 py-1 rounded bg-surface-container hover:bg-outline/30 text-on-surface font-semibold border border-outline/40 cursor-pointer transition-all';
+      this.bottomSpawnIcebergBtn.innerHTML = '<span class="material-symbols-outlined text-base text-sky-400">ac_unit</span><span class="tracking-wide">SPAWN ICEBERG</span>';
     }
   }
 
@@ -532,6 +642,7 @@ export class UIController {
     setVal('ctrl-vessel-autopilot-throttle', state.vessel.autopilotThrottle);
     setVal('ctrl-nav-mode', state.navigation.mode);
     setVal('sidebar-nav-mode', state.navigation.mode);
+    setVal('active-mode-selector', state.navigation.mode);
   }
 
   showRerouteAlert() {
@@ -701,59 +812,133 @@ export class UIController {
         this.showContextPanel(ship);
     }
 
-    // Update AI Recommendation panel
-    if (aiNavigator.aiRecommendation) {
-      const rec = aiNavigator.aiRecommendation;
-      const recStatusEl = document.getElementById('ai-rec-status');
-      const recExplanationEl = document.getElementById('ai-rec-explanation');
-      if (recStatusEl && recExplanationEl) {
-        recStatusEl.innerText = rec.status;
-        recExplanationEl.innerText = rec.explanation;
-        
-        // Color coding
-        if (rec.status === 'SAFE TO PROCEED' || rec.status === 'MAINTAIN COURSE') {
-          recStatusEl.className = 'text-secondary font-bold';
-        } else if (rec.status === 'REDUCE SPEED' || rec.status === 'ALTER COURSE' || rec.status === 'REROUTE RECOMMENDED') {
-          recStatusEl.className = 'text-amber-400 font-bold';
-        } else {
-          recStatusEl.className = 'text-error font-bold';
+    // Update Live Risk Level Badge (dirty-checked)
+    const riskLevelTag = document.getElementById('risk-level-tag');
+    if (riskLevelTag) {
+      const riskLvl = aiNavigator.riskLevel || 'LOW';
+      if (this._lastRenderedRiskLvl !== riskLvl) {
+        this._lastRenderedRiskLvl = riskLvl;
+        riskLevelTag.innerText = riskLvl;
+        if (riskLvl === 'LOW') {
+          riskLevelTag.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-700 uppercase tracking-wide';
+        } else if (riskLvl === 'MEDIUM') {
+          riskLevelTag.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-yellow-950 text-yellow-400 border border-yellow-700 uppercase tracking-wide';
+        } else if (riskLvl === 'HIGH') {
+          riskLevelTag.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-amber-950 text-amber-400 border border-amber-700 uppercase tracking-wide';
+        } else if (riskLvl === 'CRITICAL') {
+          riskLevelTag.className = 'px-2 py-0.5 rounded text-[11px] font-bold bg-red-950 text-red-400 border border-red-700 uppercase tracking-wide animate-pulse';
         }
       }
     }
 
-    // Update Route Strategy Comparisons
-    const compareEl = document.getElementById('ai-routes-compare');
-    if (compareEl && aiNavigator.routeComparisons) {
-      const { shortest, balanced, safest } = aiNavigator.routeComparisons;
-      
-      const renderRow = (info, title, isRecommended) => {
-        let riskColor = 'text-secondary';
-        if (info.risk === 'HIGH') riskColor = 'text-error font-bold';
-        else if (info.risk === 'MEDIUM') riskColor = 'text-amber-400';
-        
-        return `
-          <div class="p-2 bg-surface rounded border ${isRecommended ? 'border-secondary bg-secondary/5' : 'border-outline/50'} space-y-1">
-            <div class="flex justify-between font-bold text-[10px]">
-              <span class="text-primary">${isRecommended ? '★ ' : ''}${title}${isRecommended ? ' (RECOMMENDED)' : ''}</span>
-              <span class="${riskColor}">${info.risk} RISK</span>
-            </div>
-            <div class="grid grid-cols-4 gap-1 text-[8px] text-on-surface-variant text-center pt-0.5 border-t border-outline/10">
-              <div>ETA<span class="block text-primary font-bold">${info.eta.toFixed(1)}h</span></div>
-              <div>FUEL<span class="block text-primary font-bold">${info.fuel.toFixed(0)}L</span></div>
-              <div>ICE-ML<span class="block text-amber-400 font-bold">${(info.icebergRisk*100).toFixed(0)}%</span></div>
-              <div>SEA-ML<span class="block text-amber-400 font-bold">${(info.seaIceRisk*100).toFixed(0)}%</span></div>
-            </div>
-          </div>
-        `;
-      };
+    // Update AI Decision Panel Overlay
+    if (aiNavigator.aiRecommendation) {
+      const rec = aiNavigator.aiRecommendation;
+      const modeTextEl = document.getElementById('ai-rec-mode-text');
+      const modeContainerEl = document.getElementById('ai-recommended-mode');
+      const confBadgeEl = document.getElementById('ai-confidence-badge');
+      const explanationEl = document.getElementById('ai-explanation-text');
+      const scoresContainerEl = document.getElementById('ai-scores-container');
+      const comparisonContainerEl = document.getElementById('route-comparison-container');
 
-      const recMode = aiNavigator.aiRecommendation ? aiNavigator.aiRecommendation.recommendedMode : 'BALANCED';
-      
-      compareEl.innerHTML = `
-        ${renderRow(shortest, 'FASTEST', recMode === 'SHORTEST')}
-        ${renderRow(balanced, 'BALANCED', recMode === 'BALANCED')}
-        ${renderRow(safest, 'SAFEST', recMode === 'SAFEST')}
-      `;
+      const recMode = rec.recommendedMode || 'BALANCED';
+      const conf = rec.confidence !== undefined ? Math.round(rec.confidence * 100) : 92;
+
+      if (modeTextEl) modeTextEl.innerText = recMode;
+
+      if (modeContainerEl) {
+        if (recMode === 'NO_FEASIBLE_ROUTE') {
+          modeContainerEl.className = 'text-sm font-bold text-red-400 flex items-center gap-1.5 mt-0.5';
+        } else if (recMode === 'SAFEST') {
+          modeContainerEl.className = 'text-sm font-bold text-amber-400 flex items-center gap-1.5 mt-0.5';
+        } else if (recMode === 'FUEL_EFFICIENT') {
+          modeContainerEl.className = 'text-sm font-bold text-emerald-400 flex items-center gap-1.5 mt-0.5';
+        } else {
+          modeContainerEl.className = 'text-sm font-bold text-secondary flex items-center gap-1.5 mt-0.5';
+        }
+      }
+
+      if (confBadgeEl) {
+        if (state?.navigation?.sensorDegraded) {
+          confBadgeEl.innerText = `${conf}% CONF [DEGRADED]`;
+          confBadgeEl.className = 'px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-400 border border-amber-700';
+        } else {
+          confBadgeEl.innerText = `${conf}% CONF`;
+          confBadgeEl.className = 'px-1.5 py-0.5 rounded text-[10px] font-bold bg-secondary/20 text-secondary border border-secondary/40';
+        }
+      }
+
+      if (explanationEl) {
+        explanationEl.innerText = rec.explanation || 'Proceeding with active strategy.';
+      }
+
+      // Render Strategy Scores & Rejections (dirty-checked)
+      if (scoresContainerEl && rec.scores) {
+        const scoresKey = `${recMode}_${JSON.stringify(rec.scores)}`;
+        if (this._lastRenderedScoresKey !== scoresKey) {
+          this._lastRenderedScoresKey = scoresKey;
+          const decDetails = (aiNavigator.decisionEngine && aiNavigator.decisionEngine.lastDetails) || {};
+          const modesList = ['FASTEST', 'BALANCED', 'SAFEST', 'FUEL_EFFICIENT'];
+          
+          scoresContainerEl.innerHTML = modesList.map(m => {
+            const rawScore = rec.scores[m];
+            const isRejected = rawScore === Infinity || rawScore === null || !Number.isFinite(rawScore);
+            const isWinner = m === recMode;
+
+            if (isRejected) {
+              const reason = (decDetails[m] && decDetails[m].reason) || 'Violates safety / speed constraints';
+              return `
+                <div class="flex items-center justify-between p-1.5 bg-red-950/30 border border-red-900/40 rounded text-[10px]">
+                  <span class="text-red-400 font-bold">${m}</span>
+                  <span class="text-red-300/80 truncate ml-2 text-right" title="${reason}">REJECTED (${reason})</span>
+                </div>
+              `;
+            }
+
+            const scoreVal = typeof rawScore === 'number' ? rawScore.toFixed(2) : 'N/A';
+            return `
+              <div class="flex items-center justify-between p-1.5 ${isWinner ? 'bg-secondary/10 border border-secondary/50' : 'bg-surface-container/40 border border-outline/20'} rounded text-[10px]">
+                <span class="${isWinner ? 'text-secondary font-bold' : 'text-on-surface'}">${isWinner ? '★ ' : ''}${m}</span>
+                <span class="font-bold ${isWinner ? 'text-secondary' : 'text-on-surface-variant'}">Score: ${scoreVal}</span>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // Render Active vs AI Optimal Route Comparison (dirty-checked)
+      if (comparisonContainerEl && aiNavigator.routeComparisons) {
+        const activeMode = state?.navigation?.mode || 'BALANCED';
+        const comps = aiNavigator.routeComparisons;
+        const compKey = `${activeMode}_${recMode}_${JSON.stringify(comps)}`;
+        if (this._lastRenderedComparisonKey !== compKey) {
+          this._lastRenderedComparisonKey = compKey;
+          const activeKey = activeMode === 'SHORTEST' ? 'shortest' : (activeMode === 'SAFEST' ? 'safest' : (activeMode === 'FUEL_EFFICIENT' ? 'fuelEfficient' : 'balanced'));
+          const aiKey = recMode === 'FASTEST' ? 'shortest' : (recMode === 'SAFEST' ? 'safest' : (recMode === 'FUEL_EFFICIENT' ? 'fuelEfficient' : 'balanced'));
+          
+          const activeComp = comps[activeKey] || comps.balanced || {};
+          const aiComp = comps[aiKey] || comps.balanced || {};
+
+          comparisonContainerEl.innerHTML = `
+            <div class="grid grid-cols-2 gap-2 text-[10px]">
+              <div class="bg-surface-container/40 p-2 rounded border border-outline/20">
+                <div class="font-bold text-on-surface-variant border-b border-outline/20 pb-1 mb-1">ACTIVE (${activeMode})</div>
+                <div>Dist: <span class="text-primary font-bold">${(activeComp.totalDistance || 0).toFixed(0)} SU</span></div>
+                <div>ETA: <span class="text-primary font-bold">${((activeComp.eta || 0) * 60).toFixed(0)}m</span></div>
+                <div>Fuel: <span class="text-primary font-bold">${(activeComp.estimatedFuelConsumption || activeComp.fuel || 0).toFixed(1)} u</span></div>
+                <div>Risk: <span class="text-primary font-bold">${(activeComp.maxRisk || 0).toFixed(2)}</span></div>
+              </div>
+              <div class="bg-secondary/5 p-2 rounded border border-secondary/30">
+                <div class="font-bold text-secondary border-b border-secondary/20 pb-1 mb-1">AI REC (${recMode})</div>
+                <div>Dist: <span class="text-secondary font-bold">${(aiComp.totalDistance || 0).toFixed(0)} SU</span></div>
+                <div>ETA: <span class="text-secondary font-bold">${((aiComp.eta || 0) * 60).toFixed(0)}m</span></div>
+                <div>Fuel: <span class="text-secondary font-bold">${(aiComp.estimatedFuelConsumption || aiComp.fuel || 0).toFixed(1)} u</span></div>
+                <div>Risk: <span class="text-secondary font-bold">${(aiComp.maxRisk || 0).toFixed(2)}</span></div>
+              </div>
+            </div>
+          `;
+        }
+      }
     }
 
     // Update Autonomous Controller Telemetry

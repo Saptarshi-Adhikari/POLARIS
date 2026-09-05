@@ -55,10 +55,10 @@ export class ScenarioManager {
       this.engine.antarcticDataManager.active = false;
     }
 
-    // Standard default route initialization if not set
-    if (!state.navigation.startPoint) {
-      state.navigation.startPoint = { x: 400, y: 1800 };
-      this.engine.renderer.startPoint = state.navigation.startPoint;
+    // Standard default route initialization for demo scenarios (ship is the route origin)
+    if (name !== "None") {
+      state.navigation.startPoint = null;
+      this.engine.renderer.startPoint = null;
       state.navigation.destinationPoint = { x: 3200, y: 400 };
       this.engine.renderer.destinationPoint = state.navigation.destinationPoint;
       state.navigation.isNavigating = true;
@@ -159,6 +159,34 @@ export class ScenarioManager {
 
       // Keep default icebergs
       this.engine.icebergs = this.defaultIcebergsState.map(ice => new Iceberg({ ...ice }));
+    } else if (name === "MULTI_HAZARD_STRESS") {
+      // Scenario 11/Stress: Storm Active + Heavy Sea Ice + Multiple Moving Icebergs + Reduced Visibility/Sensor Range
+      state.environment.wind.enabled = true;
+      state.environment.wind.speed = 110; // Severe storm wind
+      state.environment.wind.direction = 220;
+      state.environment.ocean.currentSpeed = 30; // Severe current
+      state.environment.ocean.currentDirection = 140;
+      state.environment.ocean.turbulence = 0.75;
+      state.environment.seaIce.enabled = true;
+      state.environment.seaIce.averageConcentration = 0.85; // Heavy ice
+
+      // Proxy for reduced visibility: reduce effective sensor range flag / cap
+      state.navigation.sensorRange = 600; // 50% reduced sensor visibility range
+
+      // Spawn 10 simultaneous moving icebergs in central corridor
+      this.engine.icebergs = Array.from({ length: 10 }, (_, i) => {
+        const ice = new Iceberg({
+          id: 8000 + i,
+          name: `STRESS-IB-${i+1}`,
+          x: 1000 + (i * 220),
+          y: 600 + ((i % 3) * 350),
+          mass: 5.0 + (i % 4),
+          size: 90 + (i * 10)
+        });
+        ice.vx = -15 + (i % 3) * 10;
+        ice.vy = 20 - (i % 2) * 15;
+        return ice;
+      });
     }
 
     // Recalculate route and trigger system updates

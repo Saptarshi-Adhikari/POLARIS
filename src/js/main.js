@@ -61,16 +61,27 @@ import { NavigationAuditReporter } from './debug/navigationAuditReporter.js';
 const WORLD_W = 3600;
 const WORLD_H = 2400;
 
-class SimulationEngine {
+export class SimulationEngine {
   constructor() {
-    const canvasEl = document.getElementById('map-canvas');
+    const canvasEl = typeof document !== 'undefined' ? document.getElementById('map-canvas') : null;
 
     // VectorField and AINavigator MUST be initialized with WORLD dimensions, not canvas.clientWidth
     this.vectorField = new VectorField(WORLD_W, WORLD_H);
     this.aiNavigator = new AINavigator(WORLD_W, WORLD_H);
 
-    // Ship starts in world coordinates
+    // Ship starts in world coordinates (snapshot initial state directly from constructed ship instance)
     this.ship = new Ship({ x: 400, y: 1800, heading: 330 });
+    this.initialShipState = {
+      x: this.ship.x,
+      y: this.ship.y,
+      heading: this.ship.heading,
+      fuel: this.ship.fuel,
+      throttle: this.ship.throttle,
+      rudder: this.ship.rudder,
+      vx: this.ship.vx,
+      vy: this.ship.vy,
+      angularVelocity: this.ship.angularVelocity
+    };
 
     this.icebergs = [];
     this.initDefaultIcebergs();
@@ -130,27 +141,16 @@ class SimulationEngine {
       },
       navigation: {
         mode: 'BALANCED',
+        navigationMode: 'ROUTE_FOLLOWING',
         routeInvalid: false,
         routeCalculated: false,
         isNavigating: true,
         planningMode: PlanningMode.NONE,
-        startPoint: { x: 400, y: 1800 },
-        destinationPoint: { x: WORLD_W - 400, y: 400 },
-        destination: { x: WORLD_W - 400, y: 400 },
+        startPoint: null,
+        destinationPoint: null,
+        destination: null,
         statusMessage: 'Ready',
-        activeRoute: {
-          id: `route_${Date.now()}`,
-          waypoints: [],
-          rawPath: [],
-          smoothPath: [],
-          status: 'invalid',
-          createdAt: performance.now(),
-          expiresAt: performance.now() + 60000,
-          totalDistance: 0,
-          estimatedDuration: 0,
-          maxRiskSegment: 0,
-          destination: { x: WORLD_W - 400, y: 400 }
-        }
+        activeRoute: null
       },
       icebergs: {
         count: 6,
@@ -178,7 +178,8 @@ class SimulationEngine {
     this.lastTimestamp = performance.now();
 
     // Debug HUD toggle
-    window.addEventListener('keydown', (e) => {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', (e) => {
       if (e.key === 'd' || e.key === 'D') {
         const hud = document.getElementById('debug-hud');
         if (hud) hud.classList.toggle('hidden');
@@ -241,36 +242,40 @@ class SimulationEngine {
         });
       }
     });
+    }
 
     // ── Phase 5: Initialize Sensor Fusion ────────────────────────────────────
     sensorFusion.initialize(gnssSensor, gyrocompassSensor, radarSensor);
-    // Expose on window for debugging / UI hooks
-    window.gnssSensor         = gnssSensor;
-    window.gyrocompassSensor  = gyrocompassSensor;
-    window.radarSensor        = radarSensor;
-    window.sensorFusion       = sensorFusion;
-    console.info('[Sensors] F1: Toggle GNSS | F2: Toggle Gyro | F3: Toggle Radar');
+    if (typeof window !== 'undefined') {
+      window.gnssSensor         = gnssSensor;
+      window.gyrocompassSensor  = gyrocompassSensor;
+      window.radarSensor        = radarSensor;
+      window.sensorFusion       = sensorFusion;
+      console.info('[Sensors] F1: Toggle GNSS | F2: Toggle Gyro | F3: Toggle Radar');
 
-    // ── Phase 6: Expose data modules ─────────────────────────────────────────
-    window.dataRecorder           = dataRecorder;
-    window.dataExporter           = dataExporter;
-    window.syntheticDataGenerator = syntheticDataGenerator;
-    console.info('[Data] R: Record toggle | E: Export JSON | Shift+E: Export CSV | G: Generate synthetic dataset');
+      // ── Phase 6: Expose data modules ─────────────────────────────────────────
+      window.dataRecorder           = dataRecorder;
+      window.dataExporter           = dataExporter;
+      window.syntheticDataGenerator = syntheticDataGenerator;
+      console.info('[Data] R: Record toggle | E: Export JSON | Shift+E: Export CSV | G: Generate synthetic dataset');
 
-    // ── Phase 7: Initialize ML Inference (non-blocking async health probe) ───
-    window.mlInference = mlInference;
-    mlInference.loadModel().catch(() => {});  // Offline-safe: errors are swallowed internally
+      // ── Phase 7: Initialize ML Inference (non-blocking async health probe) ───
+      window.mlInference = mlInference;
+      mlInference.loadModel().catch(() => {});  // Offline-safe: errors are swallowed internally
 
-    // ── Phase 9: Advanced Autonomous Navigation (D* Lite) ───────────────────
-    this.hierarchicalPlanner = createHierarchicalPlanner(WORLD_W, WORLD_H);
-    window.hierarchicalPlanner = this.hierarchicalPlanner;
-    console.info('[Pathfinding] Global A* + Local D* Lite Hierarchical Planner active');
+      // ── Phase 9: Advanced Autonomous Navigation (D* Lite) ───────────────────
+      this.hierarchicalPlanner = createHierarchicalPlanner(WORLD_W, WORLD_H);
+      window.hierarchicalPlanner = this.hierarchicalPlanner;
+      console.info('[Pathfinding] Global A* + Local D* Lite Hierarchical Planner active');
 
-    // ── Phase 10: Initialize Copilot & Scenario Replay ──────────────────────
-    window.llmCopilot = llmCopilot;
-    window.scenarioReplay = scenarioReplay;
-    window.copilotHUD = createCopilotHUD();
-    llmCopilot.checkAvailability().catch(() => {});
+      // ── Phase 10: Initialize Copilot & Scenario Replay ──────────────────────
+      window.llmCopilot = llmCopilot;
+      window.scenarioReplay = scenarioReplay;
+      window.copilotHUD = createCopilotHUD();
+      llmCopilot.checkAvailability().catch(() => {});
+    } else {
+      this.hierarchicalPlanner = createHierarchicalPlanner(WORLD_W, WORLD_H);
+    }
     // Flight Recorder, Debug Overlay, Watchdog & Audit Reporter
     this.flightRecorder = new NavigationFlightRecorder();
     this.flightRecorder.start(); // Enabled by default in analyze mode
@@ -278,19 +283,22 @@ class SimulationEngine {
     this.navigationWatchdog = new NavigationWatchdog({ mode: 'analyze' });
     this.auditReporter = new NavigationAuditReporter(this.navigationWatchdog, this.flightRecorder);
 
-    window.flightRecorder = this.flightRecorder;
-    window.debugOverlay = this.debugOverlay;
-    window.navigationWatchdog = this.navigationWatchdog;
-    window.auditReporter = this.auditReporter;
-    console.info('[Watchdog] Automatic Navigation Watchdog active in ANALYZE mode | F6: Overlay | F7: Record | F8: Export JSON | F10: Download Audit');
+    if (typeof window !== 'undefined') {
+      window.flightRecorder = this.flightRecorder;
+      window.debugOverlay = this.debugOverlay;
+      window.navigationWatchdog = this.navigationWatchdog;
+      window.auditReporter = this.auditReporter;
+      console.info('[Watchdog] Automatic Navigation Watchdog active in ANALYZE mode | F6: Overlay | F7: Record | F8: Export JSON | F10: Download Audit');
+    }
 
     this.renderer.startPoint = this.state.navigation.startPoint;
     this.renderer.destinationPoint = this.state.navigation.destinationPoint;
-    this.calculateRoute();
 
 
 
-    requestAnimationFrame((t) => this.loop(t));
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame((t) => this.loop(t));
+    }
   }
 
   initDefaultIcebergs() {
@@ -382,11 +390,13 @@ class SimulationEngine {
     const pt = { x: Math.round(wx), y: Math.round(wy) };
 
     if (mode === PlanningMode.SET_START) {
-      this.state.navigation.startPoint = pt;
-      this.renderer.startPoint = pt;
+      this.ship.x = pt.x;
+      this.ship.y = pt.y;
+      this.state.navigation.startPoint = null;
+      this.renderer.startPoint = null;
       this.state.navigation.planningMode = PlanningMode.NONE;
       this.renderer.planningMode = PlanningMode.NONE;
-      this.state.navigation.statusMessage = `Start set (${pt.x}, ${pt.y}) — now set destination`;
+      this.state.navigation.statusMessage = `Vessel repositioned to (${pt.x}, ${pt.y})`;
       this.state.navigation.routeCalculated = false;
       this.state.navigation.routeInvalid = true;
       if (this.state.navigation.destinationPoint) {
@@ -401,9 +411,7 @@ class SimulationEngine {
       this.state.navigation.statusMessage = `Destination set (${pt.x}, ${pt.y}) — calculate route`;
       this.state.navigation.routeCalculated = false;
       this.state.navigation.routeInvalid = true;
-      if (this.state.navigation.startPoint) {
-        this.calculateRoute();
-      }
+      this.calculateRoute();
     }
     this.uiController && this.uiController.updateNavStatus();
   }
@@ -422,20 +430,18 @@ class SimulationEngine {
 
   calculateRoute() {
     const nav = this.state.navigation;
-    if (!nav.startPoint) {
-      nav.statusMessage = 'Set a start point first';
-      this.uiController && this.uiController.updateNavStatus();
-      return false;
-    }
+    const origin = { x: this.ship.x, y: this.ship.y };
+    nav.startPoint = null;
+    this.renderer.startPoint = null;
     if (!nav.destinationPoint) {
       nav.statusMessage = 'Set a destination point first';
       this.uiController && this.uiController.updateNavStatus();
       return false;
     }
 
-    const startShip = { x: nav.startPoint.x, y: nav.startPoint.y };
+    nav.destination = nav.destinationPoint;
     this.aiNavigator.calculateRoute(
-      startShip,
+      origin,
       nav.destinationPoint,
       this.icebergs,
       this.vectorField,
@@ -455,6 +461,12 @@ class SimulationEngine {
     this.ship.waypointIndex = 0;
     this.ship.targetWaypoint = null;
     this.aiNavigator.optimalRoute = [];
+    this.state.navigation.startPoint = null;
+    this.state.navigation.destinationPoint = null;
+    this.state.navigation.destination = null;
+    this.renderer.startPoint = null;
+    this.renderer.destinationPoint = null;
+    this.state.navigation.activeRoute = null;
     this.state.navigation.routeCalculated = false;
     this.state.navigation.routeInvalid = true;
     this.state.navigation.isNavigating = false;
@@ -463,20 +475,29 @@ class SimulationEngine {
   }
 
   placeVesselAtStart() {
-    const start = this.state.navigation.startPoint;
-    if (!start) {
-      this.state.navigation.statusMessage = 'Set a start point first';
-      this.uiController && this.uiController.updateNavStatus();
-      return;
-    }
+    const nav = this.state.navigation;
+    const start = nav.startPoint || { x: this.ship.x, y: this.ship.y };
     this.ship.x = start.x;
     this.ship.y = start.y;
     this.ship.vx = 0;
     this.ship.vy = 0;
     this.ship.angularVelocity = 0;
     this.ship.waypointIndex = 0;
-    this.ship.targetWaypoint = this.ship.routeWaypoints.length > 0 ? this.ship.routeWaypoints[0] : null;
-    this.state.navigation.statusMessage = 'Vessel placed at start';
+
+    // The vessel itself becomes the navigation origin.
+    // Clear startPoint marker so renderer has no startPoint -> ship connector or start -> dest line
+    nav.startPoint = null;
+    this.renderer.startPoint = null;
+
+    if (nav.destinationPoint) {
+      this.calculateRoute();
+    } else {
+      this.ship.routeWaypoints = [];
+      this.ship.targetWaypoint = null;
+      nav.activeRoute = null;
+    }
+
+    nav.statusMessage = 'Vessel placed at start';
     this.uiController && this.uiController.updateNavStatus();
   }
 
@@ -524,7 +545,7 @@ class SimulationEngine {
     this.state.navigation.routeCalculated = false;
     this.state.navigation.isNavigating = true;
     this.state.navigation.planningMode = PlanningMode.NONE;
-    this.state.navigation.startPoint = { x: 400, y: 1800 };
+    this.state.navigation.startPoint = null;
     this.state.navigation.destinationPoint = { x: WORLD_W - 400, y: 400 };
     this.state.navigation.destination = { x: WORLD_W - 400, y: 400 };
     this.state.navigation.statusMessage = 'Ready';
@@ -544,7 +565,7 @@ class SimulationEngine {
       destination: this.state.navigation.destination
     };
 
-    this.renderer.startPoint = this.state.navigation.startPoint;
+    this.renderer.startPoint = null;
     this.renderer.destinationPoint = this.state.navigation.destinationPoint;
     this.renderer.planningMode = PlanningMode.NONE;
     this.renderer.camera.reset();
@@ -561,7 +582,9 @@ class SimulationEngine {
     const newIce = new Iceberg({ id, name: `IB-${id}`, x: wx, y: wy, mass, size });
     this.icebergs.push(newIce);
     this.renderer.addIcebergMode = false;
-    this.renderer.canvas.style.cursor = 'crosshair';
+    if (this.renderer && this.renderer.canvas && this.renderer.canvas.style) {
+      this.renderer.canvas.style.cursor = 'crosshair';
+    }
     this.state.navigation.routeInvalid = true;
 
     // Trigger immediate replanning if newly placed iceberg intersects activeRoute corridor
@@ -593,6 +616,107 @@ class SimulationEngine {
         console.log('[Iceberg Manager] Spawned iceberg intersects activeRoute, forcing instant replanning');
         this.calculateRoute();
       }
+    }
+  }
+
+  generateRandomIcebergSpecs() {
+    const rand = Math.random();
+    let size;
+    let category;
+    if (rand < 0.50) {
+      size = 300 + Math.floor(Math.random() * 300); // Small (50%): 300-600
+      category = 'Small';
+    } else if (rand < 0.80) {
+      size = 600 + Math.floor(Math.random() * 600); // Medium (30%): 600-1200
+      category = 'Medium';
+    } else if (rand < 0.95) {
+      size = 1200 + Math.floor(Math.random() * 900); // Large (15%): 1200-2100
+      category = 'Large';
+    } else {
+      size = 2100 + Math.floor(Math.random() * 1200); // Massive (5%): 2100-3300
+      category = 'Massive';
+    }
+    const mass = (size / 300) * (1.0 + Math.random() * 2.0);
+    return { size, mass, category };
+  }
+
+  spawnIcebergAhead() {
+    const heading = this.ship.heading !== undefined ? this.ship.heading : 0;
+    const rad = (heading - 90) * Math.PI / 180;
+    const distAhead = 350 + Math.random() * 150;
+    const lateralOffset = (Math.random() - 0.5) * 160;
+
+    let wx = this.ship.x + Math.cos(rad) * distAhead - Math.sin(rad) * lateralOffset;
+    let wy = this.ship.y + Math.sin(rad) * distAhead + Math.cos(rad) * lateralOffset;
+
+    wx = Math.max(100, Math.min(WORLD_W - 100, wx));
+    wy = Math.max(100, Math.min(WORLD_H - 100, wy));
+
+    const specs = this.generateRandomIcebergSpecs();
+    this.spawnIcebergAt(wx, wy, specs.mass, specs.size);
+  }
+
+  resetShip() {
+    if (!this.ship) return;
+    if (!this.initialShipState) {
+      this.initialShipState = {
+        x: this.ship.x,
+        y: this.ship.y,
+        heading: this.ship.heading,
+        fuel: this.ship.fuel,
+        throttle: this.ship.throttle,
+        rudder: this.ship.rudder,
+        vx: this.ship.vx,
+        vy: this.ship.vy,
+        angularVelocity: this.ship.angularVelocity
+      };
+    }
+
+    const init = this.initialShipState;
+
+    // 1. Reset ship physics & motion state from captured snapshot
+    this.ship.x = init.x;
+    this.ship.y = init.y;
+    this.ship.heading = init.heading;
+    this.ship.vx = init.vx;
+    this.ship.vy = init.vy;
+    this.ship.angularVelocity = init.angularVelocity;
+    this.ship.speedKnots = 0;
+    this.ship.fuel = init.fuel;
+    this.ship.throttle = init.throttle;
+    this.ship.rudder = init.rudder;
+    this.ship.desiredThrottle = init.throttle;
+    this.ship.desiredSpeed = 0;
+
+    // 2. Preserve destination, clear startPoint, and regenerate/rebase route from reset ship position
+    const nav = this.state.navigation;
+    nav.startPoint = null;
+    this.renderer.startPoint = null;
+
+    if (nav.destinationPoint) {
+      this.calculateRoute();
+      nav.isNavigating = true;
+      this.state.vessel.autopilot = true;
+      nav.statusMessage = 'Vessel reset to start — route regenerated from reset position';
+    } else if (nav && nav.activeRoute && nav.activeRoute.waypoints && nav.activeRoute.waypoints.length > 0) {
+      nav.activeRoute.routeProgressFraction = 0.0;
+      this.ship.routeWaypoints = nav.activeRoute.waypoints;
+      this.ship.waypointIndex = 0;
+      this.ship.targetWaypoint = nav.activeRoute.waypoints[0];
+      nav.isNavigating = true;
+      this.state.vessel.autopilot = true;
+      nav.statusMessage = 'Vessel reset to start — resuming active route';
+    } else {
+      this.ship.waypointIndex = 0;
+      this.ship.targetWaypoint = null;
+      nav.isNavigating = false;
+      this.state.vessel.autopilot = false;
+      nav.statusMessage = 'Vessel reset to start position';
+    }
+
+    if (this.uiController) {
+      this.uiController.updateNavStatus();
+      this.uiController.updateNavButtons();
     }
   }
 
@@ -877,15 +1001,19 @@ class SimulationEngine {
     }
 
     perfMonitor.endFrame();
-    requestAnimationFrame((t) => this.loop(t));
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame((t) => this.loop(t));
+    }
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  try {
-    window.simEngine = new SimulationEngine();
-    window.simEngine.perfMonitor = perfMonitor;
-  } catch (err) {
-    console.error("CRITICAL INITIALIZATION ERROR IN SIMULATION ENGINE:", err);
-  }
-});
+if (typeof window !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', () => {
+    try {
+      window.simEngine = new SimulationEngine();
+      window.simEngine.perfMonitor = perfMonitor;
+    } catch (err) {
+      console.error("CRITICAL INITIALIZATION ERROR IN SIMULATION ENGINE:", err);
+    }
+  });
+}

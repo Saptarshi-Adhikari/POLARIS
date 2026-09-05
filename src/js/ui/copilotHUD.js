@@ -17,6 +17,7 @@ export class CopilotHUD {
   }
 
   initializeUI() {
+    if (typeof document === 'undefined') return;
     if (document.getElementById(this.containerId)) {
       this.container = document.getElementById(this.containerId);
       return;

@@ -33,6 +33,16 @@ export class Camera {
   get visibleWidth()  { return this.viewportWidth  / this.zoom; }
   get visibleHeight() { return this.viewportHeight / this.zoom; }
 
+  /** Check if a world-space point (with optional radius margin) is inside visible viewport */
+  isVisible(wx, wy, margin = 0) {
+    return (
+      wx + margin >= this.x &&
+      wx - margin <= this.x + this.visibleWidth &&
+      wy + margin >= this.y &&
+      wy - margin <= this.y + this.visibleHeight
+    );
+  }
+
   /** World → screen (CSS pixels) */
   worldToScreen(wx, wy) {
     return {

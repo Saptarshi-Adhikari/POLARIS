@@ -16,6 +16,7 @@ export class NavigationDebugOverlay {
   }
 
   setupKeyboardShortcuts() {
+    if (typeof window === 'undefined') return;
     window.addEventListener('keydown', (e) => {
       if (e.key === 'F6') {
         e.preventDefault();
@@ -51,6 +52,7 @@ export class NavigationDebugOverlay {
   }
 
   createOverlayElement() {
+    if (typeof document === 'undefined') return;
     if (document.getElementById('nav-debug-overlay')) return;
 
     const div = document.createElement('div');

@@ -3,7 +3,8 @@ export class AIClient {
     this.engine = engine;
     this.status = 'OFFLINE';
     this.copilotStatus = 'OFFLINE';
-    this.baseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    const hostname = (typeof window !== 'undefined' && window.location) ? window.location.hostname : '';
+    this.baseUrl = (hostname === 'localhost' || hostname === '127.0.0.1')
       ? 'http://127.0.0.1:8000'
       : '/api';
     this.lastPredictTime = 0;
@@ -13,9 +14,11 @@ export class AIClient {
     this.seaIceForecast = null;
     this.lastSeaIcePredictTime = 0;
 
-    // Start status heartbeat polling
-    this.pollStatus();
-    setInterval(() => this.pollStatus(), 5000);
+    if (typeof window !== 'undefined') {
+      // Start status heartbeat polling
+      this.pollStatus();
+      setInterval(() => this.pollStatus(), 5000);
+    }
   }
 
   async fetchWithFallback(url, options = {}, mockData) {

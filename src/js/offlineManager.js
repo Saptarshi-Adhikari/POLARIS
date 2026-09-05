@@ -1,10 +1,12 @@
 export class OfflineManager {
     constructor() {
-        this.isOnline = navigator.onLine;
+        this.isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
         this.requestQueue = [];
         
-        window.addEventListener('online', () => this.handleOnline());
-        window.addEventListener('offline', () => this.handleOffline());
+        if (typeof window !== 'undefined') {
+            window.addEventListener('online', () => this.handleOnline());
+            window.addEventListener('offline', () => this.handleOffline());
+        }
     }
     
     handleOffline() {

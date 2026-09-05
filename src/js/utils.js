@@ -64,6 +64,15 @@ export function distanceBetween(a, b) {
   return Math.hypot(dx, dy);
 }
 
+export function wrappedDistance(a, b, w = 3600, h = 2400) {
+  if (!a || !b) return 0;
+  let dx = Math.abs((b.x || 0) - (a.x || 0));
+  let dy = Math.abs((b.y || 0) - (a.y || 0));
+  if (dx > w / 2) dx = w - dx;
+  if (dy > h / 2) dy = h - dy;
+  return Math.hypot(dx, dy);
+}
+
 export function dot(ax, ay, bx, by) {
   return (ax || 0) * (bx || 0) + (ay || 0) * (by || 0);
 }
