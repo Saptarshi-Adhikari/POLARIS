@@ -1,5 +1,8 @@
+import { wrappedDelta, wrappedDistanceCoords } from '../utils.js';
+
 /**
  * POLARIS DIGITAL TWIN - Vessel Dynamics & Steering Simulator
+
  *
  * UNIT SYSTEM: Simulation Units (SU)
  * - Position: SU (world coords, 0..3600 x 0..2400)
@@ -281,26 +284,30 @@ export class Ship {
     let collisionOccurred = false;
 
     for (let ice of icebergs) {
-      // Find closest point on segment to iceberg center
+      // Find closest point on segment to iceberg center (wrapped)
+      const { dx: iceDx, dy: iceDy } = wrappedDelta(this.x, this.y, ice.x, ice.y);
+      const iceUnwrappedX = this.x + iceDx;
+      const iceUnwrappedY = this.y + iceDy;
+
       const dx = proposedX - this.x;
       const dy = proposedY - this.y;
       const segLen2 = dx * dx + dy * dy;
       let t = 0;
       if (segLen2 > 0) {
-        t = Math.max(0, Math.min(1, ((ice.x - this.x) * dx + (ice.y - this.y) * dy) / segLen2));
+        t = Math.max(0, Math.min(1, ((iceUnwrappedX - this.x) * dx + (iceUnwrappedY - this.y) * dy) / segLen2));
       }
       const closestX = this.x + t * dx;
       const closestY = this.y + t * dy;
       
-      const distToIce = Math.hypot(ice.x - closestX, ice.y - closestY);
+      const distToIce = Math.hypot(iceUnwrappedX - closestX, iceUnwrappedY - closestY);
       // Safety envelope: iceberg visual radius (1.25x) + ship hull (15) + margin (12)
       const safeDist = (ice.collisionRadius || 20) * 1.25 + this.collisionRadius + 12;
 
       if (distToIce < safeDist) {
         // Collision! Slide along collision boundary normal
         collisionOccurred = true;
-        let nx = closestX - ice.x;
-        let ny = closestY - ice.y;
+        let nx = closestX - iceUnwrappedX;
+        let ny = closestY - iceUnwrappedY;
         const nLen = Math.hypot(nx, ny);
         if (nLen > 0) {
           nx /= nLen;
@@ -311,8 +318,8 @@ export class Ship {
         }
         
         // Reposition ship to safety (slightly outside boundary)
-        proposedX = ice.x + nx * (safeDist + 0.5);
-        proposedY = ice.y + ny * (safeDist + 0.5);
+        proposedX = iceUnwrappedX + nx * (safeDist + 0.5);
+        proposedY = iceUnwrappedY + ny * (safeDist + 0.5);
         
         // Deflect velocity: Remove only velocity component pointing directly into the iceberg
         const vDotN = this.vx * nx + this.vy * ny;
@@ -404,7 +411,7 @@ export class Ship {
     let minIceDist = Infinity;
     if (Array.isArray(icebergs)) {
       for (const ice of icebergs) {
-        const d = Math.hypot(this.x - ice.x, this.y - ice.y) - (ice.collisionRadius || 50);
+        const d = wrappedDistanceCoords(this.x, this.y, ice.x, ice.y) - (ice.collisionRadius || 50);
         if (d < minIceDist) minIceDist = d;
       }
     }
@@ -782,7 +789,7 @@ export class Ship {
   }
 
   calculateHazardDanger(ice) {
-    const dist = Math.hypot(this.x - ice.x, this.y - ice.y);
+    const { dx, dy, dist } = wrappedDelta(this.x, this.y, ice.x, ice.y);
     const effectiveDistance = dist - ice.collisionRadius - this.collisionRadius;
     
     // Predictive collision check
@@ -793,8 +800,6 @@ export class Ship {
     let isClosing = false;
     let timeToCollision = Infinity;
     if (rvSpeed > 0.05) {
-      const dx = ice.x - this.x;
-      const dy = ice.y - this.y;
       const dot = rvx * dx + rvy * dy;
       if (dot > 0) {
         isClosing = true;
@@ -806,12 +811,9 @@ export class Ship {
     const radHeading = (this.heading * Math.PI) / 180;
     const forwardX = Math.cos(radHeading);
     const forwardY = Math.sin(radHeading);
-    const dx = ice.x - this.x;
-    const dy = ice.y - this.y;
-    const distToIce = Math.hypot(dx, dy);
     let isAhead = false;
-    if (distToIce > 0.1) {
-      const dotAhead = (dx / distToIce) * forwardX + (dy / distToIce) * forwardY;
+    if (dist > 0.1) {
+      const dotAhead = (dx / dist) * forwardX + (dy / dist) * forwardY;
       if (dotAhead > 0.4) {
         isAhead = true;
       }
@@ -856,25 +858,30 @@ export class Ship {
 
     let closestUnsafeIce = null;
     let minUnsafeDist = Infinity;
+    let closestIceDx = 0;
+    let closestIceDy = 0;
 
     for (let ice of icebergs) {
       const safeRadius = (ice.collisionRadius || 20) + this.collisionRadius + 25.0;
-      
-      let unsafeDetected = false;
+      const { dx: iceDx, dy: iceDy } = wrappedDelta(this.x, this.y, ice.x, ice.y);
+      const iceUnwrappedX = this.x + iceDx;
+      const iceUnwrappedY = this.y + iceDy;
+
       const numSteps = 10;
       for (let s = 1; s <= numSteps; s++) {
         const t = (s / numSteps) * lookAheadSec;
         const px = this.x + (spd > 1 ? this.vx : fwdX * 20) * t;
         const py = this.y + (spd > 1 ? this.vy : fwdY * 20) * t;
-        const icePx = ice.x + ice.vx * t;
-        const icePy = ice.y + ice.vy * t;
+        const icePx = iceUnwrappedX + ice.vx * t;
+        const icePy = iceUnwrappedY + ice.vy * t;
         const dist = Math.hypot(px - icePx, py - icePy);
 
         if (dist < safeRadius) {
-          unsafeDetected = true;
           if (dist < minUnsafeDist) {
             minUnsafeDist = dist;
             closestUnsafeIce = ice;
+            closestIceDx = iceDx;
+            closestIceDy = iceDy;
           }
           break;
         }
@@ -887,9 +894,7 @@ export class Ship {
         state.navigation.navigationMode = 'AVOIDANCE';
       }
       
-      const dx = closestUnsafeIce.x - this.x;
-      const dy = closestUnsafeIce.y - this.y;
-      const cross = fwdX * dy - fwdY * dx;
+      const cross = fwdX * closestIceDy - fwdY * closestIceDx;
 
       // Proportional avoidance turn angle (20° to 45° max)
       const avoidOffsetDeg = (cross > 0 ? -1 : 1) * Math.min(45, Math.max(20, (60.0 - minUnsafeDist) * 1.0));
@@ -911,3 +916,4 @@ export class Ship {
     this._inEmergencyAvoidance = false;
   }
 }
+

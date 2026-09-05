@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { Iceberg } from '../src/js/simulation/iceberg.js';
 import { Ship } from '../src/js/simulation/ship.js';
-import { isSegmentHardBlocked } from '../src/js/ai/routePlannerCore.js';
-import { wrappedDistance } from '../src/js/utils.js';
+import { isSegmentHardBlocked, validateRoute, runRoutePlannerCore } from '../src/js/ai/routePlannerCore.js';
+import { wrappedDistance, calculateIcebergPositionAt, wrappedDistanceCoords, wrappedDelta, getSegmentSpeed } from '../src/js/utils.js';
 import { SimulationEngine } from '../src/js/main.js';
+
+
 
 describe('POLARIS Comprehensive Re-Audit & Fixes Verification Suite', () => {
 
@@ -342,5 +344,229 @@ describe('POLARIS Comprehensive Re-Audit & Fixes Verification Suite', () => {
     expect(finalDev).toBeLessThan(35);
   });
 
+  // TEST 19 — Speed-Profile-Aware ETA Calculation (FIX 1)
+  it('TEST 19 — Speed-profile ETA: accounts for hazard deceleration to detect temporal collisions', () => {
+    // Moving iceberg reaching (500, 500) at t = 0.5 hours
+    const iceCross = new Iceberg({ id: 'ice_cross', x: 500, y: 1000, collisionRadius: 40 });
+    iceCross.trajectoryForecast = [{ hour: 0.5, x: 500, y: 500 }];
+
+    // Near hazard causing deceleration near (300, 500)
+    const iceStatic = new Iceberg({ id: 'ice_static', x: 300, y: 500 - 60, collisionRadius: 30 });
+
+    const waypoints = [
+      { x: 100, y: 500 },
+      { x: 300, y: 500 },
+      { x: 500, y: 500 },
+      { x: 900, y: 500 }
+    ];
+
+    const valResult = validateRoute(waypoints, [iceCross, iceStatic], 20.0, 3600, 2400);
+    expect(valResult.valid).toBe(false);
+    expect(valResult.reason).toContain("collision zone");
+  });
+
+  // TEST 20 — getPositionAt Equivalence (FIX 2)
+  it('TEST 20 — getPositionAt equivalence: plain objects and Iceberg instances produce identical outputs', () => {
+    const mlTrajectory = [{ time: 30, x: 600, y: 500, uncertainty: 25 }];
+    const trajectoryForecast = [{ hour: 1.0, x: 800, y: 500 }, { hour: 2.0, x: 1100, y: 500 }];
+
+    const plainIce = {
+      x: 500, y: 500, vx: 10, vy: 0, collisionRadius: 30, uncertaintyGrowthRate: 0.5,
+      mlTrajectory, trajectoryForecast
+    };
+
+    const classIce = new Iceberg({ id: 'ice_class', x: 500, y: 500, size: 720 });
+    classIce.vx = 10;
+    classIce.vy = 0;
+    classIce.collisionRadius = 30;
+    classIce.mlTrajectory = mlTrajectory;
+    classIce.trajectoryForecast = trajectoryForecast;
+
+    for (let t of [0, 0.25, 0.5, 1.0, 2.0, 3.0]) {
+      const posPlain = calculateIcebergPositionAt(plainIce, t);
+      const posClass = classIce.getPositionAt(t);
+      expect(posPlain.x).toBeCloseTo(posClass.x, 4);
+      expect(posPlain.y).toBeCloseTo(posClass.y, 4);
+      expect(posPlain.uncertainty).toBeCloseTo(posClass.uncertainty, 4);
+    }
+  });
+
+  // TEST 21 — World-Wrap Distance Calculations (FIX 3)
+  it('TEST 21 — World-wrap distance helpers: compute shortest wrapped distance across world boundaries', () => {
+    const dist1 = wrappedDistanceCoords(3590, 500, 10, 500, 3600, 2400);
+    expect(dist1).toBe(20);
+
+    const deltaForward = wrappedDelta(3590, 500, 10, 500, 3600, 2400);
+    expect(deltaForward.dx).toBe(20);
+    expect(deltaForward.dy).toBe(0);
+    expect(deltaForward.dist).toBe(20);
+
+    const deltaBackward = wrappedDelta(10, 500, 3590, 500, 3600, 2400);
+    expect(deltaBackward.dx).toBe(-20);
+    expect(deltaBackward.dy).toBe(0);
+    expect(deltaBackward.dist).toBe(20);
+  });
+
+  // TEST 22 — World-Wrap CCD (FIX 3)
+  it('TEST 22 — World-wrap CCD: ship near x=3590 moving East detects iceberg at x=10 across boundary', () => {
+    const ship = new Ship({ x: 3590, y: 500, heading: 0, throttle: 100 });
+    ship.vx = 300;
+    ship.vy = 0;
+
+    const ice = new Iceberg({ id: 'ice_edge', x: 10, y: 500, collisionRadius: 20 });
+    const safeDist = (ice.collisionRadius || 20) * 1.25 + ship.collisionRadius + 12;
+
+    const state = { vessel: { maxSpeed: 500, enginePower: 1.0, dragCoefficient: 0.04 }, icebergs: { enabled: true } };
+
+    ship.update(0.1, { getVelocityAt: () => ({ u: 0, v: 0 }) }, 0, state, [ice]);
+
+    const distWrapped = wrappedDistanceCoords(ship.x, ship.y, ice.x, ice.y, 3600, 2400);
+    expect(distWrapped).toBeGreaterThanOrEqual(safeDist - 1.0);
+  });
+
+  // TEST 23 — Turn-Angle Deceleration Branch Verification (ITEM 1)
+  it('TEST 23 — Turn-angle deceleration: getSegmentSpeed reduces speed for sharp turns in clear ocean and extends ETA', () => {
+    const cruiseSpeed = 20.0;
+    const maxSpd = 30.0;
+
+    // 1. Straight line (turn = 0 deg, no icebergs)
+    const spdStraight = getSegmentSpeed(500, 500, cruiseSpeed, [], 0);
+    expect(spdStraight).toBe(cruiseSpeed);
+
+    // 2. Medium turn (>=45 deg, e.g. 60 deg)
+    const spdTurn45 = getSegmentSpeed(500, 500, cruiseSpeed, [], 60);
+    expect(spdTurn45).toBeLessThanOrEqual(maxSpd * 0.55);
+
+    // 3. Sharp turn (>=90 deg, e.g. 90 deg)
+    const spdTurn90 = getSegmentSpeed(500, 500, cruiseSpeed, [], 90);
+    expect(spdTurn90).toBeLessThanOrEqual(maxSpd * 0.30);
+
+    // 4. Route with sharp 90° turn: (100,500) -> (500,500) -> (500,900)
+    // Moving iceberg reaches (500, 700) at t = 0.0117 hours (42.2s)
+    const iceCross = new Iceberg({ id: 'ice_turn_cross', x: 500, y: 1500, collisionRadius: 40 });
+    iceCross.trajectoryForecast = [{ hour: 0.0117, x: 500, y: 700 }];
+
+    const waypointsWithTurn = [
+      { x: 100, y: 500 },
+      { x: 500, y: 500 },
+      { x: 500, y: 900 }
+    ];
+
+    // Under speed-profile ETA, the 90° turn drops speed to 9.0 SU/sec on 2nd segment,
+    // delaying arrival at (500,700) to t = 0.0117h when iceCross occupies (500,700).
+    const valResult = validateRoute(waypointsWithTurn, [iceCross], cruiseSpeed, 3600, 2400);
+    expect(valResult.valid).toBe(false);
+    expect(valResult.reason).toContain("collision zone");
+  });
+
+  // TEST 24 — Non-Wrap Equivalence & Half-World Transition Verification (ITEM 2)
+  it('TEST 24 — Non-wrap equivalence & half-world boundary: wrapped helpers match naive distance for non-edge cases and handle x=1800 transition seamlessly', () => {
+    // 1. Non-edge cases: wrapped distance must match naive distance exactly
+    const ptA = { x: 100, y: 200 };
+    const ptB = { x: 500, y: 800 };
+    const naiveDist = Math.hypot(ptB.x - ptA.x, ptB.y - ptA.y);
+    const wrapDist = wrappedDistanceCoords(ptA.x, ptA.y, ptB.x, ptB.y, 3600, 2400);
+    const wrapDelta = wrappedDelta(ptA.x, ptA.y, ptB.x, ptB.y, 3600, 2400);
+
+    expect(wrapDist).toBe(naiveDist);
+    expect(wrapDelta.dx).toBe(ptB.x - ptA.x);
+    expect(wrapDelta.dy).toBe(ptB.y - ptA.y);
+    expect(wrapDelta.dist).toBe(naiveDist);
+
+    // 2. Exactly at half-world transition (dx = 1800, dy = 1200)
+    const pCenter = { x: 1800, y: 1200 };
+    const pOrigin = { x: 0, y: 0 };
+    const distCenter = wrappedDistanceCoords(pOrigin.x, pOrigin.y, pCenter.x, pCenter.y, 3600, 2400);
+    const deltaCenter = wrappedDelta(pOrigin.x, pOrigin.y, pCenter.x, pCenter.y, 3600, 2400);
+
+    expect(distCenter).toBe(Math.hypot(1800, 1200));
+    expect(deltaCenter.dx).toBe(1800);
+    expect(deltaCenter.dy).toBe(1200);
+
+    // 3. Just across transition (dx = 1801, dy = 1201) -> wrapped dx = -1799, dy = -1199
+    const pOver = { x: 1801, y: 1201 };
+    const deltaOver = wrappedDelta(pOrigin.x, pOrigin.y, pOver.x, pOver.y, 3600, 2400);
+    expect(deltaOver.dx).toBe(-1799);
+    expect(deltaOver.dy).toBe(-1199);
+    expect(deltaOver.dist).toBe(Math.hypot(1799, 1199));
+  });
+
+  // TEST 25 — Original Cluster Crossing Scenario Verification (ITEM 3)
+  it('TEST 25 — Cluster scenario: route planner rejects direct path through moving cluster and generates safe detour', () => {
+    const ship = { x: 1000, y: 1500, heading: 330, speed: 20, throttle: 65 };
+    const dest = { x: 2600, y: 900 };
+
+    // Cluster of 3 moving icebergs crossing the direct path at (1800, 1200) around t = 0.011867h (42.72s)
+    const ice1 = new Iceberg({ id: 'ice_cluster_1', x: 1600, y: 1500, size: 720 });
+    ice1.vx = 15; ice1.vy = -25;
+    ice1.trajectoryForecast = [
+      { hour: 0, x: 1600, y: 1500 },
+      { hour: 0.011867, x: 1800, y: 1200 },
+      { hour: 0.05, x: 2100, y: 1000 }
+    ];
+
+    const ice2 = new Iceberg({ id: 'ice_cluster_2', x: 1800, y: 1600, size: 720 });
+    ice2.vx = 12; ice2.vy = -20;
+    ice2.trajectoryForecast = [
+      { hour: 0, x: 1800, y: 1600 },
+      { hour: 0.01250, x: 1900, y: 1150 },
+      { hour: 0.05, x: 2200, y: 900 }
+    ];
+
+    const ice3 = new Iceberg({ id: 'ice_cluster_3', x: 2000, y: 1700, size: 720 });
+    ice3.vx = 10; ice3.vy = -18;
+    ice3.trajectoryForecast = [
+      { hour: 0, x: 2000, y: 1700 },
+      { hour: 0.01300, x: 2000, y: 1100 },
+      { hour: 0.05, x: 2000, y: 700 }
+    ];
+
+    const icebergs = [ice1, ice2, ice3];
+    const state = { vessel: { maxSpeed: 30, enginePower: 1.0 }, environment: { seaIce: { enabled: false } } };
+
+    const payload = {
+      requestId: 100,
+      ship,
+      dest,
+      mode: 'BALANCED',
+      icebergs,
+      state
+    };
+
+    const res = runRoutePlannerCore(payload);
+
+    // 1. Planner must produce a valid route
+    expect(res.waypoints).toBeDefined();
+    expect(res.waypoints.length).toBeGreaterThanOrEqual(2);
+
+    // 2. Direct path through cluster is rejected by validateRoute
+    const directPath = [{ x: ship.x, y: ship.y }, { x: dest.x, y: dest.y }];
+    const directVal = validateRoute(directPath, icebergs, 20.0, 3600, 2400);
+    expect(directVal.valid).toBe(false);
+
+    // 3. Candidate path generated by planner must pass validateRoute safely
+    const valResult = validateRoute(res.waypoints, icebergs, 20.0, 3600, 2400);
+    expect(valResult.valid).toBe(true);
+
+    // 4. Candidate path must not clip any iceberg safety envelope
+    let minClearance = Infinity;
+    for (let i = 0; i < res.waypoints.length - 1; i++) {
+      const ptA = res.waypoints[i];
+      const ptB = res.waypoints[i + 1];
+      for (let ice of icebergs) {
+        const icePos = ice.getPositionAt(i * 0.005);
+        const dist = wrappedDistanceCoords(ptA.x, ptA.y, icePos.x, icePos.y);
+        if (dist - ice.collisionRadius < minClearance) {
+          minClearance = dist - ice.collisionRadius;
+        }
+      }
+    }
+    expect(minClearance).toBeGreaterThan(15);
+  });
+
+
+
 });
+
+
 

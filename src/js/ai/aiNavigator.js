@@ -4,6 +4,8 @@ import { llmCopilot } from './llmCopilot.js';
 import { runRoutePlannerCore, isHardBlocked } from './routePlannerCore.js';
 import { DecisionEngine } from './decisionEngine.js';
 import { IcebergPredictionTracker } from './icebergPredictionTracker.js';
+import { getSegmentSpeed, wrappedDelta, wrappedDistanceCoords } from '../utils.js';
+
 
 const hierarchicalPlanner = createHierarchicalPlanner(3600, 2400, {
   globalResolution: 40,
@@ -190,23 +192,35 @@ export class AINavigator {
       });
 
       if (relevantIcebergs.length > 0) {
+        let accumulatedTimeSec = 0;
         let accumulatedDistance = 0;
         
         for (let i = 0; i < remainingRoute.length - 1; i++) {
           const ptA = remainingRoute[i];
           const ptB = remainingRoute[i+1];
-          const dx = ptB.x - ptA.x;
-          const dy = ptB.y - ptA.y;
-          const segLen = Math.hypot(dx, dy);
+          const { dx, dy, dist: segLen } = wrappedDelta(ptA.x, ptA.y, ptB.x, ptB.y);
           
+          let turnAngle = 0;
+          if (i > 0) {
+            const ptPrev = remainingRoute[i-1];
+            const h1 = Math.atan2(ptA.y - ptPrev.y, ptA.x - ptPrev.x) * 180 / Math.PI;
+            const h2 = Math.atan2(ptB.y - ptA.y, ptB.x - ptA.x) * 180 / Math.PI;
+            turnAngle = Math.abs((h2 - h1 + 180) % 360 - 180);
+          }
+
           const numSamples = Math.max(3, Math.ceil(segLen / 40));
-          for (let k = 0; k <= numSamples; k++) {
-            const ratio = k / numSamples;
+          const stepLen = segLen / numSamples;
+
+          for (let k = 0; k < numSamples; k++) {
+            const ratio = (k + 0.5) / numSamples;
             const sx = ptA.x + ratio * dx;
             const sy = ptA.y + ratio * dy;
-            const sampleDist = accumulatedDistance + ratio * segLen;
-            const etaSample = sampleDist / (3600 * shipSpeed);
             
+            const speed = getSegmentSpeed(sx, sy, shipSpeed, relevantIcebergs, turnAngle, state);
+            const stepTimeSec = stepLen / speed;
+            const etaSample = (accumulatedTimeSec + stepTimeSec / 2) / 3600;
+            const sampleDist = accumulatedDistance + ratio * segLen;
+
             // Use isHardBlocked with spatially pre-filtered icebergs
             if (isHardBlocked(sx, sy, etaSample, relevantIcebergs)) {
               isObstructed = true;
@@ -214,6 +228,7 @@ export class AINavigator {
                 state.navigation.routeInvalid = true;
               }
             }
+            accumulatedTimeSec += stepTimeSec;
             if (isObstructed) break;
           }
           if (isObstructed) break;
@@ -236,9 +251,9 @@ export class AINavigator {
 
     if (isNavigating) {
       for (const ice of icebergs) {
-        // Relative position
-        const rx = ice.x - ship.x;
-        const ry = ice.y - ship.y;
+        // Relative position with world wrapping
+        const { dx: rx, dy: ry } = wrappedDelta(ship.x, ship.y, ice.x, ice.y);
+
         
         // Relative velocity
         const rvx = ice.vx - ship.vx;

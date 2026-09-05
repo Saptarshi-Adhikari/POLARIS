@@ -2,8 +2,11 @@
  * POLARIS DIGITAL TWIN - Iceberg Physics & Trajectory Simulator
  */
 
+import { calculateIcebergPositionAt } from '../utils.js';
+
 export class Iceberg {
   constructor({
+
     id,
     name,
     x,
@@ -193,67 +196,7 @@ export class Iceberg {
   }
 
   getPositionAt(futureTimeHours) {
-    const defaultX = Number.isFinite(this.x) ? this.x : 0;
-    const defaultY = Number.isFinite(this.y) ? this.y : 0;
-    const baseR = this.collisionRadius || 20;
-    const targetTime = Number.isFinite(futureTimeHours) ? Math.max(0, futureTimeHours) : 0;
-
-    const points = [{ timeHours: 0, x: defaultX, y: defaultY, uncertainty: baseR }];
-    
-    if (this.mlTrajectory && this.mlTrajectory.length > 0) {
-      for (let f of this.mlTrajectory) {
-        if (f && Number.isFinite(f.x) && Number.isFinite(f.y)) {
-          const t = Number.isFinite(f.time) ? f.time : 0;
-          points.push({ timeHours: t / 60, x: f.x, y: f.y, uncertainty: f.uncertainty || (baseR + t * 0.1) });
-        }
-      }
-    }
-    if (this.trajectoryForecast && this.trajectoryForecast.length > 0) {
-      for (let f of this.trajectoryForecast) {
-        if (f && Number.isFinite(f.x) && Number.isFinite(f.y)) {
-          const h = Number.isFinite(f.hour) ? f.hour : 0;
-          if (points.some(p => Math.abs(p.timeHours - h) < 0.05)) continue;
-          points.push({ timeHours: h, x: f.x, y: f.y, uncertainty: baseR + h * 2.5 });
-        }
-      }
-    }
-    points.sort((a, b) => a.timeHours - b.timeHours);
-
-    if (targetTime <= 0) return points[0];
-
-    if (points.length === 1) {
-      const dtSec = targetTime * 3600;
-      return {
-        x: defaultX + (this.vx || 0) * dtSec,
-        y: defaultY + (this.vy || 0) * dtSec,
-        uncertainty: baseR + (this.uncertaintyGrowthRate || 0.5) * dtSec
-      };
-    }
-
-    if (targetTime >= points[points.length - 1].timeHours) {
-      const last = points[points.length - 1];
-      const extraHours = targetTime - last.timeHours;
-      const dtSec = extraHours * 3600;
-      return {
-        x: last.x + (this.vx || 0) * dtSec,
-        y: last.y + (this.vy || 0) * dtSec,
-        uncertainty: last.uncertainty + (this.uncertaintyGrowthRate || 0.5) * dtSec
-      };
-    }
-
-    for (let i = 0; i < points.length - 1; i++) {
-      const pA = points[i];
-      const pB = points[i + 1];
-      if (targetTime >= pA.timeHours && targetTime <= pB.timeHours) {
-        const timeDiff = pB.timeHours - pA.timeHours;
-        const t = timeDiff > 0.0001 ? (targetTime - pA.timeHours) / timeDiff : 0;
-        return {
-          x: pA.x + t * (pB.x - pA.x),
-          y: pA.y + t * (pB.y - pA.y),
-          uncertainty: pA.uncertainty + t * (pB.uncertainty - pA.uncertainty)
-        };
-      }
-    }
-    return points[points.length - 1];
+    return calculateIcebergPositionAt(this, futureTimeHours);
   }
 }
+

@@ -1,4 +1,5 @@
 import routeCalibration from '../../data/routeCalibration.json';
+import { calculateIcebergPositionAt, wrappedDelta, wrappedDistanceCoords, getSegmentSpeed } from '../utils.js';
 
 /**
  * Self-contained binary min-heap for A* open set.
@@ -41,68 +42,13 @@ function getIcebergPositionAt(ice, etaHours) {
   if (ice && typeof ice.getPositionAt === 'function') {
     return ice.getPositionAt(etaHours);
   }
-  if (!ice) return { x: 0, y: 0, uncertainty: 20 };
-
-  const defaultX = Number.isFinite(ice.x) ? ice.x : 0;
-  const defaultY = Number.isFinite(ice.y) ? ice.y : 0;
-  const baseR = ice.collisionRadius || 20;
-  const targetTime = Number.isFinite(etaHours) ? Math.max(0, etaHours) : 0;
-
-  const points = [{ timeHours: 0, x: defaultX, y: defaultY, uncertainty: baseR }];
-
-  if (ice.trajectoryForecast && ice.trajectoryForecast.length > 0) {
-    for (let f of ice.trajectoryForecast) {
-      if (f && Number.isFinite(f.x) && Number.isFinite(f.y)) {
-        const h = Number.isFinite(f.hour) ? f.hour : (Number.isFinite(f.time) ? f.time / 60 : 0);
-        if (points.some(p => Math.abs(p.timeHours - h) < 0.05)) continue;
-        points.push({ timeHours: h, x: f.x, y: f.y, uncertainty: baseR + h * 2.5 });
-      }
-    }
-  }
-  points.sort((a, b) => a.timeHours - b.timeHours);
-
-  if (targetTime <= 0) return points[0];
-
-  if (points.length === 1) {
-    const dtSec = targetTime * 3600;
-    return {
-      x: defaultX + (ice.vx || 0) * dtSec,
-      y: defaultY + (ice.vy || 0) * dtSec,
-      uncertainty: baseR + (ice.uncertaintyGrowthRate || 0.5) * dtSec
-    };
-  }
-
-  if (targetTime >= points[points.length - 1].timeHours) {
-    const last = points[points.length - 1];
-    const extraHours = targetTime - last.timeHours;
-    const dtSec = extraHours * 3600;
-    return {
-      x: last.x + (ice.vx || 0) * dtSec,
-      y: last.y + (ice.vy || 0) * dtSec,
-      uncertainty: last.uncertainty + (ice.uncertaintyGrowthRate || 0.5) * dtSec
-    };
-  }
-
-  for (let i = 0; i < points.length - 1; i++) {
-    const pA = points[i];
-    const pB = points[i + 1];
-    if (targetTime >= pA.timeHours && targetTime <= pB.timeHours) {
-      const timeDiff = pB.timeHours - pA.timeHours;
-      const t = timeDiff > 0.0001 ? (targetTime - pA.timeHours) / timeDiff : 0;
-      return {
-        x: pA.x + t * (pB.x - pA.x),
-        y: pA.y + t * (pB.y - pA.y),
-        uncertainty: pA.uncertainty + t * (pB.uncertainty - pA.uncertainty)
-      };
-    }
-  }
-  return points[points.length - 1];
+  return calculateIcebergPositionAt(ice, etaHours);
 }
 
 export function isHardBlocked(cx, cy, etaHours, icebergs = []) {
   for (let ice of (icebergs || [])) {
     const icePos = getIcebergPositionAt(ice, etaHours);
-    const dist = Math.hypot(cx - icePos.x, cy - icePos.y);
+    const dist = wrappedDistanceCoords(cx, cy, icePos.x, icePos.y);
     // Safety envelope: iceberg radius + ship hull (15) + static buffer (30) + maneuvering margin (20: turning radius / rudder lag / current drift) = 65
     const hardR = (ice.collisionRadius || 20) + 15 + 30 + 20;
     if (dist < hardR) return true;
@@ -111,10 +57,7 @@ export function isHardBlocked(cx, cy, etaHours, icebergs = []) {
 }
 
 export function isSegmentHardBlocked(pA, pB, etaStart = 0, etaEnd = 0, icebergs = []) {
-  const dx = pB.x - pA.x;
-  const dy = pB.y - pA.y;
-  const segLen2 = dx * dx + dy * dy;
-  const segLen = Math.hypot(dx, dy);
+  const { dx, dy, dist: segLen } = wrappedDelta(pA.x, pA.y, pB.x, pB.y);
 
   const numSamples = Math.max(5, Math.ceil(segLen / 10));
   for (let k = 0; k <= numSamples; k++) {
@@ -127,7 +70,7 @@ export function isSegmentHardBlocked(pA, pB, etaStart = 0, etaEnd = 0, icebergs 
       const icePos = getIcebergPositionAt(ice, etaSample);
       // Safety envelope: iceberg radius + ship hull (15) + static buffer (30) + maneuvering margin (20) = 65
       const hardR = (ice.collisionRadius || 20) + 15 + 30 + 20;
-      const dist = Math.hypot(sx - icePos.x, sy - icePos.y);
+      const dist = wrappedDistanceCoords(sx, sy, icePos.x, icePos.y);
       if (dist < hardR) return true;
     }
   }
@@ -139,7 +82,7 @@ export function getTraversalCost(cx, cy, etaHours, cellW, cellH, icebergCostMult
 
   for (let ice of icebergs) {
     const icePos = getIcebergPositionAt(ice, etaHours);
-    const dist = Math.hypot(cx - icePos.x, cy - icePos.y);
+    const dist = wrappedDistanceCoords(cx, cy, icePos.x, icePos.y);
     const hardR = (ice.collisionRadius || 20) + 15;
     const uRadius = icePos.uncertainty || 0;
     const softInner = hardR + uRadius * 0.3;
@@ -176,21 +119,31 @@ export function validateRoute(waypoints, icebergs, shipSpeed = 20.0, width = 360
     }
   }
 
-  let accumulatedDistance = 0;
+  let accumulatedTimeSec = 0;
   for (let i = 0; i < waypoints.length - 1; i++) {
     const ptA = waypoints[i];
     const ptB = waypoints[i+1];
-    const dx = ptB.x - ptA.x;
-    const dy = ptB.y - ptA.y;
-    const segLen = Math.hypot(dx, dy);
+    const { dist: segLen } = wrappedDelta(ptA.x, ptA.y, ptB.x, ptB.y);
+    const midX = (ptA.x + ptB.x) / 2;
+    const midY = (ptA.y + ptB.y) / 2;
 
-    const etaStart = accumulatedDistance / (3600 * shipSpeed);
-    const etaEnd = (accumulatedDistance + segLen) / (3600 * shipSpeed);
+    let turnAngle = 0;
+    if (i > 0) {
+      const ptPrev = waypoints[i-1];
+      const h1 = Math.atan2(ptA.y - ptPrev.y, ptA.x - ptPrev.x) * 180 / Math.PI;
+      const h2 = Math.atan2(ptB.y - ptA.y, ptB.x - ptA.x) * 180 / Math.PI;
+      turnAngle = Math.abs((h2 - h1 + 180) % 360 - 180);
+    }
+
+    const speed = getSegmentSpeed(midX, midY, shipSpeed, icebergs, turnAngle);
+    const segTimeSec = segLen / speed;
+    const etaStart = accumulatedTimeSec / 3600;
+    const etaEnd = (accumulatedTimeSec + segTimeSec) / 3600;
 
     if (isSegmentHardBlocked(ptA, ptB, etaStart, etaEnd, icebergs)) {
       return { valid: false, reason: "Segment crosses iceberg collision zone" };
     }
-    accumulatedDistance += segLen;
+    accumulatedTimeSec += segTimeSec;
   }
 
   // Check self-intersection loops
@@ -200,19 +153,22 @@ export function validateRoute(waypoints, icebergs, shipSpeed = 20.0, width = 360
       const p2 = waypoints[j], p3 = waypoints[j+1];
       const s1_x = p1.x - p0.x, s1_y = p1.y - p0.y;
       const s2_x = p3.x - p2.x, s2_y = p3.y - p2.y;
-      const s = (-s1_y * (p0.x - p2.x) + s1_x * (p0.y - p2.y)) / (-s2_x * s1_y + s1_x * s2_y);
-      const t = ( s2_x * (p0.y - p2.y) - s2_y * (p0.x - p2.x)) / (-s2_x * s1_y + s1_x * s2_y);
-      if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
-        return { valid: false, reason: "Route contains self-intersecting loops" };
+      const denom = (-s2_x * s1_y + s1_x * s2_y);
+      if (Math.abs(denom) > 1e-9) {
+        const s = (-s1_y * (p0.x - p2.x) + s1_x * (p0.y - p2.y)) / denom;
+        const t = ( s2_x * (p0.y - p2.y) - s2_y * (p0.x - p2.x)) / denom;
+        if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
+          return { valid: false, reason: "Route contains self-intersecting loops" };
+        }
       }
     }
   }
 
   let totalLen = 0;
   for (let i = 0; i < waypoints.length - 1; i++) {
-    totalLen += Math.hypot(waypoints[i+1].x - waypoints[i].x, waypoints[i+1].y - waypoints[i].y);
+    totalLen += wrappedDistanceCoords(waypoints[i].x, waypoints[i].y, waypoints[i+1].x, waypoints[i+1].y);
   }
-  const straightLine = Math.hypot(waypoints[waypoints.length-1].x - waypoints[0].x, waypoints[waypoints.length-1].y - waypoints[0].y);
+  const straightLine = wrappedDistanceCoords(waypoints[0].x, waypoints[0].y, waypoints[waypoints.length-1].x, waypoints[waypoints.length-1].y);
   if (totalLen > straightLine * 2.8) {
     return { valid: false, reason: "Route length is excessively inefficient" };
   }
@@ -265,13 +221,21 @@ export function runRoutePlannerCore(payload) {
   }
 
   // ── FAST-PATH: Direct straight line check ──────────────────────────────
-  const dxDirect = dest.x - ship.x;
-  const dyDirect = dest.y - ship.y;
-  const distDirect = Math.hypot(dxDirect, dyDirect);
+  const { dx: dxDirect, dy: dyDirect, dist: distDirect } = wrappedDelta(ship.x, ship.y, dest.x, dest.y);
   let directClear = true;
 
   if (distDirect > 1.0) {
-    if (isSegmentHardBlocked({ x: ship.x, y: ship.y }, { x: dest.x, y: dest.y }, 0, distDirect / (3600 * shipSpeed), icebergs)) {
+    let directTimeSec = 0;
+    const samples = Math.max(5, Math.ceil(distDirect / 20));
+    for (let s = 0; s < samples; s++) {
+      const ratio = (s + 0.5) / samples;
+      const sx = ship.x + ratio * dxDirect;
+      const sy = ship.y + ratio * dyDirect;
+      const stepLen = distDirect / samples;
+      const speed = getSegmentSpeed(sx, sy, shipSpeed, icebergs, 0, state);
+      directTimeSec += stepLen / speed;
+    }
+    if (isSegmentHardBlocked({ x: ship.x, y: ship.y }, { x: dest.x, y: dest.y }, 0, directTimeSec / 3600, icebergs)) {
       directClear = false;
     }
   }
@@ -281,11 +245,24 @@ export function runRoutePlannerCore(payload) {
       { x: ship.x, y: ship.y },
       { x: dest.x, y: dest.y }
     ];
+    const durationSec = distDirect / (shipSpeed || 20.0);
+    const speedRatio = Math.max(0.1, Math.min(1.0, shipSpeed / maxSpd));
+    const throttleRatio = Math.pow(speedRatio, 2);
+    const enginePowerMultiplier = state?.vessel?.enginePower || 1.0;
+    const baseConsumption = 0.005;
+    const throttleBurn = 0.045 * throttleRatio * enginePowerMultiplier;
+    const estimatedFuelConsumption = parseFloat(((baseConsumption + throttleBurn) * durationSec).toFixed(1));
+    const estimatedDurationHours = parseFloat((durationSec / 3600).toFixed(2));
+
     return {
       requestId,
       waypoints: directWaypoints,
+      rawPath: directWaypoints,
       totalDistance: distDirect,
       maxRisk: 0,
+      estimatedDuration: estimatedDurationHours,
+      eta: estimatedDurationHours,
+      estimatedFuelConsumption,
       calcTimeMs: performance.now() - startTime,
       shipSpeed,
       dest
@@ -302,11 +279,13 @@ export function runRoutePlannerCore(payload) {
   const cameFrom  = new Map();
   const gScore    = new Map();
   const gDistance = new Map();
+  const gTimeSec  = new Map();
 
   const startEtaH = 0;
   const startKey  = nodeKey(startR, startC, startEtaH);
   gScore.set(startKey, 0);
   gDistance.set(startKey, 0);
+  gTimeSec.set(startKey, 0);
   const h0 = Math.hypot(startC - endC, startR - endR) * (routeCalibration.heuristicWeight || 1.0);
   openHeap.push({ r: startR, c: startC, etaH: startEtaH, f: h0 });
   openMap.set(startKey, h0);
@@ -346,12 +325,28 @@ export function runRoutePlannerCore(payload) {
 
       const stepDistSU    = Math.hypot((nc - current.c) * cellW, (nr - current.r) * cellH);
       const currentDist   = gDistance.get(currKey) || 0;
+      const currentTimeSec = gTimeSec.get(currKey) || 0;
       const tentativeDist = currentDist + stepDistSU;
-      const etaH          = tentativeDist / (shipSpeed * 3600);
+
+      let turnAngle = 0;
+      const prevNode = cameFrom.get(currKey);
+      if (prevNode) {
+        const h1 = Math.atan2((current.r - prevNode.r) * cellH, (current.c - prevNode.c) * cellW) * 180 / Math.PI;
+        const h2 = Math.atan2(dir[0] * cellH, dir[1] * cellW) * 180 / Math.PI;
+        turnAngle = Math.abs((h2 - h1 + 180) % 360 - 180);
+      } else if (ship && Number.isFinite(ship.heading)) {
+        const stepAngleDeg = (Math.atan2(ncy - ship.y, ncx - ship.x) * 180 / Math.PI + 360) % 360;
+        turnAngle = Math.abs((stepAngleDeg - ship.heading + 180) % 360 - 180);
+      }
+
+      const stepSpeed = getSegmentSpeed(ncx, ncy, shipSpeed, icebergs, turnAngle, state);
+      const stepTimeSec = stepDistSU / stepSpeed;
+      const tentativeTimeSec = currentTimeSec + stepTimeSec;
+      const etaH          = tentativeTimeSec / 3600;
 
       const pA = { x: current.c * cellW + cellW / 2, y: current.r * cellH + cellH / 2 };
       const pB = { x: ncx, y: ncy };
-      const startEtaH = currentDist / (shipSpeed * 3600);
+      const startEtaH = currentTimeSec / 3600;
       if (isSegmentHardBlocked(pA, pB, startEtaH, etaH, icebergs)) continue;
 
       const neighborKey = nodeKey(nr, nc, etaH);
@@ -360,7 +355,6 @@ export function runRoutePlannerCore(payload) {
       const cellCost = getTraversalCost(ncx, ncy, etaH, cellW, cellH, icebergCostMult, seaIceCostMult, state, vectorFieldData, icebergs);
 
       let turnPenalty = 0.0;
-      const prevNode = cameFrom.get(currKey);
       if (prevNode) {
         const prevDirR = current.r - prevNode.r;
         const prevDirC = current.c - prevNode.c;
@@ -385,6 +379,7 @@ export function runRoutePlannerCore(payload) {
         cameFrom.set(neighborKey, { r: current.r, c: current.c, etaH: current.etaH });
         gScore.set(neighborKey, tentativeG);
         gDistance.set(neighborKey, tentativeDist);
+        gTimeSec.set(neighborKey, tentativeTimeSec);
         const h = Math.hypot(nc - endC, nr - endR) * (routeCalibration.heuristicWeight || 1.0);
         const f = tentativeG + h;
         openHeap.push({ r: nr, c: nc, etaH, f });
@@ -420,7 +415,7 @@ export function runRoutePlannerCore(payload) {
   if (waypoints.length > 0) {
     smoothed.push(waypoints[0]);
     let currentIdx = 0;
-    let accumulatedDistanceToCurrentIdx = 0;
+    let accumulatedTimeSecToCurrentIdx = 0;
     while (currentIdx < waypoints.length - 1) {
       let furthestVisible = currentIdx + 1;
       for (let j = waypoints.length - 1; j > currentIdx + 1; j--) {
@@ -428,12 +423,20 @@ export function runRoutePlannerCore(payload) {
         const ptB = waypoints[j];
         let isClear = true;
 
-        const dx = ptB.x - ptA.x;
-        const dy = ptB.y - ptA.y;
-        const segLen = Math.hypot(dx, dy);
+        const { dx, dy, dist: segLen } = wrappedDelta(ptA.x, ptA.y, ptB.x, ptB.y);
+        let segTimeSec = 0;
+        const samples = Math.max(3, Math.ceil(segLen / 20));
+        for (let s = 0; s < samples; s++) {
+          const ratio = (s + 0.5) / samples;
+          const sx = ptA.x + ratio * dx;
+          const sy = ptA.y + ratio * dy;
+          const stepLen = segLen / samples;
+          const speed = getSegmentSpeed(sx, sy, shipSpeed, icebergs, 0, state);
+          segTimeSec += stepLen / speed;
+        }
 
-        const etaA = accumulatedDistanceToCurrentIdx / (3600 * shipSpeed);
-        const etaB = (accumulatedDistanceToCurrentIdx + segLen) / (3600 * shipSpeed);
+        const etaA = accumulatedTimeSecToCurrentIdx / 3600;
+        const etaB = (accumulatedTimeSecToCurrentIdx + segTimeSec) / 3600;
         if (isSegmentHardBlocked(ptA, ptB, etaA, etaB, icebergs)) {
           isClear = false;
         }
@@ -443,16 +446,27 @@ export function runRoutePlannerCore(payload) {
         }
       }
       smoothed.push(waypoints[furthestVisible]);
-      const segmentLen = Math.hypot(
-        waypoints[furthestVisible].x - waypoints[currentIdx].x,
-        waypoints[furthestVisible].y - waypoints[currentIdx].y
+      const { dx: segDx, dy: segDy, dist: segmentLen } = wrappedDelta(
+        waypoints[currentIdx].x, waypoints[currentIdx].y,
+        waypoints[furthestVisible].x, waypoints[furthestVisible].y
       );
-      accumulatedDistanceToCurrentIdx += segmentLen;
+      let segTimeSec = 0;
+      const samples = Math.max(3, Math.ceil(segmentLen / 20));
+      for (let s = 0; s < samples; s++) {
+        const ratio = (s + 0.5) / samples;
+        const sx = waypoints[currentIdx].x + ratio * segDx;
+        const sy = waypoints[currentIdx].y + ratio * segDy;
+        const stepLen = segmentLen / samples;
+        const speed = getSegmentSpeed(sx, sy, shipSpeed, icebergs, 0, state);
+        segTimeSec += stepLen / speed;
+      }
+      accumulatedTimeSecToCurrentIdx += segTimeSec;
       currentIdx = furthestVisible;
     }
   }
 
   const valResult = validateRoute(smoothed, icebergs, shipSpeed, width, height);
+
   let finalPath = waypoints;
   if (valResult.valid) {
     finalPath = smoothed;
