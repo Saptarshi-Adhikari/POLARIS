@@ -62,9 +62,9 @@ export class AINavigator {
     this.predictionTracker = new IcebergPredictionTracker();
     this._lastStormActive = false;
 
-    // Web Worker for off-main-thread A* route planning
     this.workerRequestId = 0;
     this.pendingWorkerRequestId = null;
+    this.workerTimeoutTimer = null;
     this.currentState = null;
     this.currentRealShip = null;
     this.routeWorker = null;
@@ -73,13 +73,12 @@ export class AINavigator {
       try {
         this.routeWorker = new Worker(new URL('./routeWorker.js', import.meta.url), { type: 'module' });
         this.routeWorker.onmessage = (e) => this.handleWorkerResponse(e);
-        // PRODUCTION FIX: onerror fires when Worker fails to LOAD or execute at the script level.
-        // new Worker() does NOT throw synchronously in this case — it succeeds and then fires onerror.
-        // Without this handler, routeWorker stays non-null, postMessage goes to a dead worker,
-        // handleWorkerResponse is never called, and activeRoute is never set (green route never renders).
-        // This silent failure happens on Vercel (static CDN) but NOT in Vite dev mode.
         this.routeWorker.onerror = (err) => {
           console.warn('[AINavigator] Web Worker failed to load/execute, falling back to synchronous mode:', err?.message || err);
+          if (this.workerTimeoutTimer) {
+            clearTimeout(this.workerTimeoutTimer);
+            this.workerTimeoutTimer = null;
+          }
           if (this.routeWorker) {
             this.routeWorker.onmessage = null;
             this.routeWorker.onerror = null;
@@ -90,6 +89,7 @@ export class AINavigator {
           if (this.currentState && this.currentRealShip && this.pendingWorkerRequestId !== null) {
             const dest = this.currentState.navigation?.destinationPoint || this.currentState.navigation?.destination;
             if (dest) {
+              this.pendingWorkerRequestId = null;
               this.generateOptimalRouteAStarSync(
                 this.currentRealShip,
                 this.currentIcebergs || [],
@@ -114,6 +114,11 @@ export class AINavigator {
   handleWorkerResponse(e) {
     if (!e.data || e.data.requestId !== this.pendingWorkerRequestId) {
       return; // Ignore stale worker response
+    }
+
+    if (this.workerTimeoutTimer) {
+      clearTimeout(this.workerTimeoutTimer);
+      this.workerTimeoutTimer = null;
     }
 
     const { waypoints, totalDistance, maxRisk, estimatedDuration, calcTimeMs, dest } = e.data;
@@ -615,6 +620,21 @@ export class AINavigator {
     if (this.routeWorker) {
       this.workerRequestId++;
       this.pendingWorkerRequestId = this.workerRequestId;
+      const currentReqId = this.workerRequestId;
+
+      if (this.workerTimeoutTimer) {
+        clearTimeout(this.workerTimeoutTimer);
+        this.workerTimeoutTimer = null;
+      }
+
+      this.workerTimeoutTimer = setTimeout(() => {
+        this.workerTimeoutTimer = null;
+        if (this.pendingWorkerRequestId === currentReqId) {
+          console.warn(`[AINavigator] Web Worker route calculation timed out (2500ms) for request #${currentReqId}. Falling back to synchronous A* generation.`);
+          this.pendingWorkerRequestId = null; // Mark request as stale so any late worker response is ignored
+          this.generateOptimalRouteAStarSync(ship, icebergs, vectorField, dest, mode, state, realShip, icebergSnapshots);
+        }
+      }, 2500);
 
       const payload = {
         requestId: this.workerRequestId,
