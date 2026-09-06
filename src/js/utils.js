@@ -200,3 +200,23 @@ export function getSegmentSpeed(x, y, cruiseSpeed, icebergs = [], turnAngleDeg =
   return Math.max(0.5, effectiveSpeed);
 }
 
+export function computeIcebergCPA(ship, ice) {
+  const { dx: rx, dy: ry } = wrappedDelta(ship.x, ship.y, ice.x, ice.y);
+  const rvx = (ice.vx || 0) - (ship.vx || 0);
+  const rvy = (ice.vy || 0) - (ship.vy || 0);
+  const rvSq = rvx * rvx + rvy * rvy;
+
+  let tcpa = 0;
+  if (rvSq > 0.001) {
+    tcpa = -(rx * rvx + ry * rvy) / rvSq;
+  }
+  if (tcpa < 0) tcpa = 0;
+
+  const futureRx = rx + rvx * tcpa;
+  const futureRy = ry + rvy * tcpa;
+  const cpa = Math.hypot(futureRx, futureRy);
+
+  return { cpa, tcpa };
+}
+
+

@@ -1,8 +1,8 @@
-import metadata from '../../data/antarctic/metadata.json';
-import seaIceSample from '../../data/antarctic/sea_ice_sample.json';
-import oceanCurrentsSample from '../../data/antarctic/ocean_currents_sample.json';
-import windSample from '../../data/antarctic/wind_sample.json';
-import icebergTracksSample from '../../data/antarctic/iceberg_tracks_sample.json';
+import metadata from '../../data/antarctic/metadata.json' with { type: 'json' };
+import seaIceSample from '../../data/antarctic/sea_ice_sample.json' with { type: 'json' };
+import oceanCurrentsSample from '../../data/antarctic/ocean_currents_sample.json' with { type: 'json' };
+import windSample from '../../data/antarctic/wind_sample.json' with { type: 'json' };
+import icebergTracksSample from '../../data/antarctic/iceberg_tracks_sample.json' with { type: 'json' };
 
 export class AntarcticDataManager {
   constructor(engine) {

@@ -26,6 +26,7 @@ export class CopilotHUD {
     this.container = document.createElement('div');
     this.container.id = this.containerId;
     this.container.style.cssText = `
+      display: none;
       position: fixed;
       bottom: 20px;
       left: 20px;

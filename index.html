@@ -155,6 +155,37 @@
     </details>
   </div>
 
+  <!-- Live Voyage Stats HUD (bottom-left) -->
+  <div id="voyage-stats-hud" class="fixed bottom-4 left-4 z-40 flex items-center space-x-3 bg-surface/90 backdrop-blur-md px-3.5 py-2 rounded-lg border border-outline/40 shadow-xl text-xs font-mono select-none">
+    <div class="flex items-center gap-1 text-on-surface-variant">
+      <span class="material-symbols-outlined text-sm text-secondary">speed</span>
+      <span class="uppercase tracking-wider text-[10px]">SPD</span>
+      <span id="voy-speed" class="text-secondary font-bold ml-0.5">—</span>
+      <span class="text-on-surface-variant text-[10px]">kts</span>
+    </div>
+    <div class="w-px h-4 bg-outline/30"></div>
+    <div class="flex items-center gap-1 text-on-surface-variant">
+      <span class="material-symbols-outlined text-sm text-secondary">local_gas_station</span>
+      <span class="uppercase tracking-wider text-[10px]">FUEL</span>
+      <span id="voy-fuel" class="text-secondary font-bold ml-0.5">—</span>
+      <span class="text-on-surface-variant text-[10px]">%</span>
+    </div>
+    <div class="w-px h-4 bg-outline/30"></div>
+    <div class="flex items-center gap-1 text-on-surface-variant">
+      <span class="material-symbols-outlined text-sm text-secondary">place</span>
+      <span class="uppercase tracking-wider text-[10px]">DIST</span>
+      <span id="voy-dist" class="text-secondary font-bold ml-0.5">—</span>
+      <span class="text-on-surface-variant text-[10px]">SU</span>
+    </div>
+    <div class="w-px h-4 bg-outline/30"></div>
+    <div class="flex items-center gap-1 text-on-surface-variant">
+      <span class="material-symbols-outlined text-sm text-secondary">schedule</span>
+      <span class="uppercase tracking-wider text-[10px]">ETA</span>
+      <span id="voy-eta" class="text-secondary font-bold ml-0.5">—</span>
+      <span class="text-on-surface-variant text-[10px]">min</span>
+    </div>
+  </div>
+
   <!-- Floating Bottom Playback & Speed Control Bar -->
   <div id="bottom-playback-bar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center space-x-2.5 bg-surface/90 backdrop-blur-md px-3.5 py-2 rounded-lg border border-outline/40 shadow-xl text-xs font-mono select-none">
     <!-- Play/Pause Button -->

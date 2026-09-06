@@ -54,6 +54,12 @@ export class CanvasRenderer {
     // Navigation markers (world coords, set externally)
     this.startPoint      = null;
     this.destinationPoint = null;
+    this.showAIOverlay    = true;
+
+    // Production mode: hide internal guidance debug vectors (cyan/lime heading lines,
+    // blue lookahead circle). Set to true to restore for debugging.
+    // Underlying navigation calculations continue running regardless of this flag.
+    this.SHOW_NAV_DEBUG_VECTORS = false;
 
     this.initIceBlobTextures();
     this.resizeCanvas();
@@ -165,6 +171,7 @@ export class CanvasRenderer {
       try { this.drawIcebergTrajectories(ctx, icebergs); } catch(e) { console.warn("drawIcebergTrajectories failed", e); }
       try { this.drawIcebergs(ctx, icebergs); } catch(e) { console.warn("drawIcebergs failed", e); }
       try { this.drawShip(ctx, ship); } catch(e) { console.warn("drawShip failed", e); }
+      try { this.drawAIOverlay(ctx, ship, icebergs, aiNavigator, state); } catch(e) { console.warn("drawAIOverlay failed", e); }
       // try { this.drawValidationOverlays(ctx); } catch(e) {}
 
       if (vectorField.stormMode) {
@@ -509,22 +516,38 @@ export class CanvasRenderer {
     const state = typeof window !== 'undefined' && window.simEngine && window.simEngine.state;
     const activeRoute = state && state.navigation && state.navigation.activeRoute;
     
+    // Only the CURRENT, ADOPTED activeRoute is ever rendered
     if (!activeRoute || activeRoute.status !== 'valid' || !activeRoute.waypoints || activeRoute.waypoints.length === 0) {
-      if (!ship.routeWaypoints || ship.routeWaypoints.length === 0) return;
+      return;
     }
 
     ctx.save();
     
-    const waypoints = (activeRoute && activeRoute.status === 'valid') ? activeRoute.waypoints : ship.routeWaypoints;
-    const rawSlice = waypoints.slice(ship.waypointIndex || 0);
+    const waypoints = activeRoute.waypoints;
+    let startIdx = 0;
+    if (ship && ship.routeWaypoints === waypoints && Number.isInteger(ship.waypointIndex) && ship.waypointIndex >= 0 && ship.waypointIndex < waypoints.length) {
+      startIdx = ship.waypointIndex;
+    } else if (ship) {
+      // If ship waypointIndex has not synced to this activeRoute yet, find nearest waypoint index dynamically
+      let minD = Infinity;
+      for (let i = 0; i < waypoints.length; i++) {
+        const d = Math.hypot(waypoints[i].x - ship.x, waypoints[i].y - ship.y);
+        if (d < minD) {
+          minD = d;
+          startIdx = i;
+        }
+      }
+    }
+
+    const rawSlice = waypoints.slice(startIdx);
     const forwardWps = [];
-    const radHdg = ((ship.heading || 0) * Math.PI) / 180;
+    const radHdg = (((ship && ship.heading) || 0) * Math.PI) / 180;
     const fwdX = Math.cos(radHdg);
     const fwdY = Math.sin(radHdg);
 
     for (let wp of rawSlice) {
-      const dx = wp.x - ship.x;
-      const dy = wp.y - ship.y;
+      const dx = wp.x - (ship ? ship.x : 0);
+      const dy = wp.y - (ship ? ship.y : 0);
       const dist = Math.hypot(dx, dy);
       if (dist < 15.0) continue; // Skip stale waypoint at/behind ship position
       const dot = dx * fwdX + dy * fwdY;
@@ -540,7 +563,7 @@ export class CanvasRenderer {
       finalWps = [state.navigation.destinationPoint || state.navigation.destination];
     }
 
-    const pts = [{ x: ship.x, y: ship.y }, ...finalWps];
+    const pts = ship ? [{ x: ship.x, y: ship.y }, ...finalWps] : finalWps;
     if (pts.length < 2) { ctx.restore(); return; }
 
     ctx.lineWidth = Math.max(2.0, 3 / this.camera.zoom);
@@ -618,6 +641,107 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
+  drawAIOverlay(ctx, ship, icebergs, aiNavigator, state) {
+    if (!this.showAIOverlay && (!ship || !ship._inEmergencyAvoidance)) return;
+    if (!ship) return;
+
+    ctx.save();
+    const radHdg = (ship.heading * Math.PI) / 180;
+    const tgtHdg = ship.targetHeading !== undefined ? ship.targetHeading : ship.heading;
+    const radTgt = (tgtHdg * Math.PI) / 180;
+
+    if (this.SHOW_NAV_DEBUG_VECTORS) {
+      // 1. Current Ship Heading Vector (Cyan Arrow, 60 SU)
+      const hLen = 60;
+      const hx = ship.x + Math.cos(radHdg) * hLen;
+      const hy = ship.y + Math.sin(radHdg) * hLen;
+
+      ctx.strokeStyle = '#06b6d4'; // Cyan
+      ctx.lineWidth = Math.max(1.5, 2.5 / this.camera.zoom);
+      ctx.beginPath();
+      ctx.moveTo(ship.x, ship.y);
+      ctx.lineTo(hx, hy);
+      ctx.stroke();
+
+      ctx.fillStyle = '#06b6d4';
+      ctx.beginPath();
+      ctx.arc(hx, hy, Math.max(3.5, 4.5 / this.camera.zoom), 0, Math.PI * 2);
+      ctx.fill();
+
+      // 2. Desired Heading Vector (Lime Green Arrow, 60 SU)
+      const tx = ship.x + Math.cos(radTgt) * hLen;
+      const ty = ship.y + Math.sin(radTgt) * hLen;
+
+      ctx.strokeStyle = '#a4d64c'; // Lime
+      ctx.lineWidth = Math.max(1.5, 2.5 / this.camera.zoom);
+      ctx.setLineDash([4 / this.camera.zoom, 3 / this.camera.zoom]);
+      ctx.beginPath();
+      ctx.moveTo(ship.x, ship.y);
+      ctx.lineTo(tx, ty);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#a4d64c';
+      ctx.beginPath();
+      ctx.arc(tx, ty, Math.max(3.5, 4.5 / this.camera.zoom), 0, Math.PI * 2);
+      ctx.fill();
+
+      // 3. Lookahead Point
+      if (ship.targetWaypoint) {
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = Math.max(1.5, 2 / this.camera.zoom);
+        ctx.beginPath();
+        ctx.arc(ship.targetWaypoint.x, ship.targetWaypoint.y, Math.max(6, 8 / this.camera.zoom), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+        ctx.fill();
+      }
+    } // end SHOW_NAV_DEBUG_VECTORS
+
+    // 4. Ship Safety Envelope (Collision radius + Safety Buffer = 45 SU)
+    const envelopeRadius = (ship.collisionRadius || 15) + 30;
+    ctx.strokeStyle = ship._inEmergencyAvoidance ? 'rgba(244, 63, 94, 0.8)' : 'rgba(164, 214, 76, 0.4)';
+    ctx.fillStyle = ship._inEmergencyAvoidance ? 'rgba(244, 63, 94, 0.12)' : 'rgba(164, 214, 76, 0.05)';
+    ctx.lineWidth = Math.max(1, 1.5 / this.camera.zoom);
+    ctx.beginPath();
+    ctx.arc(ship.x, ship.y, envelopeRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // 5. CPA Line & Risk to Closest Iceberg
+    if (icebergs && icebergs.length > 0) {
+      let closestIce = null;
+      let minClearance = Infinity;
+      for (let ice of icebergs) {
+        const d = Math.hypot(ship.x - ice.x, ship.y - ice.y);
+        const clearance = d - (ship.collisionRadius || 15) - (ice.collisionRadius || 20);
+        if (clearance < minClearance) {
+          minClearance = clearance;
+          closestIce = ice;
+        }
+      }
+
+      if (closestIce && minClearance < 500) {
+        ctx.strokeStyle = minClearance < 50 ? '#f43f5e' : (minClearance < 120 ? '#f59e0b' : '#38bdf8');
+        ctx.lineWidth = Math.max(1, 1.5 / this.camera.zoom);
+        ctx.setLineDash([3 / this.camera.zoom, 3 / this.camera.zoom]);
+        ctx.beginPath();
+        ctx.moveTo(ship.x, ship.y);
+        ctx.lineTo(closestIce.x, closestIce.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const midX = (ship.x + closestIce.x) / 2;
+        const midY = (ship.y + closestIce.y) / 2;
+        ctx.fillStyle = minClearance < 50 ? '#f43f5e' : (minClearance < 120 ? '#fbbf24' : '#a1eff8');
+        ctx.font = 'bold 10px "JetBrains Mono"';
+        ctx.fillText(`CPA: ${Math.round(minClearance)} SU`, midX + 6, midY - 6);
+      }
+    }
+
+    ctx.restore();
+  }
+
   drawHypotheticalRoute(ctx) {
     const cs = typeof window !== 'undefined' && window.simEngine && window.simEngine.counterfactualSimulator;
     if (!cs || !cs.showHypotheticalRoute || !cs.hypotheticalRoute || cs.hypotheticalRoute.length === 0) return;
@@ -641,7 +765,7 @@ export class CanvasRenderer {
 
   drawIcebergTrajectories(ctx, icebergs) {
     const trajToggle = typeof document !== 'undefined' ? document.getElementById('iceberg-trajectory-toggle') : null;
-    if (trajToggle && !trajToggle.checked) return;
+    if (!trajToggle || !trajToggle.checked) return;
 
     ctx.save();
     for (let ice of icebergs) {
@@ -856,7 +980,7 @@ export class CanvasRenderer {
     ctx.fillText(ship.name, ship.x + 22, ship.y - 6);
 
     // Debug collision circle
-    const dbgHud = document.getElementById('debug-hud');
+    const dbgHud = typeof document !== 'undefined' ? document.getElementById('debug-hud') : null;
     if (dbgHud && !dbgHud.classList.contains('hidden')) {
       ctx.save();
       ctx.strokeStyle = 'rgba(164, 214, 76, 0.8)';

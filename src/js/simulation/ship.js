@@ -1,4 +1,5 @@
-import { wrappedDelta, wrappedDistanceCoords } from '../utils.js';
+import { wrappedDelta, wrappedDistanceCoords, normalizeAngleDeg } from '../utils.js';
+import { isHardBlocked } from '../ai/routePlannerCore.js';
 
 /**
  * POLARIS DIGITAL TWIN - Vessel Dynamics & Steering Simulator
@@ -17,7 +18,7 @@ import { wrappedDelta, wrappedDistanceCoords } from '../utils.js';
  *   => terminal velocity at full throttle = sqrt(maxThrust / dragCoeff) = maxSpeed
  */
 
-function computeLookAheadTarget(shipPos, waypoints, lookAheadDist) {
+function computeLookAheadTarget(shipPos, waypoints, lookAheadDist, minSegIdx = 0) {
   if (!waypoints || waypoints.length === 0) {
     return { x: shipPos.x, y: shipPos.y, segIdx: 0 };
   }
@@ -25,9 +26,11 @@ function computeLookAheadTarget(shipPos, waypoints, lookAheadDist) {
     return { x: waypoints[0].x, y: waypoints[0].y, segIdx: 0 };
   }
 
+  const startIdx = Math.max(0, Math.min(minSegIdx, waypoints.length - 2));
+
   // 1. Find nearest point on the polyline to the ship (segment + t)
-  let bestSegIdx = 0, bestT = 0, minDist = Infinity;
-  for (let i = 0; i < waypoints.length - 1; i++) {
+  let bestSegIdx = startIdx, bestT = 0, minDist = Infinity;
+  for (let i = startIdx; i < waypoints.length - 1; i++) {
     const A = waypoints[i], B = waypoints[i + 1];
     const AB = { x: B.x - A.x, y: B.y - A.y };
     const AP = { x: shipPos.x - A.x, y: shipPos.y - A.y };
@@ -118,6 +121,25 @@ export class Ship {
     this.driftCorrection = 0.0;
     this.autopilotStatus = 'NORMAL_TRACKING';
     this.environmentalResistance = 0.0;
+
+    // CR7 Controller Stability & Telemetry Fields
+    this.desiredHeadingRaw = heading;
+    this.desiredHeadingFiltered = heading;
+    this.targetHeading = heading;
+    this.headingError = 0.0;
+    this.headingRate = 0.0;
+    this.rudderRate = 0.0;
+    this.lastRudder = 0.0;
+    this.lastXte = 0.0;
+    this.xteRate = 0.0;
+    this.lookaheadDistance = 0.0;
+    this.controlMode = 'NORMAL_TRACKING';
+    this.currentCorrection = 0.0;
+    this.steeringCorrection = 0.0;
+    this.headingOscillationRate = 0.0;
+    this.rudderSignFlipRate = 0.0;
+    this._rudderSignHistory = [];
+    this._headingRateHistory = [];
   }
 
   // NOTE: setRouteWaypoints is defined once below (around line 359).
@@ -131,6 +153,7 @@ export class Ship {
 
   update(dt, vectorField, simTimeHours, state, icebergs = []) {
     if (!state || dt <= 0) return;
+    this.lastCollisionEvent = { collisionDetected: false };
 
     // Nomoto parameters (tuned for realistic vessel maneuvering response)
     const nomotoT = 3.0; // Time constant (seconds)
@@ -306,6 +329,15 @@ export class Ship {
       if (distToIce < safeDist) {
         // Collision! Slide along collision boundary normal
         collisionOccurred = true;
+        this.lastCollisionEvent = {
+          collisionDetected: true,
+          icebergId: ice.id,
+          distanceAtCollision: distToIce,
+          shipVelocity: { x: this.vx, y: this.vy },
+          icebergVelocity: { x: ice.vx || 0, y: ice.vy || 0 },
+          relativeVelocity: { x: this.vx - (ice.vx || 0), y: this.vy - (ice.vy || 0) },
+          routeHadPredictedCollision: isHardBlocked(closestX, closestY, 0, icebergs)
+        };
         let nx = closestX - iceUnwrappedX;
         let ny = closestY - iceUnwrappedY;
         const nLen = Math.hypot(nx, ny);
@@ -371,9 +403,27 @@ export class Ship {
   setRouteWaypoints(waypoints) {
     if (!waypoints || waypoints.length === 0) return;
     this.routeWaypoints = waypoints;
-    this.waypointIndex = 0;
-    this.targetWaypoint = waypoints[0];
-    this._activeRouteId = null; // force resync check to re-validate on next frame
+    const initialLookAhead = Math.max(50, Math.hypot(this.vx, this.vy) * 2.5);
+    const initTargetObj = computeLookAheadTarget({ x: this.x, y: this.y }, this.routeWaypoints, initialLookAhead);
+    this.waypointIndex = initTargetObj.segIdx;
+    this.targetWaypoint = { x: initTargetObj.x, y: initTargetObj.y };
+    this._activeRouteId = null;
+  }
+
+  setRouteWaypoints(waypoints, routeId = null) {
+    this.routeWaypoints = waypoints || [];
+    this._activeRouteId = routeId;
+    this.targetHeading = undefined;
+    this.desiredHeadingFiltered = undefined;
+    if (this.routeWaypoints.length > 0) {
+      const initialLookAhead = Math.max(50, Math.hypot(this.vx, this.vy) * 2.5);
+      const initTargetObj = computeLookAheadTarget({ x: this.x, y: this.y }, this.routeWaypoints, initialLookAhead);
+      this.waypointIndex = initTargetObj.segIdx;
+      this.targetWaypoint = { x: initTargetObj.x, y: initTargetObj.y };
+    } else {
+      this.waypointIndex = 0;
+      this.targetWaypoint = null;
+    }
   }
 
   updateAutopilotSteering(dt, state, icebergs, maxSpeed, vectorField, simTimeHours) {
@@ -387,6 +437,8 @@ export class Ship {
       if (routeChanged) {
         this._activeRouteId = activeRoute.id;
         this.routeWaypoints = activeRoute.waypoints;
+        this.targetHeading = undefined;
+        this.desiredHeadingFiltered = undefined;
         const initialLookAhead = Math.max(50, Math.hypot(this.vx, this.vy) * 2.5);
         const initTargetObj = computeLookAheadTarget({ x: this.x, y: this.y }, this.routeWaypoints, initialLookAhead);
         this.waypointIndex = initTargetObj.segIdx;
@@ -422,7 +474,7 @@ export class Ship {
     const lookAheadDist = baseLookAhead;
 
     // Polyline projection look-ahead target selection
-    const lookAheadTargetObj = computeLookAheadTarget({ x: this.x, y: this.y }, waypoints, lookAheadDist);
+    const lookAheadTargetObj = computeLookAheadTarget({ x: this.x, y: this.y }, waypoints, lookAheadDist, this.waypointIndex || 0);
     this.targetWaypoint = { x: lookAheadTargetObj.x, y: lookAheadTargetObj.y };
     this.waypointIndex = lookAheadTargetObj.segIdx;
 
@@ -465,14 +517,17 @@ export class Ship {
     let routeProgressFraction = totalRouteLength > 1.0 ? Math.min(1.0, Math.max(0.0, routeProgressDistance / totalRouteLength)) : 0.0;
 
     // Direct destination distance arrival check
-    const arrivalRadius = Math.max(35, currentSpeed * 1.5);
-    const arrivalSpeedThreshold = 3.5;
-
-    if (directDestinationDistance <= arrivalRadius && currentSpeed <= arrivalSpeedThreshold) {
+    const terminalArrivalRadius = 35.0;
+    if (directDestinationDistance <= 15.0 || (directDestinationDistance <= terminalArrivalRadius && currentSpeed <= 3.5)) {
       this.autopilotStatus = 'ARRIVED';
       this.desiredThrottle = 0;
-      state.vessel.throttle = 0;
-      state.vessel.rudder = 0;
+      this.throttle = 0;
+      this.vx *= 0.1;
+      this.vy *= 0.1;
+      if (state.vessel) {
+        state.vessel.throttle = 0;
+        state.vessel.rudder = 0;
+      }
       this.rudder = 0;
       if (activeRoute) {
         activeRoute.routeProgressFraction = 1.0;
@@ -481,7 +536,7 @@ export class Ship {
     }
 
     // Do not set progress fraction to 1.0 prematurely until ARRIVED condition is met
-    if (directDestinationDistance > arrivalRadius) {
+    if (directDestinationDistance > terminalArrivalRadius) {
       routeProgressFraction = Math.min(0.94, routeProgressFraction);
     }
     if (activeRoute) {
@@ -526,10 +581,10 @@ export class Ship {
     const arrivalSpeedThresholdVal = 3.5;
 
     let targetMode = 'NORMAL_TRACKING';
-    if (directDestinationDistance <= arrivalRadiusThreshold && currentSpeed <= arrivalSpeedThresholdVal) {
-      targetMode = 'ARRIVED';
-    } else if (directDestinationDistance <= captureDistThreshold || (remainingRouteDistance <= captureDistThreshold && directDestinationDistance <= 150.0)) {
-      targetMode = 'DESTINATION_CAPTURE';
+    if (this.autopilotStatus === 'DESTINATION_REACHED' || this.autopilotStatus === 'ARRIVED' || (directDestinationDistance <= arrivalRadiusThreshold && currentSpeed <= arrivalSpeedThresholdVal) || directDestinationDistance <= 15.0) {
+      targetMode = 'DESTINATION_REACHED';
+    } else if (directDestinationDistance <= captureDistThreshold || (remainingRouteDistance <= captureDistThreshold && directDestinationDistance <= 90.0)) {
+      targetMode = 'ARRIVAL_CAPTURE';
     } else if (directDestinationDistance <= finalApproachDistThreshold || remainingRouteDistance <= finalApproachDistThreshold) {
       targetMode = 'FINAL_APPROACH';
     } else if (this._inRecoveryMode || (this._currentGuidanceMode === 'ROUTE_RECOVERY' && absXte > 45.0)) {
@@ -539,11 +594,15 @@ export class Ship {
     this._currentGuidanceMode = targetMode;
     this.autopilotStatus = targetMode;
 
-    if (targetMode === 'ARRIVED') {
+    if (targetMode === 'DESTINATION_REACHED') {
       this.desiredThrottle = 0;
       this.throttle = 0;
-      state.vessel.throttle = 0;
-      state.vessel.rudder = 0;
+      this.vx = 0;
+      this.vy = 0;
+      if (state.vessel) {
+        state.vessel.throttle = 0;
+        state.vessel.rudder = 0;
+      }
       this.rudder = 0;
       if (activeRoute) {
         activeRoute.routeProgressFraction = 1.0;
@@ -552,10 +611,10 @@ export class Ship {
     }
 
     const modeConfig = {
-      xteGain: targetMode === 'ROUTE_RECOVERY' ? 0.08 : 0.05,
+      xteGain: targetMode === 'ROUTE_RECOVERY' ? 0.06 : 0.035, // reduced from 0.08/0.05 to dampen wobble
       maxXteCorrectionDeg: targetMode === 'ROUTE_RECOVERY' ? 20.0 : 15.0,
-      lookAheadMultiplier: targetMode === 'DESTINATION_CAPTURE' ? 0.4 : (targetMode === 'FINAL_APPROACH' ? 0.65 : (targetMode === 'ROUTE_RECOVERY' ? 0.75 : 1.0)),
-      speedMultiplier: targetMode === 'DESTINATION_CAPTURE' ? 0.4 : (targetMode === 'FINAL_APPROACH' ? 0.65 : (targetMode === 'ROUTE_RECOVERY' ? 0.80 : 1.0))
+      lookAheadMultiplier: targetMode === 'ARRIVAL_CAPTURE' ? 0.3 : (targetMode === 'FINAL_APPROACH' ? 0.65 : (targetMode === 'ROUTE_RECOVERY' ? 0.75 : 1.0)),
+      speedMultiplier: targetMode === 'ARRIVAL_CAPTURE' ? 0.3 : (targetMode === 'FINAL_APPROACH' ? 0.65 : (targetMode === 'ROUTE_RECOVERY' ? 0.80 : 1.0))
     };
 
     // --- Vector-Based Guidance & Current Compensation ---
@@ -563,13 +622,13 @@ export class Ship {
     let baseGroundSpeed = maxSpeed * 0.75 * modeConfig.speedMultiplier;
     if (targetMode === 'FINAL_APPROACH') {
       const approachRatio = Math.max(0.3, directDestinationDistance / finalApproachDistThreshold);
-      baseGroundSpeed = Math.max(8.0, baseGroundSpeed * approachRatio);
-    } else if (targetMode === 'DESTINATION_CAPTURE') {
-      const captureRatio = Math.max(0.15, directDestinationDistance / captureDistThreshold);
-      baseGroundSpeed = Math.max(4.0, baseGroundSpeed * captureRatio);
+      baseGroundSpeed = Math.max(6.0, baseGroundSpeed * approachRatio);
+    } else if (targetMode === 'ARRIVAL_CAPTURE') {
+      const captureRatio = Math.max(0.1, directDestinationDistance / captureDistThreshold);
+      baseGroundSpeed = Math.max(2.0, baseGroundSpeed * captureRatio);
     }
 
-    const requestedGroundSpeed = Math.max(4.0, baseGroundSpeed);
+    const requestedGroundSpeed = targetMode === 'ARRIVAL_CAPTURE' ? Math.max(2.0, baseGroundSpeed) : Math.max(4.0, baseGroundSpeed);
     const groundDirX = distToTarget > 1e-6 ? targetDx / distToTarget : Math.cos((this.heading * Math.PI) / 180);
     const groundDirY = distToTarget > 1e-6 ? targetDy / distToTarget : Math.sin((this.heading * Math.PI) / 180);
 
@@ -604,33 +663,91 @@ export class Ship {
     // Desired Heading Through Water (radians -> degrees)
     let desiredHeadingRad = Math.atan2(desiredWaterVy, desiredWaterVx);
     let desiredHeadingDeg = (desiredHeadingRad * 180 / Math.PI + 360) % 360;
+    this.desiredHeadingRaw = desiredHeadingDeg;
 
     // Apply Stanley Cross-Track Correction to heading
-    // XTE sign convention (proven with numerical test):
-    //   xte > 0 → ship is to the LEFT of route (north in Y-down when route goes east)
-    //   xte < 0 → ship is to the RIGHT of route
-    // rawCorr sign: atan(gain * xte / speed) has same sign as xte.
-    // To correct LEFT-of-route (xte > 0), we need positive heading correction (turn CW/right).
-    // Therefore xteCorr = +rawCorr (NOT -rawCorr which was the bug).
     let xteCorr = 0.0;
     if (absXte > 1.5 && !this._inEmergencyAvoidance && state?.navigation?.navigationMode !== 'AVOIDANCE' && minIceDist >= 150) {
       const rawCorr = Math.atan((modeConfig.xteGain * xte) / Math.max(1.0, currentSpeed)) * 180 / Math.PI;
       xteCorr = Math.max(-modeConfig.maxXteCorrectionDeg, Math.min(modeConfig.maxXteCorrectionDeg, rawCorr));
     }
+    this.currentCorrection = xteCorr;
 
     let targetAngleDeg = (desiredHeadingDeg + xteCorr + 360) % 360;
-    this.targetHeading = targetAngleDeg;
-    if (state.vessel) state.vessel.targetHeading = targetAngleDeg;
 
-    let angleDiff = targetAngleDeg - this.heading;
-    while (angleDiff > 180) angleDiff -= 360;
-    while (angleDiff < -180) angleDiff += 360;
+    // 1. Low-Pass Filter on Desired Heading to eliminate frame-to-frame noise
+    if (this.desiredHeadingFiltered === undefined || this.desiredHeadingFiltered === null || isNaN(this.desiredHeadingFiltered)) {
+      this.desiredHeadingFiltered = targetAngleDeg;
+    }
+    let dFilter = normalizeAngleDeg(targetAngleDeg - this.desiredHeadingFiltered);
+    const filterAlpha = Math.min(1.0, 8.0 * dt);
+    this.desiredHeadingFiltered = (this.desiredHeadingFiltered + dFilter * filterAlpha + 360) % 360;
 
-    const steeringGain = 1.6;
+    // 2. Target Heading Rate Limiting (max 15.0 deg/sec)
+    if (this.targetHeading === undefined || this.targetHeading === null || isNaN(this.targetHeading)) {
+      this.targetHeading = targetAngleDeg;
+    }
+    let dTarget = normalizeAngleDeg(this.desiredHeadingFiltered - this.targetHeading);
+    const maxTargetRate = 15.0; // deg/sec
+    const maxTargetStep = maxTargetRate * dt;
+    dTarget = Math.max(-maxTargetStep, Math.min(maxTargetStep, dTarget));
+    this.targetHeading = (this.targetHeading + dTarget + 360) % 360;
+
+    if (state.vessel) state.vessel.targetHeading = this.targetHeading;
+
+    // 3. Shortest Signed Heading Error
+    let angleDiff = normalizeAngleDeg(this.targetHeading - this.heading);
+
+    // 4. Heading-Error Deadband Near Zero (0.5 deg deadband when XTE is small)
+    if (Math.abs(angleDiff) < 0.5 && absXte < 2.0) {
+      angleDiff = 0.0;
+    }
+    this.headingError = angleDiff;
+
+    // 5. Rudder Command Generation & Rate Limiting (with Rate Damping)
+    const steeringGain = 1.2;
+    const dampingGain = 2.0;
+    let desiredRudder = Math.max(-35, Math.min(35, angleDiff * steeringGain - this.angularVelocity * dampingGain));
+
+    // Zero-Crossing Hysteresis: prevent alternating tiny rudder commands
+    if (Math.abs(desiredRudder) < 0.8 && Math.abs(this.rudder) < 1.0) {
+      desiredRudder = 0.0;
+    }
+
     if (!this._inEmergencyAvoidance) {
-      this.rudder = Math.max(-35, Math.min(35, angleDiff * steeringGain));
+      const maxRudderStep = 15.0 * dt; // max 15 deg/sec rudder rate
+      const rudderDiff = desiredRudder - this.rudder;
+      const boundedStep = Math.max(-maxRudderStep, Math.min(maxRudderStep, rudderDiff));
+      const prevRudder = this.rudder;
+      this.rudder = Math.max(-35, Math.min(35, this.rudder + boundedStep));
+      this.rudderRate = (this.rudder - prevRudder) / Math.max(1e-4, dt);
     }
     if (state.vessel) state.vessel.rudder = this.rudder;
+
+    // 6. XTE Rate & Oscillation Metrics Tracking
+    this.xteRate = (xte - (this.lastXte || xte)) / Math.max(1e-4, dt);
+    this.lastXte = xte;
+    this.lookaheadDistance = lookAheadDist;
+    this.steeringCorrection = xteCorr;
+    this.controlMode = targetMode;
+
+    // Track rudder sign flips over rolling 10s window
+    const currentRudderSign = Math.sign(this.rudder);
+    if (!this._prevRudderSign) this._prevRudderSign = currentRudderSign;
+    if (currentRudderSign !== 0 && this._prevRudderSign !== 0 && currentRudderSign !== this._prevRudderSign) {
+      this._rudderSignHistory.push(simTimeHours);
+    }
+    this._prevRudderSign = currentRudderSign;
+
+    const tenSecInHours = 10.0 / 3600;
+    this._rudderSignHistory = this._rudderSignHistory.filter(t => simTimeHours - t <= tenSecInHours);
+    this.rudderSignFlipRate = parseFloat((this._rudderSignHistory.length / 10.0).toFixed(2)); // flips per second
+
+    // Track heading oscillation rate (absolute angular rate variation)
+    this._headingRateHistory.push({ time: simTimeHours, rate: Math.abs(this.angularVelocity) });
+    this._headingRateHistory = this._headingRateHistory.filter(h => simTimeHours - h.time <= tenSecInHours);
+    const avgHdgRate = this._headingRateHistory.reduce((sum, item) => sum + item.rate, 0) / Math.max(1, this._headingRateHistory.length);
+    this.headingOscillationRate = parseFloat(avgHdgRate.toFixed(2));
 
     this.guidanceBreakdown = {
       lookahead_target: { x: segmentEnd.x, y: segmentEnd.y },
@@ -716,8 +833,9 @@ export class Ship {
     // 2. Mode-Specific Speed / Recovery Limits
     if (targetMode === 'FINAL_APPROACH') {
       finalThrottle = Math.min(45, finalThrottle * (directDestinationDistance / finalApproachDistThreshold));
-    } else if (targetMode === 'DESTINATION_CAPTURE') {
+    } else if (targetMode === 'ARRIVAL_CAPTURE' || targetMode === 'DESTINATION_CAPTURE') {
       finalThrottle = Math.min(20, finalThrottle * (directDestinationDistance / captureDistThreshold));
+      finalThrottle = Math.max(10, finalThrottle);
     } else if (targetMode === 'ROUTE_RECOVERY' || this.autopilotStatus === 'FIGHTING_CURRENT') {
       this.extraThrustMultiplier = Math.min(2.0, this.extraThrustMultiplier + 0.15 * dt);
       finalThrottle = Math.min(95, finalThrottle * this.extraThrustMultiplier);
@@ -862,18 +980,18 @@ export class Ship {
     let closestIceDy = 0;
 
     for (let ice of icebergs) {
-      const safeRadius = (ice.collisionRadius || 20) + this.collisionRadius + 25.0;
+      const safeRadius = (ice.collisionRadius || 20) + this.collisionRadius + 15.0;
       const { dx: iceDx, dy: iceDy } = wrappedDelta(this.x, this.y, ice.x, ice.y);
       const iceUnwrappedX = this.x + iceDx;
       const iceUnwrappedY = this.y + iceDy;
 
-      const numSteps = 10;
+      const numSteps = 15;
       for (let s = 1; s <= numSteps; s++) {
         const t = (s / numSteps) * lookAheadSec;
         const px = this.x + (spd > 1 ? this.vx : fwdX * 20) * t;
         const py = this.y + (spd > 1 ? this.vy : fwdY * 20) * t;
-        const icePx = iceUnwrappedX + ice.vx * t;
-        const icePy = iceUnwrappedY + ice.vy * t;
+        const icePx = iceUnwrappedX + (ice.vx || 0) * t;
+        const icePy = iceUnwrappedY + (ice.vy || 0) * t;
         const dist = Math.hypot(px - icePx, py - icePy);
 
         if (dist < safeRadius) {
@@ -889,16 +1007,57 @@ export class Ship {
     }
 
     if (closestUnsafeIce) {
-      if (state && state.navigation) {
-        state.navigation.routeInvalid = true;
+      if (!this._inEmergencyAvoidance) {
+        this._inEmergencyAvoidance = true;
+        this.emergencyEvent = {
+          type: 'emergency_enter',
+          reason: 'IMMINENT_ICEBERG_COLLISION',
+          icebergId: closestUnsafeIce.id,
+          timestamp: Date.now()
+        };
+        console.warn(`[ControlAuthority] EMERGENCY ENTER: Iceberg ${closestUnsafeIce.id} at dist ${minUnsafeDist.toFixed(1)}`);
+        
+        if (state && state.aiNavigator) {
+          state.aiNavigator.emergencyEntries++;
+        }
+        if (state && state.navigation) {
+          state.navigation.routeInvalid = true;
+          state.navigation.navigationMode = 'AVOIDANCE';
+        }
+      } else if (state && state.navigation) {
         state.navigation.navigationMode = 'AVOIDANCE';
       }
       
-      const cross = fwdX * closestIceDy - fwdY * closestIceDx;
+      // Determine optimal evasion side by testing CPA for +35° vs -35° turns
+      let bestAvoidOffset = 35.0;
+      let maxCPADist = -Infinity;
 
-      // Proportional avoidance turn angle (20° to 45° max)
-      const avoidOffsetDeg = (cross > 0 ? -1 : 1) * Math.min(45, Math.max(20, (60.0 - minUnsafeDist) * 1.0));
-      const targetAvoidHeading = (this.heading + avoidOffsetDeg + 360) % 360;
+      const testAngles = [35.0, -35.0, 50.0, -50.0];
+      for (const turnAngle of testAngles) {
+        const testHdg = (this.heading + turnAngle + 360) % 360;
+        const testRad = (testHdg * Math.PI) / 180;
+        const testVx = Math.cos(testRad) * Math.max(8.0, spd);
+        const testVy = Math.sin(testRad) * Math.max(8.0, spd);
+
+        // CPA calculation over 5.0 seconds
+        const rvx = testVx - (closestUnsafeIce.vx || 0);
+        const rvy = testVy - (closestUnsafeIce.vy || 0);
+        const rvSq = rvx * rvx + rvy * rvy;
+        let tCPA = 0;
+        if (rvSq > 0.001) {
+          tCPA = Math.max(0, Math.min(5.0, -(closestIceDx * rvx + closestIceDy * rvy) / rvSq));
+        }
+        const cpaDx = closestIceDx + rvx * tCPA;
+        const cpaDy = closestIceDy + rvy * tCPA;
+        const cpaDist = Math.hypot(cpaDx, cpaDy);
+
+        if (cpaDist > maxCPADist) {
+          maxCPADist = cpaDist;
+          bestAvoidOffset = turnAngle;
+        }
+      }
+
+      const targetAvoidHeading = (this.heading + bestAvoidOffset + 360) % 360;
 
       let angleDiff = targetAvoidHeading - this.heading;
       while (angleDiff > 180) angleDiff -= 360;
@@ -909,11 +1068,24 @@ export class Ship {
         state.vessel.rudder = this.rudder;
         state.vessel.targetHeading = targetAvoidHeading;
       }
-      this._inEmergencyAvoidance = true;
       return;
     }
 
-    this._inEmergencyAvoidance = false;
+    if (this._inEmergencyAvoidance) {
+      this._inEmergencyAvoidance = false;
+      this.emergencyEvent = {
+        type: 'emergency_exit',
+        reason: 'HAZARD_CLEARED',
+        timestamp: Date.now()
+      };
+      if (state && state.aiNavigator) {
+        state.aiNavigator.emergencyExits++;
+      }
+      if (state && state.navigation) {
+        state.navigation.navigationMode = 'NORMAL';
+      }
+      console.log(`[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance`);
+    }
   }
 }
 

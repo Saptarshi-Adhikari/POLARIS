@@ -1,10 +1,10 @@
-import routeCalibration from '../../data/routeCalibration.json';
+import routeCalibration from '../../data/routeCalibration.json' with { type: 'json' };
 import { createHierarchicalPlanner } from '../pathfinding/hierarchicalPlanner.js';
 import { llmCopilot } from './llmCopilot.js';
 import { runRoutePlannerCore, isHardBlocked } from './routePlannerCore.js';
 import { DecisionEngine } from './decisionEngine.js';
 import { IcebergPredictionTracker } from './icebergPredictionTracker.js';
-import { getSegmentSpeed, wrappedDelta, wrappedDistanceCoords } from '../utils.js';
+import { getSegmentSpeed, wrappedDelta, wrappedDistanceCoords, calculateIcebergPositionAt } from '../utils.js';
 
 
 const hierarchicalPlanner = createHierarchicalPlanner(3600, 2400, {
@@ -31,6 +31,29 @@ export class AINavigator {
     this.lastValidRoute = [];
     this.hazardZones = [];
     this.riskGrid = [];
+
+    // Phase 5 & 5.1: Planner instrumentation & Canonical route metadata
+    this.plannerCallCount = 0;
+    this.plannerCalls = 0;
+    this.routeGenerationAttempts = 0;
+    this.routeAdoptions = 0;
+    this.routeRejections = 0;
+    this.routeInvalidations = 0;
+    this.emergencyEntries = 0;
+    this.emergencyExits = 0;
+    this.temporalRiskEntries = 0;
+    this.temporalRiskExits = 0;
+    this.uniqueHazards = new Set();
+    this.uniqueReplanEvents = new Set();
+
+    this.temporalRiskState = 'CLEAR'; // 'CLEAR', 'WARNING', 'BLOCKED', 'RESOLVED'
+    this.latchedHazards = new Set();  // Latched hazard keys for current active route
+
+    this.lastPlannerCallSimulationTime = 0;
+    this.routeVersion = 0;
+    this.lastReplanReason = null;
+    this.plannerLogs = [];
+    this.replanEventTrace = [];
 
     // AI Decision Advisor & Strategy Comparison
     this.routeComparisons = null;
@@ -65,6 +88,57 @@ export class AINavigator {
     }
 
     const { waypoints, totalDistance, maxRisk, estimatedDuration, calcTimeMs, dest } = e.data;
+    const currentSimHours = this.currentState?.simulation?.simTimeHours || 0;
+    const prevActiveRoute = this.currentState?.navigation?.activeRoute;
+    const prevRouteId = prevActiveRoute ? (prevActiveRoute.routeId || prevActiveRoute.id) : null;
+    const prevCost = prevActiveRoute ? (prevActiveRoute.plannerCost || prevActiveRoute.totalDistance || Infinity) : Infinity;
+    const prevDuration = prevActiveRoute ? (prevActiveRoute.expectedTravelTime || prevActiveRoute.estimatedDuration || Infinity) : Infinity;
+
+    // 1. CANDIDATE ROUTE VALIDATION BEFORE ADOPTION
+    const icebergs = this.currentIcebergs || [];
+    const shipSpeed = this.currentRealShip ? Math.hypot(this.currentRealShip.vx || 0, this.currentRealShip.vy || 0) || 20 : 20;
+    const valResult = this.validateRoute(waypoints, icebergs, shipSpeed, this.currentState);
+
+    let candidateValid = valResult.valid;
+    let rejectionReason = valResult.reason || null;
+
+    if (!prevActiveRoute) {
+      candidateValid = true;
+    }
+
+
+    // 2. VERIFY 15% COST IMPROVEMENT RULE (if active route is valid/safe)
+    const activeRouteIsInvalid = !prevActiveRoute || prevActiveRoute.status === 'invalid' || this.currentState?.navigation?.routeInvalid;
+    
+    if (candidateValid && !activeRouteIsInvalid && prevActiveRoute && Number.isFinite(prevCost)) {
+      const minRequiredCost = prevCost * 0.85;
+      if (totalDistance >= minRequiredCost && this.lastReplanReason !== 'INITIAL_ROUTE' && this.lastReplanReason !== 'DESTINATION_CHANGED' && this.lastReplanReason !== 'EMERGENCY_COLLISION') {
+        candidateValid = false;
+        rejectionReason = `Cost improvement insufficient (candidate: ${totalDistance.toFixed(1)}, threshold: ${minRequiredCost.toFixed(1)})`;
+      }
+    }
+
+    if (!candidateValid) {
+      this.routeRejections++;
+      this.lastPlannerCallSimulationTime = currentSimHours;
+      if (this.currentState && this.currentState.navigation) {
+        this.currentState.navigation.routeInvalid = false;
+      }
+      const rejectionLog = {
+        event: 'CANDIDATE_REJECTED',
+        simulation_time: currentSimHours,
+        active_route_id: prevRouteId,
+        reason: rejectionReason,
+        candidateCost: totalDistance,
+        activeCost: prevCost
+      };
+      this.plannerLogs.push(rejectionLog);
+      this.replanEventTrace.push(rejectionLog);
+      if (this.plannerLogs.length > 100) this.plannerLogs.shift();
+      return;
+    }
+
+    // 3. CANDIDATE ADOPTION
     this.optimalRoute = waypoints;
     this.lastRouteTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
 
@@ -72,27 +146,55 @@ export class AINavigator {
       this.lastValidRoute = waypoints;
     }
 
-    if (this.currentState && this.currentState.navigation) {
-      this.currentState.navigation.activeRoute = {
-        id: `route_${Date.now()}`,
-        waypoints: waypoints,
+      this.routeVersion = (this.routeVersion || 0) + 1;
+      this.routeAdoptions++;
+      const epIdx = this.currentState?.simulation?.episodeIndex !== undefined ? this.currentState.simulation.episodeIndex : 0;
+      const newRouteId = `route_${epIdx}_${this.routeVersion}`;
+      
+      const newActiveRoute = {
+        routeId: newRouteId,
+        id: newRouteId,
+        waypoints: Object.freeze(waypoints.map(p => ({ x: p.x, y: p.y, riskScore: p.riskScore || 0, status: p.status || 'safe', minClearance: p.minClearance }))),
         rawPath: e.data.rawPath || waypoints,
         smoothPath: waypoints,
         status: 'valid',
         createdAt: performance.now(),
-        expiresAt: performance.now() + 60000,
+        createdAtSimulationTime: currentSimHours,
+        replanReason: this.lastReplanReason || 'INITIAL_ROUTE',
+        plannerCost: totalDistance,
+        expectedTravelTime: estimatedDuration,
+        routeVersion: this.routeVersion,
         totalDistance: totalDistance,
         estimatedDuration: estimatedDuration,
         maxRiskSegment: maxRisk,
         destination: dest
       };
-      this.currentState.navigation.routeCalculated = true;
-      this.currentState.navigation.routeInvalid = false;
 
-      if (this.currentRealShip && this.currentRealShip.setRouteWaypoints) {
-        this.currentRealShip.setRouteWaypoints(waypoints);
+      this.lastDest = dest ? { x: dest.x, y: dest.y } : null;
+      this.lastMode = this.currentState?.navigation?.mode || 'BALANCED';
+      this.currentState.navigation.activeRoute = newActiveRoute;
+      this.currentState.navigation.routeCalculated = true;
+      // Keep latched hazards across candidate adoption to prevent immediate re-invalidation
+
+      // Log structured planner call
+      const logEntry = {
+        event: 'CANDIDATE_ADOPTED',
+        simulation_time: currentSimHours,
+        routeId_before: prevRouteId,
+        routeId_after: newRouteId,
+        reason: this.lastReplanReason || 'INITIAL_ROUTE',
+        candidateCost: totalDistance,
+        activeCost: Number.isFinite(prevCost) ? prevCost : totalDistance,
+        candidateTravelTime: estimatedDuration,
+        activeTravelTime: Number.isFinite(prevDuration) ? prevDuration : estimatedDuration
+      };
+      this.plannerLogs.push(logEntry);
+      this.replanEventTrace.push(logEntry);
+      if (this.plannerLogs.length > 100) this.plannerLogs.shift();
+
+      if (this.currentRealShip && typeof this.currentRealShip.setRouteWaypoints === 'function') {
+        this.currentRealShip.setRouteWaypoints(waypoints, newRouteId);
       }
-    }
   }
 
   initRiskGrid(cols = 20, rows = 15) {
@@ -147,15 +249,21 @@ export class AINavigator {
 
     // 3. Dynamic A* Route Recalculation — only when actively navigating
     const currentTime = performance.now();
+    const currentSimHours = state.simulation?.simTimeHours || 0;
     const dest = state.navigation.destinationPoint || state.navigation.destination || { x: this.width - 400, y: 400 };
     const mode = state.navigation.mode;
 
-    const modeChanged  = this.lastMode !== mode;
+    const modeChanged  = this.lastMode && this.lastMode !== mode;
     const destChanged  = !this.lastDest || Math.hypot(this.lastDest.x - dest.x, this.lastDest.y - dest.y) > 100;
-    const isNavigating = state.navigation.isNavigating;
+    const isNavigating = state.navigation.isNavigating !== false;
     
+    this.currentIcebergs = icebergs;
+
     // Check if the current route is obstructed by moving icebergs
     let isObstructed = false;
+    let blockingIceberg = null;
+    const activeRouteId = state.navigation.activeRoute ? (state.navigation.activeRoute.routeId || state.navigation.activeRoute.id) : 'none';
+
     if (isNavigating && ship.routeWaypoints && ship.routeWaypoints.length > ship.waypointIndex) {
       const remainingRoute = [{x: ship.x, y: ship.y}, ...ship.routeWaypoints.slice(ship.waypointIndex)];
       
@@ -182,7 +290,6 @@ export class AINavigator {
       // Spatial pre-filter: relevant icebergs whose current position or forecast falls within bounding box
       const relevantIcebergs = icebergs.filter(ice => {
         if (ice.x >= minX && ice.x <= maxX && ice.y >= minY && ice.y <= maxY) return true;
-        // Check future positions if available
         if (ice.trajectoryForecast && ice.trajectoryForecast.length > 0) {
           for (const f of ice.trajectoryForecast) {
             if (f.x >= minX && f.x <= maxX && f.y >= minY && f.y <= maxY) return true;
@@ -219,13 +326,12 @@ export class AINavigator {
             const speed = getSegmentSpeed(sx, sy, shipSpeed, relevantIcebergs, turnAngle, state);
             const stepTimeSec = stepLen / speed;
             const etaSample = (accumulatedTimeSec + stepTimeSec / 2) / 3600;
-            const sampleDist = accumulatedDistance + ratio * segLen;
 
-            // Use isHardBlocked with spatially pre-filtered icebergs
-            if (isHardBlocked(sx, sy, etaSample, relevantIcebergs)) {
-              isObstructed = true;
-              if (sampleDist < 150 && state && state.navigation) {
-                state.navigation.routeInvalid = true;
+            for (let ice of relevantIcebergs) {
+              if (isHardBlocked(sx, sy, etaSample, [ice])) {
+                isObstructed = true;
+                blockingIceberg = ice;
+                break;
               }
             }
             accumulatedTimeSec += stepTimeSec;
@@ -244,6 +350,40 @@ export class AINavigator {
       this.obstructionCount = 0;
     }
 
+    // Temporal Risk State Machine & Hazard Invalidation Latching
+    if (isObstructed && blockingIceberg) {
+      this.uniqueHazards.add(blockingIceberg.id);
+      const hazardKey = String(blockingIceberg.id);
+
+      if (!this.latchedHazards.has(hazardKey)) {
+        if (this.temporalRiskState !== 'BLOCKED') {
+          this.temporalRiskEntries++;
+        }
+        this.temporalRiskState = 'BLOCKED';
+        this.latchedHazards.add(hazardKey);
+        this.routeInvalidations++;
+        if (state && state.navigation) {
+          state.navigation.routeInvalid = true;
+        }
+
+        const invLog = {
+          event: 'ROUTE_INVALIDATED',
+          simulation_time: currentSimHours,
+          active_route_id: activeRouteId,
+          hazard_id: blockingIceberg.id,
+          reason: 'TEMPORAL_COLLISION_RISK'
+        };
+        this.plannerLogs.push(invLog);
+        this.replanEventTrace.push(invLog);
+      }
+    } else if (!isObstructed) {
+      if (this.temporalRiskState === 'BLOCKED' || this.temporalRiskState === 'WARNING') {
+        this.temporalRiskExits++;
+        this.temporalRiskState = 'RESOLVED';
+      }
+      this.latchedHazards.clear();
+    }
+
     // ── STEP 2 & 4: CALCULATE CPA AND PERFORM PREDICTIVE AVOIDANCE ──
     let imminentCollisionDetected = false;
     let highestRiskIceberg = null;
@@ -251,11 +391,7 @@ export class AINavigator {
 
     if (isNavigating) {
       for (const ice of icebergs) {
-        // Relative position with world wrapping
-        const { dx: rx, dy: ry } = wrappedDelta(ship.x, ship.y, ice.x, ice.y);
-
-        
-        // Relative velocity
+        const { dx: rx, dy: ry, dist: dCurr } = wrappedDelta(ship.x, ship.y, ice.x, ice.y);
         const rvx = ice.vx - ship.vx;
         const rvy = ice.vy - ship.vy;
         
@@ -266,14 +402,13 @@ export class AINavigator {
         }
         if (tCPA < 0) tCPA = 0;
 
-        // Distance at closest approach
         const futureRx = rx + rvx * tCPA;
         const futureRy = ry + rvy * tCPA;
         const dCPA = Math.sqrt(futureRx * futureRx + futureRy * futureRy);
         const safeMargin = ice.collisionRadius + ship.collisionRadius;
 
-        // Emergency avoidance trigger check
-        if (tCPA > 0 && tCPA < 30 && dCPA < safeMargin * 1.5) {
+        // Genuine imminent collision override threshold: distance < 80 SU, tCPA <= 6.0s, and dCPA < safeMargin
+        if (dCurr < 80 && tCPA > 0 && tCPA <= 6.0 && dCPA < safeMargin) {
           imminentCollisionDetected = true;
           if (tCPA < shortestT_CPA) {
             shortestT_CPA = tCPA;
@@ -284,32 +419,20 @@ export class AINavigator {
     }
 
     if (imminentCollisionDetected && highestRiskIceberg) {
-      console.error('[Autopilot] Emergency collision avoidance override active!');
-      isObstructed = true;
+      this.uniqueHazards.add(highestRiskIceberg.id);
     }
 
-    // Storm Detection & State Transition Check (Part 1)
+    // Storm Detection & State Transition Check
     const stormState = vectorField.getStormState ? vectorField.getStormState(state) : { stormActive: false, severity: 0 };
+    let environmentChanged = false;
     if (this._lastStormActive === undefined) this._lastStormActive = stormState.stormActive;
     if (this._lastStormActive !== stormState.stormActive) {
       this._lastStormActive = stormState.stormActive;
+      environmentChanged = true;
       if (state && state.navigation) state.navigation.routeInvalid = true;
     }
 
-    // Scenario #5 Check: Forecasted Sea-Ice Concentration Trend Replanning
-    if (vectorField.getSeaIceTrendForecast && isNavigating && state && state.navigation) {
-      const forecast24h = vectorField.getSeaIceTrendForecast(ship.x, ship.y, 24);
-      if (forecast24h && forecast24h.predicted > 0.75 && (mode === 'FASTEST' || mode === 'BALANCED')) {
-        if (!this._lastIceTrendWarn) {
-          this._lastIceTrendWarn = true;
-          state.navigation.routeInvalid = true;
-        }
-      } else {
-        this._lastIceTrendWarn = false;
-      }
-    }
-
-    // Iceberg Prediction Accuracy Tracker Update (Part 2)
+    // Iceberg Prediction Accuracy Tracker Update
     if (this.predictionTracker) {
       const simTimeHours = state?.simulation?.simTimeHours || 0;
       for (const ice of icebergs) {
@@ -326,13 +449,61 @@ export class AINavigator {
     const timeSinceLastRoute = currentTime - (this.lastRouteTime || 0);
     const persistentObstructed = isObstructed && (this.obstructionCount || 0) >= 3;
 
-    let needsReroute = isNavigating && (
-      state.navigation.routeInvalid || modeChanged || destChanged || persistentObstructed
-    );
+    // Determine Replan Reason Taxonomy
+    let replanReason = null;
+    if (destChanged) {
+      replanReason = 'DESTINATION_CHANGED';
+    } else if (imminentCollisionDetected) {
+      replanReason = 'EMERGENCY_COLLISION';
+    } else if (state.navigation.routeInvalid || persistentObstructed) {
+      replanReason = isObstructed ? 'TEMPORAL_COLLISION_RISK' : 'ROUTE_GEOMETRY_BLOCKED';
+    } else if (modeChanged || environmentChanged) {
+      replanReason = 'ENVIRONMENT_CHANGED';
+    } else if (this.optimalRoute.length === 0 || !state.navigation.activeRoute) {
+      replanReason = 'INITIAL_ROUTE';
+    }
 
-    if (isNavigating && this.optimalRoute.length === 0) needsReroute = true;
+    // Route Commitment Window (Hysteresis): 5.0 simulation seconds
+    const ROUTE_COMMITMENT_HOURS = 5.0 / 3600;
+    const inCommitmentWindow = (this.lastPlannerCallSimulationTime > 0 && currentSimHours < this.lastPlannerCallSimulationTime + ROUTE_COMMITMENT_HOURS);
 
-    if (needsReroute && (state.navigation.routeInvalid || persistentObstructed || timeSinceLastRoute > 1000)) {
+    // Hysteresis suppression: During commitment window, suppress non-emergency replans
+    let needsReroute = (isNavigating || replanReason === 'INITIAL_ROUTE' || replanReason === 'DESTINATION_CHANGED') && replanReason !== null;
+    if (needsReroute && inCommitmentWindow && replanReason !== 'EMERGENCY_COLLISION' && replanReason !== 'DESTINATION_CHANGED' && replanReason !== 'INITIAL_ROUTE') {
+      needsReroute = false;
+      this.lastReplanSuppressedReason = replanReason;
+    }
+
+    if (needsReroute && (state.navigation.routeInvalid || persistentObstructed || replanReason === 'INITIAL_ROUTE' || replanReason === 'DESTINATION_CHANGED' || replanReason === 'EMERGENCY_COLLISION')) {
+      this.lastReplanReason = replanReason;
+      this.plannerCalls++;
+      this.plannerCallCount++;
+      this.routeGenerationAttempts++;
+
+      const replanEventKey = `${replanReason}_${currentSimHours.toFixed(4)}`;
+      this.uniqueReplanEvents.add(replanEventKey);
+
+      const plannerCallLog = {
+        event: 'PLANNER_CALLED',
+        simulation_time: currentSimHours,
+        trigger_reason: replanReason,
+        reason: replanReason,
+        active_route_id: activeRouteId,
+        routeId_before: activeRouteId,
+        routeId_after: activeRouteId,
+        active_route_age: (currentSimHours - (state.navigation.activeRoute?.createdAtSimulationTime || currentSimHours)) * 3600,
+        commitment_until: this.lastPlannerCallSimulationTime + ROUTE_COMMITMENT_HOURS,
+        commitment_remaining: Math.max(0, (this.lastPlannerCallSimulationTime + ROUTE_COMMITMENT_HOURS - currentSimHours) * 3600),
+        active_route_valid: !state.navigation.routeInvalid,
+        is_obstructed: isObstructed,
+        temporal_collision_risk: this.temporalRiskState === 'BLOCKED',
+        emergency_risk: imminentCollisionDetected,
+        candidateCost: 0,
+        activeCost: state.navigation.activeRoute?.plannerCost || 0
+      };
+      this.plannerLogs.push(plannerCallLog);
+      this.replanEventTrace.push(plannerCallLog);
+
       const pm = typeof window !== 'undefined' && window.simEngine && window.simEngine.perfMonitor;
       if (pm) {
         pm.timeFunction('routePlanning', () => {
@@ -344,6 +515,7 @@ export class AINavigator {
       this.lastRouteTime = currentTime;
       this.lastMode = mode;
       this.lastDest = { x: dest.x, y: dest.y };
+      this.routeCommitmentUntilSimTimeHours = currentSimHours + ROUTE_COMMITMENT_HOURS;
       state.navigation.routeInvalid = false;
     }
 
@@ -384,23 +556,36 @@ export class AINavigator {
   generateOptimalRouteAStar(ship, icebergs, vectorField, dest, mode, state, realShip = null) {
     this.currentState = state;
     this.currentRealShip = realShip || ship;
+    this.plannerCallCount = (this.plannerCallCount || 0) + 1;
+    this.lastPlannerCallSimulationTime = state?.simulation?.simTimeHours || 0;
 
-    if (this.routeWorker) {
-      this.workerRequestId++;
-      this.pendingWorkerRequestId = this.workerRequestId;
-
-      const icebergSnapshots = icebergs.map(ice => ({
+    const icebergSnapshots = icebergs.map(ice => {
+      const vx = ice.vx || 0;
+      const vy = ice.vy || 0;
+      return {
         id: ice.id,
         x: ice.x,
         y: ice.y,
-        vx: ice.vx || 0,
-        vy: ice.vy || 0,
+        vx,
+        vy,
+        heading: ice.heading || 0,
+        speed: Math.hypot(vx, vy),
         collisionRadius: ice.collisionRadius,
         size: ice.size,
         uncertaintyRadius: ice.uncertaintyRadius || ice.collisionRadius,
         uncertaintyGrowthRate: ice.uncertaintyGrowthRate || 0.5,
+        shortHorizonForecast: [0, 5, 10, 20, 30, 60].map(tSec => {
+          const tH = tSec / 3600;
+          const pos = ice.getPositionAt ? ice.getPositionAt(tH) : { x: ice.x + vx * tSec, y: ice.y + vy * tSec, uncertainty: (ice.collisionRadius || 20) + (ice.uncertaintyGrowthRate || 0.5) * tSec };
+          return { tSec, tH, x: pos.x, y: pos.y, uncertainty: pos.uncertainty };
+        }),
         trajectoryForecast: (ice.trajectoryForecast || []).map(f => ({ hour: f.hour || f.time || 0, x: f.x, y: f.y, uncertainty: f.uncertainty }))
-      }));
+      };
+    });
+
+    if (this.routeWorker) {
+      this.workerRequestId++;
+      this.pendingWorkerRequestId = this.workerRequestId;
 
       const payload = {
         requestId: this.workerRequestId,
@@ -428,25 +613,36 @@ export class AINavigator {
       return;
     }
 
-    this.generateOptimalRouteAStarSync(ship, icebergs, vectorField, dest, mode, state, realShip);
+    this.generateOptimalRouteAStarSync(ship, icebergs, vectorField, dest, mode, state, realShip, icebergSnapshots);
   }
 
-  generateOptimalRouteAStarSync(ship, icebergs, vectorField, dest, mode, state, realShip = null) {
+  generateOptimalRouteAStarSync(ship, icebergs, vectorField, dest, mode, state, realShip = null, prebuiltSnapshots = null) {
     this.currentState = state;
     this.currentRealShip = realShip || ship;
 
-    const icebergSnapshots = icebergs.map(ice => ({
-      id: ice.id,
-      x: ice.x,
-      y: ice.y,
-      vx: ice.vx || 0,
-      vy: ice.vy || 0,
-      collisionRadius: ice.collisionRadius,
-      size: ice.size,
-      uncertaintyRadius: ice.uncertaintyRadius || ice.collisionRadius,
-      uncertaintyGrowthRate: ice.uncertaintyGrowthRate || 0.5,
-      trajectoryForecast: (ice.trajectoryForecast || []).map(f => ({ hour: f.hour || f.time || 0, x: f.x, y: f.y, uncertainty: f.uncertainty }))
-    }));
+    const icebergSnapshots = prebuiltSnapshots || icebergs.map(ice => {
+      const vx = ice.vx || 0;
+      const vy = ice.vy || 0;
+      return {
+        id: ice.id,
+        x: ice.x,
+        y: ice.y,
+        vx,
+        vy,
+        heading: ice.heading || 0,
+        speed: Math.hypot(vx, vy),
+        collisionRadius: ice.collisionRadius,
+        size: ice.size,
+        uncertaintyRadius: ice.uncertaintyRadius || ice.collisionRadius,
+        uncertaintyGrowthRate: ice.uncertaintyGrowthRate || 0.5,
+        shortHorizonForecast: [0, 5, 10, 20, 30, 60].map(tSec => {
+          const tH = tSec / 3600;
+          const pos = ice.getPositionAt ? ice.getPositionAt(tH) : { x: ice.x + vx * tSec, y: ice.y + vy * tSec, uncertainty: (ice.collisionRadius || 20) + (ice.uncertaintyGrowthRate || 0.5) * tSec };
+          return { tSec, tH, x: pos.x, y: pos.y, uncertainty: pos.uncertainty };
+        }),
+        trajectoryForecast: (ice.trajectoryForecast || []).map(f => ({ hour: f.hour || f.time || 0, x: f.x, y: f.y, uncertainty: f.uncertainty }))
+      };
+    });
 
     const payload = {
       requestId: ++this.workerRequestId,
@@ -488,7 +684,7 @@ export class AINavigator {
       }
     }
 
-    // 1. Check segment collision intersection — physical collision boundary only.
+    // 1. Check segment collision intersection — physical collision boundary + 15 SU margin.
     let accumulatedDistance = 0;
     for (let i = 0; i < waypoints.length - 1; i++) {
       const ptA = waypoints[i];
@@ -535,6 +731,36 @@ export class AINavigator {
     const straightLine = Math.hypot(waypoints[waypoints.length-1].x - waypoints[0].x, waypoints[waypoints.length-1].y - waypoints[0].y);
     if (totalLen > straightLine * 2.8) {
       return { valid: false, reason: "Route length is excessively inefficient" };
+    }
+
+    // 4. Dynamic Feasibility Check: Maneuvering & Turn Distance
+    if (this.currentRealShip && waypoints.length >= 2) {
+      const shipHdg = this.currentRealShip.heading || 0;
+      const firstSegDx = waypoints[1].x - waypoints[0].x;
+      const firstSegDy = waypoints[1].y - waypoints[0].y;
+      const firstSegLen = Math.hypot(firstSegDx, firstSegDy);
+      const firstSegHdg = (Math.atan2(firstSegDy, firstSegDx) * 180 / Math.PI + 360) % 360;
+
+      let dTurn = Math.abs((firstSegHdg - shipHdg + 180) % 360 - 180);
+      const maxTurnRate = 15.0; // deg/sec
+      const requiredTurnTime = dTurn / maxTurnRate;
+      const currentSpd = Math.max(8.0, shipSpeed);
+      const requiredTurnDist = currentSpd * requiredTurnTime;
+
+      // Find distance to first obstacle on remaining route
+      let availManeuverDist = firstSegLen;
+      for (let ice of icebergs) {
+        const iceRadius = ice.collisionRadius || 20;
+        const dShipIce = Math.hypot(waypoints[0].x - ice.x, waypoints[0].y - ice.y) - (this.currentRealShip.collisionRadius || 15) - iceRadius;
+        if (dShipIce < availManeuverDist) {
+          availManeuverDist = dShipIce;
+        }
+      }
+
+      const safetyMargin = 25.0;
+      if (availManeuverDist < requiredTurnDist + safetyMargin && dTurn > 15.0) {
+        return { valid: false, reason: `Dynamically infeasible turn: required maneuvering dist (${requiredTurnDist.toFixed(1)} SU) exceeds available dist (${availManeuverDist.toFixed(1)} SU)` };
+      }
     }
 
     return { valid: true };

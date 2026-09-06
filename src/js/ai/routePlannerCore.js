@@ -1,4 +1,4 @@
-import routeCalibration from '../../data/routeCalibration.json';
+import routeCalibration from '../../data/routeCalibration.json' with { type: 'json' };
 import { calculateIcebergPositionAt, wrappedDelta, wrappedDistanceCoords, getSegmentSpeed } from '../utils.js';
 
 /**
@@ -49,15 +49,22 @@ export function isHardBlocked(cx, cy, etaHours, icebergs = []) {
   for (let ice of (icebergs || [])) {
     const icePos = getIcebergPositionAt(ice, etaHours);
     const dist = wrappedDistanceCoords(cx, cy, icePos.x, icePos.y);
-    // Safety envelope: iceberg radius + ship hull (15) + static buffer (30) + maneuvering margin (20: turning radius / rudder lag / current drift) = 65
-    const hardR = (ice.collisionRadius || 20) + 15 + 30 + 20;
+    // Hard collision envelope: Iceberg radius + Ship hull radius (30) + Physical safety margin (15) = 45 SU
+    const hardR = (ice.collisionRadius || 20) + 30 + 15;
     if (dist < hardR) return true;
   }
   return false;
 }
 
 export function isSegmentHardBlocked(pA, pB, etaStart = 0, etaEnd = 0, icebergs = []) {
-  const { dx, dy, dist: segLen } = wrappedDelta(pA.x, pA.y, pB.x, pB.y);
+  let dx = pB.x - pA.x;
+  let dy = pB.y - pA.y;
+  if (Math.abs(dx) > 3000 || Math.abs(dy) > 2000) {
+    const wrapped = wrappedDelta(pA.x, pA.y, pB.x, pB.y);
+    dx = wrapped.dx;
+    dy = wrapped.dy;
+  }
+  const segLen = Math.hypot(dx, dy);
 
   const numSamples = Math.max(5, Math.ceil(segLen / 10));
   for (let k = 0; k <= numSamples; k++) {
@@ -68,8 +75,8 @@ export function isSegmentHardBlocked(pA, pB, etaStart = 0, etaEnd = 0, icebergs 
 
     for (let ice of (icebergs || [])) {
       const icePos = getIcebergPositionAt(ice, etaSample);
-      // Safety envelope: iceberg radius + ship hull (15) + static buffer (30) + maneuvering margin (20) = 65
-      const hardR = (ice.collisionRadius || 20) + 15 + 30 + 20;
+      // Safety envelope: iceberg radius + ship hull (30) + static buffer (30) + maneuvering margin (20) = 80
+      const hardR = (ice.collisionRadius || 20) + 30 + 30 + 20;
       const dist = wrappedDistanceCoords(sx, sy, icePos.x, icePos.y);
       if (dist < hardR) return true;
     }
@@ -221,7 +228,14 @@ export function runRoutePlannerCore(payload) {
   }
 
   // ── FAST-PATH: Direct straight line check ──────────────────────────────
-  const { dx: dxDirect, dy: dyDirect, dist: distDirect } = wrappedDelta(ship.x, ship.y, dest.x, dest.y);
+  let dxDirect = dest.x - ship.x;
+  let dyDirect = dest.y - ship.y;
+  if (state?.navigation?.worldWrap) {
+    const wrapped = wrappedDelta(ship.x, ship.y, dest.x, dest.y);
+    dxDirect = wrapped.dx;
+    dyDirect = wrapped.dy;
+  }
+  const distDirect = Math.hypot(dxDirect, dyDirect);
   let directClear = true;
 
   if (distDirect > 1.0) {

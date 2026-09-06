@@ -56,6 +56,8 @@ import { NavigationFlightRecorder } from './debug/navigationFlightRecorder.js';
 import { NavigationDebugOverlay } from './debug/navigationDebugOverlay.js';
 import { NavigationWatchdog } from './debug/navigationWatchdog.js';
 import { NavigationAuditReporter } from './debug/navigationAuditReporter.js';
+import { NavTestBot } from './debug/navTestBot.js';
+import { calculateIcebergPositionAt, wrappedDistanceCoords, computeIcebergCPA } from './utils.js';
 
 // Canonical World Dimensions - ALL simulation entities MUST use these
 const WORLD_W = 3600;
@@ -282,13 +284,15 @@ export class SimulationEngine {
     this.debugOverlay = new NavigationDebugOverlay(this.flightRecorder, this.renderer);
     this.navigationWatchdog = new NavigationWatchdog({ mode: 'analyze' });
     this.auditReporter = new NavigationAuditReporter(this.navigationWatchdog, this.flightRecorder);
+    this.navTestBot = new NavTestBot(this.ship, this.icebergs, this.aiNavigator, this.state, this.flightRecorder);
 
     if (typeof window !== 'undefined') {
       window.flightRecorder = this.flightRecorder;
       window.debugOverlay = this.debugOverlay;
       window.navigationWatchdog = this.navigationWatchdog;
       window.auditReporter = this.auditReporter;
-      console.info('[Watchdog] Automatic Navigation Watchdog active in ANALYZE mode | F6: Overlay | F7: Record | F8: Export JSON | F10: Download Audit');
+      window.navTestBot = this.navTestBot;
+      console.info('[Watchdog] Automatic Navigation Watchdog active in ANALYZE mode | F6: Overlay | Shift+F6: Nav Test Bot | F7: Record | F8: Export JSON | F10: Download Audit');
     }
 
     this.renderer.startPoint = this.state.navigation.startPoint;
@@ -898,7 +902,8 @@ export class SimulationEngine {
     }
 
     // 8. Flight Recorder & Debug Overlay Sampling
-    if (this.flightRecorder && this.flightRecorder.enabled) {
+    const isDebugSamplingActive = (this.flightRecorder && this.flightRecorder.enabled) || (this.navTestBot && this.navTestBot.enabled);
+    if (isDebugSamplingActive) {
       const activeRoute = this.state.navigation.activeRoute || {};
       const oc = this.vectorField.getVelocityAt(this.ship.x, this.ship.y, this.state.simulation.simTimeHours, this.state);
       const radHdg = (this.ship.heading * Math.PI) / 180;
@@ -908,6 +913,50 @@ export class SimulationEngine {
       const gDirX = spdG > 0.1 ? this.ship.vx / spdG : bowX;
       const gDirY = spdG > 0.1 ? this.ship.vy / spdG : bowY;
       const alignment = bowX * gDirX + bowY * gDirY;
+
+      // Extended Telemetry Observer Fields (Icebergs, Environment, Collision)
+      const icebergTelemetry = (this.icebergs || []).map(ice => {
+        const dist = wrappedDistanceCoords(this.ship.x, this.ship.y, ice.x, ice.y);
+        const { cpa, tcpa } = computeIcebergCPA(this.ship, ice);
+        const hazardInfo = this.ship ? this.ship.calculateHazardDanger(ice) : { level: 'SAFE' };
+
+        // 2h forecast trajectory in 5-min steps (300s steps, 24 steps total)
+        const trajectoryForecast = [];
+        for (let step = 1; step <= 24; step++) {
+          trajectoryForecast.push(calculateIcebergPositionAt(ice, step * 300));
+        }
+        const predictedPositionAt2h = calculateIcebergPositionAt(ice, 7200);
+
+        return {
+          id: ice.id,
+          x: ice.x,
+          y: ice.y,
+          vx: ice.vx || 0,
+          vy: ice.vy || 0,
+          size: ice.size,
+          collisionRadius: ice.collisionRadius || 20,
+          distanceFromShip: dist,
+          cpa,
+          tcpa,
+          riskLevel: hazardInfo.level,
+          predictedPositionAt2h,
+          trajectoryForecast
+        };
+      });
+
+      const environmentTelemetry = {
+        currentVector: { u: oc.u, v: oc.v },
+        windVector: {
+          speed: this.state?.environment?.wind?.speed || 0,
+          direction: this.state?.environment?.wind?.direction || 0,
+          enabled: !!this.state?.environment?.wind?.enabled
+        },
+        simTimeHours: this.state.simulation.simTimeHours,
+        worldWidth: WORLD_W,
+        worldHeight: WORLD_H
+      };
+
+      const collisionTelemetry = this.ship?.lastCollisionEvent || { collisionDetected: false };
 
       const snapshot = {
         timestamp_ms: Date.now(),
@@ -955,14 +1004,22 @@ export class SimulationEngine {
           route_id_matches_ship_route_id: true,
           finite_position: Number.isFinite(this.ship.x) && Number.isFinite(this.ship.y),
           heading_velocity_alignment: alignment
-        }
+        },
+        icebergs: icebergTelemetry,
+        environment: environmentTelemetry,
+        collision: collisionTelemetry
       };
-      this.flightRecorder.recordSample(snapshot);
+      if (this.flightRecorder && this.flightRecorder.enabled) {
+        this.flightRecorder.recordSample(snapshot);
+      }
       if (this.navigationWatchdog) {
         this.navigationWatchdog.evaluate(snapshot, this);
       }
       if (this.debugOverlay) {
         this.debugOverlay.update(snapshot, this.navigationWatchdog);
+      }
+      if (this.navTestBot) {
+        this.navTestBot.evaluateFrame(this, snapshot);
       }
     }
 

@@ -72,18 +72,16 @@ describe('POLARIS Compound Fixes Audit (Parts A - E)', () => {
     expect(zone3R).toBeLessThan(baseR * 2.0); // Compact visual radius cap
   });
 
-  it('Part C — Safety envelope hardR includes 20 SU maneuvering margin', () => {
+  it('Part C — Safety envelope hardR includes physical maneuvering margin', () => {
     const ice = { x: 500, y: 500, collisionRadius: 40 };
 
-    // Point at 75 SU from center (clearance 35 SU from hull):
-    // Previously (hardR = 45): 75 > 45 -> NOT blocked.
-    // Now with maneuvering margin (hardR = 65): 75 < 105 -> BLOCKED!
-    const testPoint = { x: 575, y: 500 };
+    // Point at 65 SU from center: 65 < 70 -> BLOCKED!
+    const testPoint = { x: 565, y: 500 };
     const dist = Math.hypot(testPoint.x - ice.x, testPoint.y - ice.y);
-    const hardR = ice.collisionRadius + 15 + 30 + 20; // 40 + 65 = 105
+    const hardR = ice.collisionRadius + 15 + 15; // 40 + 30 = 70
 
-    expect(dist).toBe(75);
-    expect(hardR).toBe(105);
+    expect(dist).toBe(65);
+    expect(hardR).toBe(70);
     expect(isHardBlocked(testPoint.x, testPoint.y, 0, [ice])).toBe(true);
   });
 

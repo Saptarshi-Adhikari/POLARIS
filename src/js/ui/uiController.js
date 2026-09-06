@@ -258,6 +258,18 @@ export class UIController {
         });
     }
 
+
+
+    // AI Overlay Toggle
+    const aiOverlayToggle = document.getElementById('ai-overlay-toggle');
+    if (aiOverlayToggle) {
+      aiOverlayToggle.addEventListener('change', (e) => {
+        if (this.engine && this.engine.renderer) {
+          this.engine.renderer.showAIOverlay = e.target.checked;
+        }
+      });
+    }
+
     // Canvas click delegation for Context Panel
     if (this.engine.renderer.canvas) {
         this.engine.renderer.canvas.addEventListener('click', () => {
@@ -657,6 +669,7 @@ export class UIController {
   }
 
   updateTelemetry(ship, aiNavigator, simTimeHours) {
+    this.updateAutonomousHUD();
     ship = ship || this.engine.ship;
     aiNavigator = aiNavigator || this.engine.aiNavigator;
     const aiNav = aiNavigator;
@@ -774,6 +787,50 @@ export class UIController {
         ? `${Math.hypot(state.navigation.destinationPoint.x - ship.x, state.navigation.destinationPoint.y - ship.y).toFixed(0)} SU`
         : '0 SU';
     }
+
+    // --- Live Voyage Stats HUD ---
+    const voySpeedEl = document.getElementById('voy-speed');
+    const voyFuelEl  = document.getElementById('voy-fuel');
+    const voyDistEl  = document.getElementById('voy-dist');
+    const voyEtaEl   = document.getElementById('voy-eta');
+    if (voySpeedEl && voyFuelEl && voyDistEl && voyEtaEl) {
+      // Speed in knots (already computed by ship.js)
+      voySpeedEl.innerText = ship.speedKnots.toFixed(1);
+
+      // Fuel percentage
+      const fuelPct = ship.fuel.toFixed(1);
+      voyFuelEl.innerText = fuelPct;
+      voyFuelEl.className = ship.fuel < 20
+        ? 'text-error font-bold ml-0.5'
+        : 'text-secondary font-bold ml-0.5';
+
+      // Distance to destination in SU
+      let distToDest = null;
+      if (state.navigation.destinationPoint) {
+        distToDest = Math.hypot(
+          state.navigation.destinationPoint.x - ship.x,
+          state.navigation.destinationPoint.y - ship.y
+        );
+        voyDistEl.innerText = distToDest.toFixed(0);
+      } else if (state.navigation.activeRoute && state.navigation.activeRoute.directDestinationDistance != null) {
+        distToDest = state.navigation.activeRoute.directDestinationDistance;
+        voyDistEl.innerText = distToDest.toFixed(0);
+      } else {
+        voyDistEl.innerText = '—';
+      }
+
+      // ETA in simulation-time minutes: dist (SU) / speed (SU/s) / 60 → sim-seconds → sim-minutes
+      // timeScale converts wall-clock seconds to sim-seconds
+      const currentSpeedSU = Math.hypot(ship.vx, ship.vy);
+      if (distToDest !== null && currentSpeedSU > 0.5) {
+        const simSecsRemaining = distToDest / currentSpeedSU;
+        const simMinsRemaining = simSecsRemaining / 60;
+        voyEtaEl.innerText = simMinsRemaining > 9999 ? '∞' : simMinsRemaining.toFixed(0);
+      } else {
+        voyEtaEl.innerText = distToDest !== null && distToDest < 35 ? '0' : '∞';
+      }
+    }
+
 
     // Update Hazard Warnings List
     const hazardListEl = document.getElementById('hazard-list');
@@ -1980,5 +2037,95 @@ export class UIController {
         `;
       }).join('');
     }
+  }
+
+  updateAutonomousHUD() {
+    const hud = document.getElementById('autonomous-nav-hud');
+    if (!hud) return;
+
+    const bot = this.engine.navTestBot;
+    const ship = this.engine.ship;
+    const nav = this.engine.aiNavigator;
+    const activeRoute = this.engine.state?.navigation?.activeRoute;
+    const simTimeSec = ((this.engine.state?.simulation?.simTimeHours || 0) * 3600).toFixed(1);
+
+    const setEl = (id, text, className) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = text;
+        if (className) el.className = className;
+      }
+    };
+
+    let statusText = 'IDLE';
+    let statusClass = 'px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-600 uppercase tracking-wide';
+
+    if (ship && ship.lastCollisionEvent && ship.lastCollisionEvent.collisionDetected) {
+      statusText = 'COLLISION';
+      statusClass = 'px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-600 uppercase tracking-wide animate-pulse';
+    } else if (ship && (ship.autopilotStatus === 'ARRIVED' || ship._currentGuidanceMode === 'DESTINATION_REACHED')) {
+      statusText = 'ARRIVAL';
+      statusClass = 'px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-400 border border-cyan-600 uppercase tracking-wide';
+    } else if (ship && ship._inEmergencyAvoidance) {
+      statusText = 'EVASION';
+      statusClass = 'px-2 py-0.5 rounded text-[10px] font-bold bg-red-950 text-red-400 border border-red-600 uppercase tracking-wide animate-bounce';
+    } else if (ship && (ship._inRecoveryMode || ship._currentGuidanceMode === 'ROUTE_RECOVERY')) {
+      statusText = 'CAUTION';
+      statusClass = 'px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-400 border border-amber-600 uppercase tracking-wide';
+    } else if (bot && bot.enabled) {
+      statusText = 'RUNNING';
+      statusClass = 'px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-600 uppercase tracking-wide';
+    }
+
+    setEl('hud-nav-status-badge', statusText, statusClass);
+
+    const epName = bot && bot.currentEpisode ? `${bot.currentEpisode.scenarioClass || 'OPEN WATER'}` : 'DEMO EPISODE';
+    setEl('hud-ep-name', epName, 'font-bold text-sky-200 truncate');
+
+    setEl('hud-sim-time', `${simTimeSec} s`);
+    const wps = ship ? (ship.routeWaypoints || []) : [];
+    const wpIdx = ship ? (ship.waypointIndex || 0) : 0;
+    setEl('hud-waypoint', `${wpIdx}/${wps.length}`);
+    setEl('hud-route-id', activeRoute ? (activeRoute.id || 'r_active') : 'r_none');
+
+    const tgtHdg = ship && ship.targetHeading !== undefined ? Math.round(ship.targetHeading) : (ship ? Math.round(ship.heading) : 0);
+    const actHdg = ship ? Math.round(ship.heading) : 0;
+    setEl('hud-tgt-hdg', `${String((tgtHdg % 360 + 360) % 360).padStart(3, '0')}°`);
+    setEl('hud-act-hdg', `${String((actHdg % 360 + 360) % 360).padStart(3, '0')}°`);
+
+    const spd = ship ? Math.hypot(ship.vx, ship.vy).toFixed(1) : '0.0';
+    setEl('hud-speed', `${spd} SU/s`);
+    const rud = ship ? ship.rudder.toFixed(1) : '0.0';
+    setEl('hud-rudder', `${rud > 0 ? '+' : ''}${rud}°`);
+    const xte = ship ? (ship.crossTrackError || 0).toFixed(1) : '0.0';
+    setEl('hud-xte', `${xte > 0 ? '+' : ''}${xte} SU`);
+
+    let minClearance = Infinity;
+    let minCpa = Infinity;
+    const icebergs = this.engine.icebergs || [];
+    if (ship && icebergs.length > 0) {
+      for (let ice of icebergs) {
+        const d = Math.hypot(ship.x - ice.x, ship.y - ice.y);
+        const clearance = d - (ship.collisionRadius || 15) - (ice.collisionRadius || 20);
+        if (clearance < minClearance) {
+          minClearance = clearance;
+          minCpa = d;
+        }
+      }
+    }
+
+    const clearanceStr = Number.isFinite(minClearance) ? `${Math.round(minClearance)} SU` : 'N/A';
+    const cpaStr = Number.isFinite(minCpa) ? `${Math.round(minCpa)} SU` : 'N/A';
+    setEl('hud-clearance', clearanceStr, minClearance < 50 ? 'font-bold text-rose-400' : 'font-bold text-sky-300');
+    setEl('hud-cpa', cpaStr);
+
+    const riskLevel = minClearance < 50 ? 'EMERGENCY' : (minClearance < 120 ? 'HIGH' : (minClearance < 250 ? 'MEDIUM' : 'SAFE'));
+    const riskColor = minClearance < 50 ? 'font-bold text-rose-400' : (minClearance < 120 ? 'font-bold text-amber-400' : 'font-bold text-emerald-400');
+    setEl('hud-risk', riskLevel, riskColor);
+
+    const replanCount = nav ? (nav.plannerCalls || 0) : 0;
+    setEl('hud-replans', `${replanCount}`);
+    const actionStr = ship ? (ship.autopilotStatus || ship._currentGuidanceMode || 'NORMAL') : 'NORMAL';
+    setEl('hud-action', actionStr, 'font-bold text-sky-400 truncate');
   }
 }

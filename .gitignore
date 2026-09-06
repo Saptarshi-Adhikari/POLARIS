@@ -4,3 +4,11 @@ __pycache__/
 *.pyc
 .env
 .DS_Store
+scratch/test_dataset/
+scratch/test_datasets_v2/
+scratch/exports/
+scratch/collision_export_test/
+scratch/phase6_batch_dataset/
+scratch/test_analyzer_fixtures/
+scratch/*.json
+datasets/

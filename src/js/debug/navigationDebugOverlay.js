@@ -18,7 +18,7 @@ export class NavigationDebugOverlay {
   setupKeyboardShortcuts() {
     if (typeof window === 'undefined') return;
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'F6') {
+      if (e.key === 'F6' && !e.shiftKey) {
         e.preventDefault();
         this.toggleOverlay();
       } else if (e.key === 'F7') {

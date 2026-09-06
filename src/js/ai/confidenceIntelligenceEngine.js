@@ -1,4 +1,4 @@
-import uncertaintyCalibration from '../../data/uncertaintyCalibration.json';
+import uncertaintyCalibration from '../../data/uncertaintyCalibration.json' with { type: 'json' };
 
 export class ConfidenceIntelligenceEngine {
   constructor(engine) {
