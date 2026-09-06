@@ -73,6 +73,35 @@ export class AINavigator {
       try {
         this.routeWorker = new Worker(new URL('./routeWorker.js', import.meta.url), { type: 'module' });
         this.routeWorker.onmessage = (e) => this.handleWorkerResponse(e);
+        // PRODUCTION FIX: onerror fires when Worker fails to LOAD or execute at the script level.
+        // new Worker() does NOT throw synchronously in this case — it succeeds and then fires onerror.
+        // Without this handler, routeWorker stays non-null, postMessage goes to a dead worker,
+        // handleWorkerResponse is never called, and activeRoute is never set (green route never renders).
+        // This silent failure happens on Vercel (static CDN) but NOT in Vite dev mode.
+        this.routeWorker.onerror = (err) => {
+          console.warn('[AINavigator] Web Worker failed to load/execute, falling back to synchronous mode:', err?.message || err);
+          if (this.routeWorker) {
+            this.routeWorker.onmessage = null;
+            this.routeWorker.onerror = null;
+            try { this.routeWorker.terminate(); } catch (e) { /* ignore */ }
+          }
+          this.routeWorker = null;
+          // Immediately replay the last pending request synchronously so the route is not lost
+          if (this.currentState && this.currentRealShip && this.pendingWorkerRequestId !== null) {
+            const dest = this.currentState.navigation?.destinationPoint || this.currentState.navigation?.destination;
+            if (dest) {
+              this.generateOptimalRouteAStarSync(
+                this.currentRealShip,
+                this.currentIcebergs || [],
+                null,
+                dest,
+                this.currentState.navigation?.mode || 'BALANCED',
+                this.currentState,
+                this.currentRealShip
+              );
+            }
+          }
+        };
       } catch (err) {
         console.warn('Web Worker initialization fallback to synchronous mode:', err);
         this.routeWorker = null;
