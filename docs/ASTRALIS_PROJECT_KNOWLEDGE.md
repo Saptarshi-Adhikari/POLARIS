@@ -122,14 +122,20 @@ The control model splits responsibilities between physics updates and determinis
 
 - **Planning Nodes**: Start and destination points are selected using canvas space coordinates and translated to world space.
 - **A* Pathfinding Grid**: Works on a $48 \times 32$ cell grid mapping the $3600 \times 2400$ world space.
+- **Web Worker Async Architecture**: Path calculations are offloaded to an asynchronous Web Worker (`routeWorker.js`).
+  - **2.5s Timeout Fallback**: Includes a 2500ms safety timer; if the worker times out or fails (`routeWorker.onerror`), `AINavigator` automatically triggers synchronous fallback (`generateOptimalRouteAStarSync`) to ensure uninterrupted route generation.
+  - **Replan Storm & Worker Request Guard**: Prevents 60Hz dispatch loops while a calculation is in flight (`this.pendingWorkerRequestId !== null`), discarding stale responses and maintaining stability.
+  - **Trigger Taxonomy & Breakdown**: Tracks trigger reasons (`INITIAL_ROUTE`, `DESTINATION_CHANGED`, `EMERGENCY_COLLISION`, `TEMPORAL_COLLISION_RISK`, `ROUTE_GEOMETRY_BLOCKED`, `ENVIRONMENT_CHANGED`) exposed via UI elements.
 - **Navigation Cost Grid**:
   - Default cell cost is $1.0$.
   - Iceberg avoidance cost: Any cell intersecting an iceberg's safety envelope (radius + margin) is penalized with a cost of $+100,000$ (representing impassable obstacles). Adjacent safety envelopes have gradient-shaded costs.
   - Sea Ice penalty: Cost is scaled by concentration $\times 10 \times \text{modeCostMult}$.
-- **Mode Differences**:
-  - `SHORTEST`: Iceberg penalty multiplier = 0.5, Sea ice penalty multiplier = 0.2.
-  - `BALANCED`: Iceberg penalty multiplier = 1.0, Sea ice penalty multiplier = 1.0.
-  - `SAFEST`: Iceberg penalty multiplier = 5.0, Sea ice penalty multiplier = 3.0.
+- **4 Candidate Strategy Modes & Comparison Cards**:
+  - `ROUTE A — FASTEST`: Optimizes for travel speed and distance.
+  - `ROUTE B — BALANCED`: Balances travel speed, fuel efficiency, and iceberg clearance (Default recommended mode).
+  - `ROUTE C — SAFEST`: Maximizes iceberg clearance margins and avoids high-density sea ice fields.
+  - `ROUTE D — FUEL EFFICIENT`: Minimizes throttle burn and sea ice resistance.
+- **Multi-Route Comparison Card UI**: Displays all 4 candidate routes side-by-side in a collapsible panel within the NAV PANEL's ROUTE tab (`routeComparisonUI.js` & `featurePanel.js`), presenting Distance (km/SU), Time (`Xh Ym`), Fuel (`% remaining`), and Risk (`%`), accompanied by an AI Recommendation callout box labeled `"Rule-Based Weighted Scoring"`.
 - **Route Smoothing**: A line-of-sight path pruning algorithm (ray-casts between waypoints to check for iceberg intersections) eliminates redundant zig-zag patterns, resulting in clean navigation lines.
 
 ---
@@ -165,18 +171,23 @@ The control model splits responsibilities between physics updates and determinis
 
 ---
 
-## 10. CAMERA AND MAP SYSTEM
+## 10. CAMERA, MAP & RADAR DISPLAY MODES
 
 - **Viewport Projection**: Camera maps world space $(0..3600, 0..2400)$ into screen pixels.
+- **PPI Radar Monitor Display**: Alternate Plan Position Indicator radar display (`drawRadarView` in `canvasRenderer.js`).
+  - **Aesthetic & Sweep**: Ship at center, 30 RPM (1.8 rad/s) rotating radar beam, phosphor green monochrome theme with multi-segment trail glow.
+  - **Target Blips & Range Rings**: Renders iceberg blips at actual range & bearing, 4 range rings ($500, 1000, 1500, 2000$ SU), and cardinal labels ($000^{\circ}\text{N}, 090^{\circ}\text{E}, 180^{\circ}\text{S}, 270^{\circ}\text{W}$).
+  - **Readout Panel**: Canvas status readout box positioned at $(x: 16, y: 68)$ below `#minimal-overlay-controls` showing ship heading, speed (kts), contact count, hazard count, and sweep rate.
 - **Globe Overview**: When zoomed out past scale $0.25$, projects coordinates onto a Polar Orthographic projection grid centered in the middle of the screen.
-- **Zoom & Panning**: Supports wheel scaling, left-click map dragging, and follow ship mode. Right-clicks pan the map canvas unless initiated on panel headers.
+- **Zoom & Panning**: Supports wheel scaling, left-click map dragging, and follow ship mode.
 
 ---
 
-## 11. UI SYSTEM
+## 11. UI SYSTEM & FEATURE PANEL
 
-- **Draggable & Collapsible Panels**: Includes floating tool panels with minimized header toggles. Uses a custom right-click click-and-drag listener that intercepts events on headers, preventing map pan conflicts.
-- **System Modifiers**: Controls for winds, currents, and sea ice values immediately update global simulation states and trigger route recalculations.
+- **POLARIS Feature Panel**: Right-side 5-tab collapsible sidebar (`ROUTE`, `HAZARDS`, `ENV`, `VOYAGE`, `DEMO`) managed by `FeaturePanel` (`featurePanel.js`).
+- **Multi-Route Comparison Section**: Expandable `<details>` section in `ROUTE` tab displaying 4 candidate route cards (`ROUTE A` to `ROUTE D`) and AI recommendation callout box (`routeComparisonUI.js`).
+- **Top Overlay Controls**: Fixed top-left bar (`#minimal-overlay-controls`) housing Sea-Ice Trend selector, Iceberg Trajectories toggle, Active Mode dropdown, Worker Status indicator, and `📡 RADAR VIEW` toggle button.
 
 ---
 

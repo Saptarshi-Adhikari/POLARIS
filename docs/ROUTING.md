@@ -1,16 +1,14 @@
-# Routing
+# Routing & Multi-Strategy Pathfinding
 
-**Classification:** HEURISTIC / SIMULATED.
+**Classification:** MULTI-STRATEGY A* / WEB WORKER OFFLOADED.
 
-## Algorithm Details
-The routing is handled by `src/js/ai/aiNavigator.js`. It uses a discrete grid overlaid on the continuous canvas space.
+## Pathfinding Architecture
+Routing is calculated via `src/js/ai/aiNavigator.js` and offloaded to a Web Worker (`src/js/workers/routeWorker.js`).
 
-- **Start Point:** Ship's current (X,Y).
-- **Destination:** A fixed (X,Y) point on the canvas (usually top-right).
-- **Neighbor Selection:** 8-way movement on the grid.
-- **Cost Function:** Distance traveled + Heuristic (Euclidean distance to goal) + Hazard Penalty (Proximity to icebergs).
-- **Obstacle Handling:** Iceberg radii are treated as high-cost or impassable nodes.
-- **Dynamic Behavior:** The `SimulationEngine` calls `evaluate()` periodically. If an iceberg drifts over the current path, the path cost skyrockets, triggering a full recalculation.
-- **Visualization:** `canvasRenderer.js` draws a line through the returned waypoint array.
+- **Grid Resolution:** Discrete 2D grid overlaid on continuous canvas space.
+- **Offloaded Pathfinding:** Route calculations execute asynchronously in `routeWorker.js` to eliminate main thread UI freeze.
+- **Fallback Protection:** 2.5s timeout timer & `onerror` handler in `aiNavigator.js` fall back to synchronous pathfinding if the Web Worker fails or hangs.
+- **Storm Prevention Guard:** `pendingWorkerRequestId` prevents redundant calculation dispatches while a worker request is active.
+- **Strategy Candidate Evaluation:** `computeRouteStrategy()` generates 4 candidate modes (`FASTEST`, `BALANCED`, `SAFEST`, `FUEL_EFFICIENT`), passed to `DecisionEngine` for weighted multi-factor scoring.
+- **Multi-Route Choice UI:** `src/js/ui/routeComparisonUI.js` renders candidate cards (`ROUTE A` to `ROUTE D`) and AI recommendation callout box.
 
-This is a real pathfinding algorithm, but it operates on fake/simulated data.

@@ -40,17 +40,18 @@ State is mutable and managed entirely within the `SimulationEngine` class instan
 ## 7. Responsive Behavior
 Limited. The layout uses CSS Grid/Flexbox for the sidebars, but resizing the window mid-simulation can desync the canvas drawing context scale from the CSS layout scale.
 
-## 8. Specific UI Elements
+## 8. Specific UI Elements & Render Modes
 
-- **Environmental Sliders:** 
-  - UI text: "WIND SPEED", "CURRENT SPEED"
+- **PPI Radar Monitor Display (`drawRadarView`)**:
+  - UI Source: `src/js/render/canvasRenderer.js`
+  - Logic: Toggled via `📡 RADAR VIEW` button in top overlay bar. Renders ship-centered Plan Position Indicator display with 30 RPM rotating sweep, phosphor green monochrome theme, target blip contacts, range rings, and canvas status readout box at `(x: 16, y: 68)` below top overlay controls.
+- **Multi-Route Comparison Cards (`RouteComparisonUI`)**:
+  - UI Source: `src/js/ui/routeComparisonUI.js`, `featurePanel.js`, `index.html`
+  - Logic: Collapsible details container in NAV PANEL's ROUTE tab rendering 4 candidate route cards (`ROUTE A` to `ROUTE D`) with Distance (km/SU), Time (`Xh Ym`), Fuel (`% remaining`), and Risk (`%`), along with AI Recommendation callout box labeled `"Rule-Based Weighted Scoring"`.
+- **Top Surfacing Overlay Controls (`#minimal-overlay-controls`)**:
+  - UI Source: `index.html`, `uiController.js`, `aiNavigator.js`
+  - Logic: Fixed top-left bar displaying Sea-Ice Trend selector, Iceberg Trajectories checkbox, Active Mode dropdown, Worker Status indicator with trigger breakdown, and RADAR VIEW toggle button.
+- **Reroute Alert Banner**:
+  - UI text: "🚨 REROUTE RECOMMENDED..."
   - Source: `index.html`, `uiController.js`
-  - Logic: Input event updates the corresponding property in `vectorField.js`.
-- **Reroute Alert Banner:**
-  - UI text: "🚨 EXISTING ROUTE NO LONGER OPTIMAL..."
-  - Source: `index.html`, `uiController.js`
-  - Logic: Triggered by `uiController.showRerouteAlert()` when the AI recalculates a drastically different path length.
-- **Synthetic Data Engine Logs:**
-  - UI text: "GENERATED: SCENARIO-X..."
-  - Source: `uiController.js`
-  - Logic: Simply appends hardcoded DOM strings with randomized numbers when the button is clicked. NO DATA IS ACTUALLY GENERATED.
+  - Logic: Triggered by `uiController.showRerouteAlert()` when a hazard invalidates the active route or high-risk collision is detected.
