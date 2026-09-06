@@ -1,0 +1,8 @@
+{
+  "source": "SOSE/NSIDC Antarctic Synthetic Reanalysis",
+  "resolution": "10km",
+  "timeSteps": 3,
+  "gridWidth": 3600,
+  "gridHeight": 2400,
+  "created": "2026-09-06"
+}
