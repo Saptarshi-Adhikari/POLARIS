@@ -10,11 +10,16 @@
 import { SCHEMA_VERSION, TerminationReason, EventLabel, validateEpisodeData } from './datasetSchema.js';
 
 function getNodeModule(name) {
+  if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
+    return null;
+  }
   if (typeof process !== 'undefined' && process.versions && process.versions.node) {
     try {
-      const getReq = new Function('return typeof require !== "undefined" ? require : null');
-      const req = getReq();
-      if (req) return req(name);
+      if (typeof process.getBuiltinModule === 'function') {
+        return process.getBuiltinModule(name);
+      }
+      const getReq = new Function('name', 'try { return require(name); } catch(e) { return null; }');
+      return getReq(name);
     } catch (e) {
       return null;
     }
@@ -38,6 +43,9 @@ export class DatasetAnalyzer {
     const invalidEpisodes = [];
     const filesScanned = [];
 
+    if (!fs) {
+      throw new Error('Node.js fs module is unavailable in this environment');
+    }
     if (!fs.existsSync(dirPath)) {
       throw new Error(`Directory does not exist: ${dirPath}`);
     }
