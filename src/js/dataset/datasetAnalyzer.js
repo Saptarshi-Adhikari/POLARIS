@@ -7,9 +7,23 @@
  * uniformity/sample-size flags, and training readiness recommendations).
  */
 
-import fs from 'fs';
-import path from 'path';
 import { SCHEMA_VERSION, TerminationReason, EventLabel, validateEpisodeData } from './datasetSchema.js';
+
+function getNodeModule(name) {
+  if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+    try {
+      const getReq = new Function('return typeof require !== "undefined" ? require : null');
+      const req = getReq();
+      if (req) return req(name);
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
+const fs = getNodeModule('fs');
+const path = getNodeModule('path');
 
 export class DatasetAnalyzer {
   constructor(options = {}) {

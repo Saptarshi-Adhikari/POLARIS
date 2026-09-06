@@ -20,7 +20,7 @@ describe('Real Dataset Generation & Safety Analysis', () => {
 
     // 1. Clean existing dataset directory
     if (fs.existsSync(baseDir)) {
-      fs.rmSync(baseDir, { recursive: true, force: true });
+      fs.rmSync(baseDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
     fs.mkdirSync(episodesDir, { recursive: true });
 
