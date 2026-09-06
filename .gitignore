@@ -13,3 +13,5 @@ scratch/test_analyzer_fixtures/
 scratch/*.json
 scratch/*.js
 datasets/
+
+.vercel

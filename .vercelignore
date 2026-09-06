@@ -1,0 +1,16 @@
+node_modules
+dist
+.git
+datasets
+scratch
+training
+tests
+graphify-out
+src/js/graphify-out
+*.md
+*.py
+*.pyc
+*.json
+!package.json
+!package-lock.json
+!vercel.json
