@@ -59,6 +59,19 @@ export class UIController {
   }
 
   attachEventListeners() {
+    const toggleRadarBtn = document.getElementById('toggle-radar-btn');
+    if (toggleRadarBtn) {
+      toggleRadarBtn.addEventListener('click', () => {
+        if (this.engine && this.engine.renderer) {
+          const isRadar = !this.engine.renderer.isRadarView;
+          this.engine.renderer.isRadarView = isRadar;
+          toggleRadarBtn.classList.toggle('bg-secondary/20', isRadar);
+          toggleRadarBtn.classList.toggle('border-secondary', isRadar);
+          toggleRadarBtn.classList.toggle('text-secondary', isRadar);
+        }
+      });
+    }
+
     // Drawer Logic
     if (this.toggleEnvDrawerBtn && this.envDrawer) {
       this.toggleEnvDrawerBtn.addEventListener('click', (e) => {

@@ -101,6 +101,18 @@
         <option value="FUEL_EFFICIENT">FUEL_EFFICIENT</option>
       </select>
     </div>
+    <div class="flex items-center space-x-1.5 border-r border-outline/30 pr-3">
+      <span class="text-on-surface font-medium flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm text-secondary">memory</span> Worker:
+      </span>
+      <span id="worker-status-text" class="text-secondary font-bold text-[11px]">READY</span>
+    </div>
+    <div class="flex items-center space-x-1.5 border-r border-outline/30 pr-3">
+      <button id="toggle-radar-btn" class="flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container text-on-surface hover:text-secondary border border-outline/40 cursor-pointer font-bold text-xs transition-all">
+        <span class="material-symbols-outlined text-sm text-secondary">radar</span>
+        <span>RADAR VIEW</span>
+      </button>
+    </div>
     <div class="flex items-center space-x-1.5 pl-1">
       <span class="text-on-surface font-medium flex items-center gap-1">
         <span class="material-symbols-outlined text-sm text-secondary">security</span> Risk:
@@ -228,11 +240,19 @@
           <div id="fp-scores-table" class="space-y-0"></div>
         </div>
 
-        <!-- Route Comparison -->
-        <div>
-          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-2">A* Path Planning — Mode Comparison</div>
-          <div id="fp-route-comparison"></div>
-        </div>
+        <!-- Route Comparison Cards (Collapsible) -->
+        <details id="fp-route-comp-details" class="group border border-outline/30 rounded-lg bg-surface-container/40 overflow-hidden" open>
+          <summary class="cursor-pointer font-bold flex items-center justify-between p-3 select-none hover:bg-surface-container/60 transition-colors">
+            <span class="text-[10px] text-on-surface-variant uppercase tracking-wider flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm text-secondary">compare_arrows</span>
+              Multi-Route Comparison Cards
+            </span>
+            <span class="material-symbols-outlined text-sm text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
+          </summary>
+          <div class="p-3 pt-0">
+            <div id="fp-route-comparison"></div>
+          </div>
+        </details>
       </div>
 
       <!-- ─── HAZARDS TAB ────────────────────────────────────────────── -->

@@ -70,8 +70,8 @@ describe('Web Worker Timeout & Late Response Guard', () => {
     // Synchronous fallback should have executed
     expect(state.navigation.activeRoute).not.toBeNull();
     expect(state.navigation.activeRoute.status).toBe('valid');
-    // Sync fallback creates a new request ID (2) to adopt the route
-    expect(aiNav.pendingWorkerRequestId).toBe(2);
+    // Sync fallback creates and adopts the route, clearing pendingWorkerRequestId to null
+    expect(aiNav.pendingWorkerRequestId).toBeNull();
 
     vi.useRealTimers();
   });

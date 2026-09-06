@@ -56,10 +56,12 @@ export class CanvasRenderer {
     this.destinationPoint = null;
     this.showAIOverlay    = true;
 
-    // Production mode: hide internal guidance debug vectors (cyan/lime heading lines,
-    // blue lookahead circle). Set to true to restore for debugging.
-    // Underlying navigation calculations continue running regardless of this flag.
+    // Production mode: hide internal guidance debug vectors
     this.SHOW_NAV_DEBUG_VECTORS = false;
+
+    // PPI Radar View state
+    this.isRadarView = false;
+    this.radarSweepAngle = 0;
 
     this.initIceBlobTextures();
     this.resizeCanvas();
@@ -141,6 +143,16 @@ export class CanvasRenderer {
     if (ctx && typeof ctx.setTransform === 'function') {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, this.width, this.height);
+    }
+
+    if (this.isRadarView) {
+      try {
+        this.drawRadarView(ctx, ship, icebergs, aiNavigator, simTimeHours, dt, state);
+      } catch (e) {
+        console.warn("drawRadarView failed", e);
+      }
+      this.drawHUD(ctx, ship, state);
+      return;
     }
 
     this.wavePhase += dt * (vectorField.stormMode ? 4 : 1.5);
@@ -1011,8 +1023,10 @@ export class CanvasRenderer {
     this.canvas.addEventListener('mouseup',    (e) => this.handleMouseUp(e));
     this.canvas.addEventListener('mouseleave', ()  => this.handleMouseUp());
     this.canvas.addEventListener('wheel',      (e) => this.handleWheel(e), { passive: false });
-    window.addEventListener('keydown',   (e) => { if (e.code === 'Space') { this.spaceHeld = true; e.preventDefault(); } });
-    window.addEventListener('keyup',     (e) => { if (e.code === 'Space') this.spaceHeld = false; });
+    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.addEventListener('keydown',   (e) => { if (e.code === 'Space') { this.spaceHeld = true; e.preventDefault(); } });
+      window.addEventListener('keyup',     (e) => { if (e.code === 'Space') this.spaceHeld = false; });
+    }
     this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
@@ -1032,6 +1046,7 @@ export class CanvasRenderer {
 
   handleWheel(e) {
     e.preventDefault();
+    if (this.isRadarView) return;
     const screenPos = this.getMousePos(e);
     const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
     this.camera.zoomAt(screenPos.x, screenPos.y, this.camera.zoom * factor);
@@ -1039,6 +1054,7 @@ export class CanvasRenderer {
   }
 
   handleMouseDown(e) {
+    if (this.isRadarView) return;
     const screenPos = this.getMousePos(e);
     const worldPos  = this.screenToWorld(screenPos.x, screenPos.y);
 
@@ -1244,5 +1260,306 @@ export class CanvasRenderer {
       }
     }
     ctx.restore();
+  }
+
+  // ── Plan Position Indicator (PPI) Radar Renderer Mode ─────────────────
+  drawRadarView(ctx, ship, icebergs, aiNavigator, simTimeHours, dt, state) {
+    if (!ctx || !ship) return;
+
+    // 1. Smooth, continuous rotating radar beam sweep
+    this.radarSweepAngle = ((this.radarSweepAngle || 0) + dt * 1.8) % (Math.PI * 2);
+
+    const width = this.width;
+    const height = this.height;
+    const cx = width / 2;
+    const cy = height / 2;
+    const radarRadius = Math.min(width, height) * 0.38;
+    const maxRangeSU = 2000; // 2000 world units display range
+
+    ctx.save();
+
+    // 2. Full Canvas Dark Background
+    ctx.fillStyle = '#020904';
+    ctx.fillRect(0, 0, width, height);
+
+    // 3. Circular Radar Screen Bezel & Background
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, radarRadius, 0, Math.PI * 2);
+    ctx.clip();
+
+    // Phosphor Green Radial Gradient
+    const radarGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radarRadius);
+    radarGrad.addColorStop(0, '#062612');
+    radarGrad.addColorStop(0.7, '#03170b');
+    radarGrad.addColorStop(1, '#020d06');
+    ctx.fillStyle = radarGrad;
+    ctx.fillRect(cx - radarRadius, cy - radarRadius, radarRadius * 2, radarRadius * 2);
+
+    // 4. Concentric Range Rings (500, 1000, 1500, 2000 SU)
+    const rings = [0.25, 0.50, 0.75, 1.0];
+    ctx.strokeStyle = 'rgba(34, 197, 94, 0.25)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+
+    rings.forEach((rRatio, idx) => {
+      const r = radarRadius * rRatio;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Distance Label
+      ctx.fillStyle = 'rgba(74, 222, 128, 0.6)';
+      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(`${(idx + 1) * 500} SU (${((idx + 1) * 0.5).toFixed(1)} NM)`, cx + 8, cy - r + 12);
+    });
+    ctx.setLineDash([]); // Reset dash
+
+    // 5. Cardinal Axis & Compass Markings (N / E / S / W + 30 deg ticks)
+    ctx.strokeStyle = 'rgba(34, 197, 94, 0.3)';
+    ctx.lineWidth = 1;
+    for (let a = 0; a < 360; a += 30) {
+      const rad = (a * Math.PI) / 180 - Math.PI / 2;
+      const innerR = a % 90 === 0 ? 0 : radarRadius * 0.92;
+      const outerR = radarRadius;
+      ctx.beginPath();
+      ctx.moveTo(cx + innerR * Math.cos(rad), cy + innerR * Math.sin(rad));
+      ctx.lineTo(cx + outerR * Math.cos(rad), cy + outerR * Math.sin(rad));
+      ctx.stroke();
+    }
+
+    // 6. Trailing Sweep Sector (Phosphor Afterglow Trail)
+    const trailAngle = Math.PI / 4; // 45 degree trail
+    const numSteps = 16;
+    for (let i = 0; i < numSteps; i++) {
+      const alpha = (1 - i / numSteps) * 0.18;
+      const segStart = this.radarSweepAngle - (i + 1) * (trailAngle / numSteps);
+      const segEnd   = this.radarSweepAngle - i * (trailAngle / numSteps);
+      ctx.fillStyle = `rgba(34, 197, 94, ${alpha.toFixed(3)})`;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, radarRadius, segStart, segEnd);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // 7. Bright Rotating Sweep Beam Line
+    const sweepX = cx + radarRadius * Math.cos(this.radarSweepAngle);
+    const sweepY = cy + radarRadius * Math.sin(this.radarSweepAngle);
+    ctx.strokeStyle = '#4ade80';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = '#4ade80';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(sweepX, sweepY);
+    ctx.stroke();
+    ctx.shadowBlur = 0; // Reset shadow
+
+    // 8. Active Route Line on Radar (Faint dashed green)
+    const activeRoute = state?.navigation?.activeRoute;
+    if (activeRoute && activeRoute.waypoints && activeRoute.waypoints.length > 0) {
+      ctx.strokeStyle = 'rgba(74, 222, 128, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      let first = true;
+      for (const wpt of activeRoute.waypoints) {
+        const rdx = wpt.x - ship.x;
+        const rdy = wpt.y - ship.y;
+        const rDist = Math.hypot(rdx, rdy);
+        const rBearing = Math.atan2(rdy, rdx);
+        const rRatio = Math.min(1.0, rDist / maxRangeSU);
+        const rSx = cx + rRatio * radarRadius * Math.cos(rBearing);
+        const rSy = cy + rRatio * radarRadius * Math.sin(rBearing);
+        if (first) { ctx.moveTo(rSx, rSy); first = false; }
+        else { ctx.lineTo(rSx, rSy); }
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // 9. Destination Marker on Radar
+    if (this.destinationPoint) {
+      const ddx = this.destinationPoint.x - ship.x;
+      const ddy = this.destinationPoint.y - ship.y;
+      const dDist = Math.hypot(ddx, ddy);
+      const dBearing = Math.atan2(ddy, ddx);
+      const dRatio = Math.min(1.0, dDist / maxRangeSU);
+      const dSx = cx + dRatio * radarRadius * Math.cos(dBearing);
+      const dSy = cy + dRatio * radarRadius * Math.sin(dBearing);
+
+      ctx.strokeStyle = '#fcd34d';
+      ctx.fillStyle = 'rgba(252, 211, 77, 0.2)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(dSx, dSy, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#fcd34d';
+      ctx.font = 'bold 9px "JetBrains Mono", monospace';
+      ctx.fillText('DEST', dSx + 8, dSy + 3);
+    }
+
+    // 10. Iceberg Radar Blips (with Sweep Afterglow & Hazard Detection)
+    let hazardCount = 0;
+    if (icebergs && icebergs.length > 0) {
+      for (const ice of icebergs) {
+        const idx = ice.x - ship.x;
+        const idy = ice.y - ship.y;
+        const iDist = Math.hypot(idx, idy);
+        if (iDist > maxRangeSU * 1.1) continue; // Skip far icebergs
+
+        const iBearing = Math.atan2(idy, idx);
+        const iRatio = Math.min(1.0, iDist / maxRangeSU);
+        const blipX = cx + iRatio * radarRadius * Math.cos(iBearing);
+        const blipY = cy + iRatio * radarRadius * Math.sin(iBearing);
+
+        // Check if blip was recently swept over
+        let deltaAngle = (this.radarSweepAngle - iBearing + Math.PI * 2) % (Math.PI * 2);
+        let afterglow = 0;
+        if (deltaAngle < Math.PI / 3) {
+          afterglow = 1.0 - (deltaAngle / (Math.PI / 3));
+        }
+
+        // Danger threshold: if distance < 350 SU
+        const isDangerous = iDist < 350;
+        if (isDangerous) hazardCount++;
+
+        const blipSize = Math.max(4, (ice.collisionRadius || 25) * (radarRadius / maxRangeSU) * 1.5);
+
+        ctx.save();
+        if (isDangerous) {
+          // Red / Amber Warning Blip
+          ctx.fillStyle = '#ef4444';
+          ctx.shadowColor = '#ef4444';
+          ctx.shadowBlur = 10 + afterglow * 8;
+          ctx.beginPath();
+          ctx.arc(blipX, blipY, blipSize + 1, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Pulsing Hazard Halo Ring
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(blipX, blipY, blipSize + 6 + Math.sin(simTimeHours * 1000) * 2, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = '#fca5a5';
+          ctx.font = 'bold 9px "JetBrains Mono", monospace';
+          ctx.fillText(`! ${ice.id || 'HAZARD'} (${Math.round(iDist)}u)`, blipX + blipSize + 4, blipY + 3);
+        } else {
+          // Green Phosphor Contact Blip
+          const alpha = 0.6 + afterglow * 0.4;
+          ctx.fillStyle = `rgba(74, 222, 128, ${alpha.toFixed(2)})`;
+          ctx.shadowColor = '#4ade80';
+          ctx.shadowBlur = 4 + afterglow * 10;
+          ctx.beginPath();
+          ctx.arc(blipX, blipY, blipSize, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (afterglow > 0.3) {
+            ctx.fillStyle = 'rgba(187, 247, 208, 0.9)';
+            ctx.font = '8px "JetBrains Mono", monospace';
+            ctx.fillText(`${Math.round(iDist)}u`, blipX + blipSize + 3, blipY + 3);
+          }
+        }
+        ctx.restore();
+      }
+    }
+
+    // 11. Center Ship Icon & Heading Line (North-Up PPI Display)
+    ctx.save();
+    // Ship Center Dot
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Ship Heading Vector Line
+    const shipHdegRad = (ship.heading * Math.PI) / 180;
+    const shipLineX = cx + 35 * Math.cos(shipHdegRad);
+    const shipLineY = cy + 35 * Math.sin(shipHdegRad);
+
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(shipLineX, shipLineY);
+    ctx.stroke();
+
+    // Bow Arrow Indicator
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(shipLineX, shipLineY, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('V-ALPHA', cx, cy + 16);
+    ctx.restore();
+
+    ctx.restore(); // Unclip
+
+    // 12. Outer Radar Bezel Ring & Degree Scale
+    ctx.strokeStyle = '#15803d';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radarRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Bezel Glow
+    ctx.strokeStyle = 'rgba(34, 197, 94, 0.3)';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radarRadius + 2, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Cardinal Degree Labels around Bezel
+    ctx.fillStyle = '#4ade80';
+    ctx.font = 'bold 11px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('000° (N)', cx, cy - radarRadius - 14);
+    ctx.fillText('180° (S)', cx, cy + radarRadius + 14);
+    ctx.textAlign = 'left';
+    ctx.fillText('090° (E)', cx + radarRadius + 10, cy);
+    ctx.textAlign = 'right';
+    ctx.fillText('270° (W)', cx - radarRadius - 10, cy);
+
+    // 13. Radar Header & Live Status Box (Top-Left On-Screen Info — positioned below top overlay bar)
+    ctx.save();
+    ctx.fillStyle = 'rgba(6, 20, 12, 0.85)';
+    ctx.strokeStyle = 'rgba(34, 197, 94, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    if (typeof ctx.roundRect === 'function') {
+      ctx.roundRect(16, 68, 250, 95, 6);
+    } else {
+      ctx.rect(16, 68, 250, 95);
+    }
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#4ade80';
+    ctx.font = 'bold 11px "JetBrains Mono", monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('📡 PPI RADAR MONITOR', 26, 76);
+
+    ctx.fillStyle = '#a7f3d0';
+    ctx.font = '10px "JetBrains Mono", monospace';
+    ctx.fillText(`MODE: NORTH-UP (2000 SU / 2.0 NM)`, 26, 92);
+    ctx.fillText(`SHIP HDG: ${Math.round(ship.heading || 0)}° | SPD: ${(ship.speedKnots || 0).toFixed(1)} kts`, 26, 106);
+    ctx.fillText(`CONTACTS: ${(icebergs || []).length} (${hazardCount} HAZARDS)`, 26, 120);
+    ctx.fillText(`SWEEP RATE: 30 RPM (1.8 rad/s)`, 26, 134);
+    ctx.restore();
+
+    ctx.restore(); // Final Restore
   }
 }

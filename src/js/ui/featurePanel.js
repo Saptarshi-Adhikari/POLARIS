@@ -14,6 +14,7 @@
  */
 
 import { PlanningMode } from '../render/canvasRenderer.js';
+import { renderRouteComparisonHTML } from './routeComparisonUI.js';
 
 export class FeaturePanel {
   constructor(engine) {
@@ -239,31 +240,12 @@ export class FeaturePanel {
     const container = document.getElementById('fp-route-comparison');
     if (!container || !aiNav || !aiNav.routeComparisons) return;
     const rc = aiNav.routeComparisons;
-    const key = JSON.stringify(rc);
+    const rec = aiNav.aiRecommendation;
+    const shipFuel = this.engine && this.engine.ship ? this.engine.ship.fuel : 100;
+    const key = JSON.stringify({ rc, recMode: rec?.recommendedMode, fuel: shipFuel });
     if (this._cache['fp-rc-key'] === key) return;
     this._cache['fp-rc-key'] = key;
-    const fmt = (r) => {
-      if (!r) return '<span class="text-on-surface-variant text-[10px]">No data</span>';
-      const eta  = r.eta!==undefined ? r.eta.toFixed(1) : (r.estimatedDuration!==undefined?r.estimatedDuration.toFixed(1):'—');
-      const risk = r.maxRisk!==undefined ? (r.maxRisk*100).toFixed(0) : (r.icebergRisk!==undefined?(r.icebergRisk*100).toFixed(0):'—');
-      const fuel = r.estimatedFuelConsumption!==undefined ? r.estimatedFuelConsumption.toFixed(0) : (r.fuel!==undefined?r.fuel.toFixed(0):'—');
-      return '<div class="grid grid-cols-3 gap-1 text-[10px] text-on-surface-variant mt-0.5">'
-        + '<span>ETA <span class="text-on-surface font-bold">' + eta + 'h</span></span>'
-        + '<span>Risk <span class="text-on-surface font-bold">' + risk + '%</span></span>'
-        + '<span>Fuel <span class="text-on-surface font-bold">' + fuel + '</span></span>'
-        + '</div>';
-    };
-    const rows = [
-      {label:'FASTEST',       color:'text-sky-400',     data:rc.shortest||rc.fastest},
-      {label:'BALANCED',      color:'text-secondary',   data:rc.balanced},
-      {label:'SAFEST',        color:'text-emerald-400', data:rc.safest},
-      {label:'FUEL EFFICIENT',color:'text-amber-400',   data:rc.fuelEfficient}
-    ];
-    container.innerHTML = rows.map(({label,color,data}) =>
-      '<div class="bg-surface-container/50 rounded p-2 border border-outline/20 mb-1.5">'
-      + '<div class="' + color + ' text-[10px] font-bold uppercase tracking-wider">' + label + '</div>'
-      + fmt(data) + '</div>'
-    ).join('');
+    container.innerHTML = renderRouteComparisonHTML(rc, rec, shipFuel);
   }
 
   _updateHazardsTab() {

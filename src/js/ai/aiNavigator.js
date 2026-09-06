@@ -69,6 +69,16 @@ export class AINavigator {
     this.currentRealShip = null;
     this.routeWorker = null;
 
+    this.triggerReasonCounts = {
+      INITIAL_ROUTE: 0,
+      DESTINATION_CHANGED: 0,
+      EMERGENCY_COLLISION: 0,
+      TEMPORAL_COLLISION_RISK: 0,
+      ROUTE_GEOMETRY_BLOCKED: 0,
+      ENVIRONMENT_CHANGED: 0,
+      MANUAL: 0
+    };
+
     if (typeof window !== 'undefined' && typeof Worker !== 'undefined') {
       try {
         this.routeWorker = new Worker(new URL('./routeWorker.js', import.meta.url), { type: 'module' });
@@ -111,10 +121,33 @@ export class AINavigator {
     this.initRiskGrid(20, 15);
   }
 
+  updateWorkerStatusUI(statusText, isFallback = false) {
+    this.lastWorkerStatus = statusText;
+    if (typeof document !== 'undefined') {
+      const el = document.getElementById('worker-status-text');
+      if (el) {
+        el.textContent = statusText;
+        el.className = isFallback
+          ? 'text-amber-400 font-bold text-[11px]'
+          : 'text-secondary font-bold text-[11px]';
+
+        if (this.triggerReasonCounts) {
+          const breakdown = Object.entries(this.triggerReasonCounts)
+            .filter(([, count]) => count > 0)
+            .map(([reason, count]) => `${reason}:${count}`)
+            .join(' | ');
+          el.title = breakdown ? `Route Triggers: ${breakdown}` : 'Worker status';
+        }
+      }
+    }
+  }
+
   handleWorkerResponse(e) {
     if (!e.data || e.data.requestId !== this.pendingWorkerRequestId) {
       return; // Ignore stale worker response
     }
+
+    this.pendingWorkerRequestId = null;
 
     if (this.workerTimeoutTimer) {
       clearTimeout(this.workerTimeoutTimer);
@@ -122,6 +155,7 @@ export class AINavigator {
     }
 
     const { waypoints, totalDistance, maxRisk, estimatedDuration, calcTimeMs, dest } = e.data;
+    this.updateWorkerStatusUI(`OK (${Math.round(calcTimeMs || 0)}ms)`);
     const currentSimHours = this.currentState?.simulation?.simTimeHours || 0;
     const prevActiveRoute = this.currentState?.navigation?.activeRoute;
     const prevRouteId = prevActiveRoute ? (prevActiveRoute.routeId || prevActiveRoute.id) : null;
@@ -508,7 +542,16 @@ export class AINavigator {
       this.lastReplanSuppressedReason = replanReason;
     }
 
+    // Pending Worker Request Guard: If a worker calculation is already in flight, do NOT fire non-emergency replans
+    if (needsReroute && this.pendingWorkerRequestId !== null && replanReason !== 'EMERGENCY_COLLISION' && replanReason !== 'DESTINATION_CHANGED') {
+      needsReroute = false;
+      this.lastReplanSuppressedReason = 'WORKER_CALCULATION_PENDING';
+    }
+
     if (needsReroute && (state.navigation.routeInvalid || persistentObstructed || replanReason === 'INITIAL_ROUTE' || replanReason === 'DESTINATION_CHANGED' || replanReason === 'EMERGENCY_COLLISION')) {
+      if (this.triggerReasonCounts) {
+        this.triggerReasonCounts[replanReason || 'MANUAL'] = (this.triggerReasonCounts[replanReason || 'MANUAL'] || 0) + 1;
+      }
       this.lastReplanReason = replanReason;
       this.plannerCalls++;
       this.plannerCallCount++;
@@ -621,6 +664,7 @@ export class AINavigator {
       this.workerRequestId++;
       this.pendingWorkerRequestId = this.workerRequestId;
       const currentReqId = this.workerRequestId;
+      this.updateWorkerStatusUI(`WAITING (#${currentReqId})`);
 
       if (this.workerTimeoutTimer) {
         clearTimeout(this.workerTimeoutTimer);
@@ -632,6 +676,7 @@ export class AINavigator {
         if (this.pendingWorkerRequestId === currentReqId) {
           console.warn(`[AINavigator] Web Worker route calculation timed out (2500ms) for request #${currentReqId}. Falling back to synchronous A* generation.`);
           this.pendingWorkerRequestId = null; // Mark request as stale so any late worker response is ignored
+          this.updateWorkerStatusUI('FALLBACK (TIMEOUT 2.5s)', true);
           this.generateOptimalRouteAStarSync(ship, icebergs, vectorField, dest, mode, state, realShip, icebergSnapshots);
         }
       }, 2500);
@@ -668,6 +713,11 @@ export class AINavigator {
   generateOptimalRouteAStarSync(ship, icebergs, vectorField, dest, mode, state, realShip = null, prebuiltSnapshots = null) {
     this.currentState = state;
     this.currentRealShip = realShip || ship;
+    if (this.routeWorker) {
+      this.updateWorkerStatusUI('FALLBACK (SYNC ROUTE)', true);
+    } else {
+      this.updateWorkerStatusUI('SYNC MODE');
+    }
 
     const icebergSnapshots = prebuiltSnapshots || icebergs.map(ice => {
       const vx = ice.vx || 0;
