@@ -16,6 +16,7 @@ import { AINavigator } from './ai/aiNavigator.js';
 import { CanvasRenderer, PlanningMode } from './render/canvasRenderer.js';
 import { UIController } from './ui/uiController.js';
 import { AIClient } from './ui/aiClient.js';
+import { FeaturePanel } from './ui/featurePanel.js';
 import { AutonomousController } from './ai/autonomousController.js';
 import { ScenarioManager } from './simulation/scenarioManager.js';
 import { ValidationEngine } from './simulation/validationEngine.js';
@@ -163,6 +164,7 @@ export class SimulationEngine {
     };
 
     this.uiController = new UIController(this);
+    this.featurePanel = new FeaturePanel(this);
     this.aiClient = new AIClient(this);
     this.autonomousController = new AutonomousController(this);
     this.riskIntelligenceEngine = new RiskIntelligenceEngine(this);
@@ -421,6 +423,9 @@ export class SimulationEngine {
   }
 
   setPlanningMode(mode) {
+    if (mode !== PlanningMode.NONE && this.renderer) {
+      this.renderer.addIcebergMode = false;
+    }
     this.state.navigation.planningMode = mode;
     this.renderer.planningMode = mode;
     const labels = {
@@ -899,6 +904,12 @@ export class SimulationEngine {
       this.uiController.updateTelemetry();
     } catch (e) {
       console.warn('[Telemetry Update Failed]', e);
+    }
+
+    try {
+      if (this.featurePanel) this.featurePanel.update(timestamp);
+    } catch (e) {
+      console.warn('[Feature Panel Update Failed]', e);
     }
 
     // 8. Flight Recorder & Debug Overlay Sampling

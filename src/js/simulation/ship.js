@@ -880,17 +880,22 @@ export class Ship {
       // CRITICAL HAZARD: Imminent collision — safety/emergency stop overrides current compensation
       finalThrottle = 0;
     } else if (maxDangerScore === 3) {
-      // HIGH HAZARD: Cap at 15% OR current-aware floor if current would push vessel backward
+      // HIGH HAZARD: Cap throttle to 30% max to prevent overspeed into hazard, allowing current floor up to 30% for steerage
       const hazardCap = 15;
-      finalThrottle = Math.min(finalThrottle, Math.max(hazardCap, effectiveCurrentFloor));
+      const cappedFloor = Math.min(30, effectiveCurrentFloor);
+      finalThrottle = Math.min(finalThrottle, Math.max(hazardCap, cappedFloor));
     } else if (maxDangerScore === 2) {
-      // MEDIUM HAZARD: Cap at 30% OR current-aware floor
+      // MEDIUM HAZARD: Cap throttle to 45% max
       const hazardCap = 30;
-      finalThrottle = Math.min(finalThrottle, Math.max(hazardCap, effectiveCurrentFloor));
+      const cappedFloor = Math.min(45, effectiveCurrentFloor);
+      finalThrottle = Math.min(finalThrottle, Math.max(hazardCap, cappedFloor));
     } else if (maxDangerScore === 1) {
-      // LOW HAZARD: Cap at 45% OR current-aware floor
+      // LOW HAZARD: Cap at 45% OR current-aware floor for positive steerage way
       const hazardCap = 45;
       finalThrottle = Math.min(finalThrottle, Math.max(hazardCap, effectiveCurrentFloor));
+    } else {
+      // CLEAR / NO HAZARD: Apply current compensation floor for positive steerage way
+      finalThrottle = Math.max(finalThrottle, effectiveCurrentFloor);
     }
 
     // 4. Sea Ice Concentration Limits
@@ -969,7 +974,8 @@ export class Ship {
 
   checkEmergencyAvoidance(dt, icebergs, state) {
     const spd = Math.hypot(this.vx, this.vy);
-    const lookAheadSec = 6.0;
+    const currentSpd = state?.environment?.ocean?.currentSpeed || 0;
+    const lookAheadSec = Math.max(6.0, 6.0 + currentSpd * 0.15);
     const radHeading = (this.heading * Math.PI) / 180;
     const fwdX = Math.cos(radHeading);
     const fwdY = Math.sin(radHeading);
@@ -980,7 +986,8 @@ export class Ship {
     let closestIceDy = 0;
 
     for (let ice of icebergs) {
-      const safeRadius = (ice.collisionRadius || 20) + this.collisionRadius + 15.0;
+      const currentMargin = Math.min(25.0, currentSpd * 0.8);
+      const safeRadius = (ice.collisionRadius || 20) + this.collisionRadius + 15.0 + currentMargin;
       const { dx: iceDx, dy: iceDy } = wrappedDelta(this.x, this.y, ice.x, ice.y);
       const iceUnwrappedX = this.x + iceDx;
       const iceUnwrappedY = this.y + iceDy;

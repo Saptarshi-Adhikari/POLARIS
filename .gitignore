@@ -11,4 +11,5 @@ scratch/collision_export_test/
 scratch/phase6_batch_dataset/
 scratch/test_analyzer_fixtures/
 scratch/*.json
+scratch/*.js
 datasets/

@@ -109,8 +109,337 @@
     </div>
   </div>
 
-  <!-- Floating Minimal AI Decision Advisor & Route Comparison Panel -->
-  <div id="ai-decision-panel" class="fixed top-4 right-4 z-40 w-80 bg-surface/90 backdrop-blur-md px-4 py-3 rounded-lg border border-outline/40 shadow-xl text-xs font-mono select-none">
+  <!-- Feature Panel Toggle Button (top-right) -->
+  <button id="fp-toggle-btn" class="fixed top-4 right-4 z-50 flex items-center gap-2 bg-surface/95 backdrop-blur-md border border-outline/40 px-3 py-1.5 rounded-lg shadow-xl text-xs font-mono text-secondary hover:bg-surface-container transition-all select-none">
+    <span class="material-symbols-outlined text-base">dashboard</span>
+    <span class="uppercase tracking-wider font-bold">NAV PANEL</span>
+  </button>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       POLARIS FEATURE PANEL — Right-side collapsible tabbed sidebar
+       5 Tabs: ROUTE | HAZARDS | ENVIRONMENT | VOYAGE | SCENARIOS
+       ═══════════════════════════════════════════════════════════════════ -->
+  <div id="feature-panel" class="fixed top-0 right-0 h-full w-96 z-40 bg-surface/98 backdrop-blur-xl border-l border-outline/40 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 select-none">
+
+    <!-- Panel Header -->
+    <div class="flex items-center justify-between px-4 py-3 border-b border-outline/40 bg-surface-container/60 shrink-0">
+      <div>
+        <div class="text-secondary font-bold text-sm tracking-wider flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">satellite_alt</span>
+          ASTRALIS NAV-OS
+        </div>
+        <div class="text-[10px] text-on-surface-variant uppercase tracking-widest mt-0.5">Antarctic Navigation Console</div>
+      </div>
+      <button id="fp-close-btn" class="text-on-surface-variant hover:text-on-surface transition-colors">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="flex border-b border-outline/40 bg-surface-container/40 shrink-0 text-[10px] font-bold">
+      <button id="fp-tab-btn-route"     class="flex-1 py-2.5 px-1 flex flex-col items-center gap-0.5 border-b-2 border-secondary text-secondary transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-sm">route</span><span class="uppercase tracking-wider">Route</span>
+      </button>
+      <button id="fp-tab-btn-hazards"   class="flex-1 py-2.5 px-1 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-sm">warning</span><span class="uppercase tracking-wider">Hazards</span>
+      </button>
+      <button id="fp-tab-btn-env"       class="flex-1 py-2.5 px-1 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-sm">cloud</span><span class="uppercase tracking-wider">Env</span>
+      </button>
+      <button id="fp-tab-btn-voyage"    class="flex-1 py-2.5 px-1 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-sm">explore</span><span class="uppercase tracking-wider">Voyage</span>
+      </button>
+      <button id="fp-tab-btn-scenarios" class="flex-1 py-2.5 px-1 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-sm">play_circle</span><span class="uppercase tracking-wider">Demo</span>
+      </button>
+    </div>
+
+    <!-- Tab Contents -->
+    <div class="flex-1 overflow-y-auto">
+
+      <!-- ─── ROUTE TAB ──────────────────────────────────────────────── -->
+      <div id="fp-tab-route" class="p-4 space-y-4 text-xs font-mono">
+
+        <!-- Start / Destination Placement UI -->
+        <div class="bg-surface-container rounded-lg p-3 border border-outline/30 space-y-2">
+          <div class="flex items-center justify-between text-[10px] text-on-surface-variant uppercase tracking-wider mb-1">
+            <span>Route Placement Control</span>
+            <span id="fp-placement-mode-indicator" class="text-[9px] px-1.5 py-0.5 rounded bg-outline/20 text-on-surface-variant font-bold">MODE: NONE</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-1.5">
+            <button id="fp-set-start-btn" class="w-full bg-secondary/10 hover:bg-secondary/20 text-secondary border border-secondary/40 text-[10px] py-1.5 rounded font-bold transition-colors flex items-center justify-center gap-1">
+              <span>📍 SET START</span>
+            </button>
+            <button id="fp-set-dest-btn" class="w-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/40 text-[10px] py-1.5 rounded font-bold transition-colors flex items-center justify-center gap-1">
+              <span>🎯 SET DEST</span>
+            </button>
+          </div>
+
+          <button id="fp-place-vessel-btn" class="w-full bg-surface-container-high hover:bg-outline/20 text-on-surface border border-outline/40 text-[10px] py-1.5 rounded font-bold transition-colors flex items-center justify-center gap-1">
+            <span>🚢 PLACE VESSEL AT START</span>
+          </button>
+
+          <!-- Numeric Readouts -->
+          <div class="pt-1.5 border-t border-outline/20 grid grid-cols-3 gap-1 text-[9px] font-mono text-on-surface-variant">
+            <div class="bg-surface/60 p-1.5 rounded text-center">
+              <div class="text-[8px] text-on-surface-variant/70 uppercase">START</div>
+              <div id="fp-start-coords" class="font-bold text-secondary text-[10px]">(400, 1800)</div>
+            </div>
+            <div class="bg-surface/60 p-1.5 rounded text-center">
+              <div class="text-[8px] text-on-surface-variant/70 uppercase">DEST</div>
+              <div id="fp-dest-coords" class="font-bold text-primary text-[10px]">(3200, 400)</div>
+            </div>
+            <div class="bg-surface/60 p-1.5 rounded text-center">
+              <div class="text-[8px] text-on-surface-variant/70 uppercase">VESSEL</div>
+              <div id="fp-vessel-coords" class="font-bold text-on-surface text-[10px]">(400, 1800)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode Selector -->
+        <div>
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-1.5">Active Navigation Mode · A* Path Planning</div>
+          <select id="fp-mode-selector" class="w-full bg-surface-container text-secondary border border-secondary/40 rounded px-2 py-1.5 text-xs font-bold focus:outline-none focus:border-secondary cursor-pointer">
+            <option value="FASTEST">FASTEST</option>
+            <option value="BALANCED" selected>BALANCED</option>
+            <option value="SAFEST">SAFEST</option>
+            <option value="FUEL_EFFICIENT">FUEL EFFICIENT</option>
+          </select>
+        </div>
+
+        <!-- AI Recommendation -->
+        <div class="bg-surface-container rounded-lg p-3 border border-outline/30">
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-1.5">Rule-Based Weighted Scoring · Recommendation</div>
+          <div class="flex items-center justify-between">
+            <span id="fp-rec-mode" class="font-bold text-sm text-secondary">BALANCED</span>
+            <span id="fp-rec-conf" class="text-[10px] px-1.5 py-0.5 rounded bg-secondary/20 text-secondary border border-secondary/30 font-bold">92% CONF</span>
+          </div>
+        </div>
+
+        <!-- Explanation text -->
+        <div class="text-[11px] leading-relaxed text-on-surface/90 bg-surface-container/50 p-2.5 rounded border border-outline/20">
+          <p id="fp-explanation">Awaiting route calculation...</p>
+        </div>
+
+        <!-- Scores Table -->
+        <div>
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-2">Strategy Scores (Rule-Based Weighted Scoring)</div>
+          <div id="fp-scores-table" class="space-y-0"></div>
+        </div>
+
+        <!-- Route Comparison -->
+        <div>
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-2">A* Path Planning — Mode Comparison</div>
+          <div id="fp-route-comparison"></div>
+        </div>
+      </div>
+
+      <!-- ─── HAZARDS TAB ────────────────────────────────────────────── -->
+      <div id="fp-tab-hazards" class="hidden p-4 space-y-4 text-xs font-mono">
+
+        <!-- Reroute status -->
+        <div class="flex items-center justify-between bg-surface-container rounded p-2.5 border border-outline/30">
+          <span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Avoidance Status</span>
+          <span id="fp-reroute-status" class="text-secondary text-[11px]">NOMINAL</span>
+        </div>
+
+        <!-- Active hazards -->
+        <div>
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-2">Active Hazard Warnings</div>
+          <div id="fp-hazard-list"><div class="text-on-surface-variant text-[11px] py-2">No immediate hazards detected.</div></div>
+        </div>
+
+        <!-- Iceberg tracker -->
+        <div>
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-2">Kalman-Filter Trajectory Prediction · Tracked Objects</div>
+          <div id="fp-iceberg-list"><div class="text-on-surface-variant text-[11px] py-2">Scanning...</div></div>
+        </div>
+      </div>
+
+      <!-- ─── ENVIRONMENT TAB ────────────────────────────────────────── -->
+      <div id="fp-tab-env" class="hidden p-4 space-y-4 text-xs font-mono">
+
+        <!-- Live readings -->
+        <div class="bg-surface-container rounded-lg p-3 border border-outline/30 space-y-2">
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-2">Live Environment State</div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Wind Speed</span><span id="fp-env-wind-speed" class="text-on-surface font-bold">—</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Wind Direction</span><span id="fp-env-wind-dir" class="text-on-surface font-bold">—</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Ocean Current</span><span id="fp-env-current" class="text-on-surface font-bold">—</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Turbulence</span><span id="fp-env-turb" class="text-on-surface font-bold">—</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Sea Ice Conc.</span><span id="fp-env-ice-conc" class="text-secondary font-bold">—</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Sea Ice</span><span id="fp-env-ice-enabled" class="text-secondary font-bold text-[11px]">—</span></div>
+        </div>
+
+        <!-- Sea-Ice Trend -->
+        <div class="bg-surface-container rounded-lg p-3 border border-outline/30">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-[10px] text-on-surface-variant uppercase tracking-wider">Sea-Ice Trend (Linear Extrapolation)</div>
+            <span id="fp-ice-trend" class="text-on-surface-variant text-[10px]">LOCAL MODE</span>
+          </div>
+          <div class="grid grid-cols-4 gap-2 text-center">
+            <div><div class="text-[9px] text-on-surface-variant uppercase">Now</div><div id="fp-ice-now" class="text-secondary font-bold text-sm">—</div></div>
+            <div><div class="text-[9px] text-on-surface-variant uppercase">+6h</div><div id="fp-ice-6h" class="text-on-surface font-bold text-sm">—</div></div>
+            <div><div class="text-[9px] text-on-surface-variant uppercase">+12h</div><div id="fp-ice-12h" class="text-on-surface font-bold text-sm">—</div></div>
+            <div><div class="text-[9px] text-on-surface-variant uppercase">+24h</div><div id="fp-ice-24h" class="text-on-surface font-bold text-sm">—</div></div>
+          </div>
+          <div class="flex justify-between mt-2 text-[10px] text-on-surface-variant">
+            <span>Extrapolation Confidence</span><span id="fp-ice-conf" class="text-on-surface font-bold">—</span>
+          </div>
+        </div>
+
+        <!-- Environment Presets -->
+        <div>
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-2">Environment Presets</div>
+          <div class="grid grid-cols-3 gap-2">
+            <button id="fp-preset-storm"    class="py-2 px-1 rounded border border-outline/40 text-[10px] font-bold text-error hover:bg-error/10 hover:border-error/50 transition-all uppercase tracking-wider">
+              <span class="material-symbols-outlined text-base block text-center mb-0.5">storm</span>STORM
+            </button>
+            <button id="fp-preset-calm"     class="py-2 px-1 rounded border border-outline/40 text-[10px] font-bold text-secondary hover:bg-secondary/10 hover:border-secondary/50 transition-all uppercase tracking-wider">
+              <span class="material-symbols-outlined text-base block text-center mb-0.5">wb_sunny</span>CALM
+            </button>
+            <button id="fp-preset-icefield" class="py-2 px-1 rounded border border-outline/40 text-[10px] font-bold text-sky-400 hover:bg-sky-400/10 hover:border-sky-400/50 transition-all uppercase tracking-wider">
+              <span class="material-symbols-outlined text-base block text-center mb-0.5">ac_unit</span>ICE FIELD
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── VOYAGE TAB ─────────────────────────────────────────────── -->
+      <div id="fp-tab-voyage" class="hidden p-4 space-y-4 text-xs font-mono">
+
+        <!-- Primary stats -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-surface-container rounded-lg p-3 border border-outline/30 text-center">
+            <div class="text-[9px] text-on-surface-variant uppercase tracking-wider mb-1">
+              <span class="material-symbols-outlined text-sm text-secondary align-middle">speed</span> SPEED
+            </div>
+            <div id="fp-voy-speed" class="text-secondary font-bold text-base">—</div>
+          </div>
+          <div class="bg-surface-container rounded-lg p-3 border border-outline/30 text-center">
+            <div class="text-[9px] text-on-surface-variant uppercase tracking-wider mb-1">
+              <span class="material-symbols-outlined text-sm text-secondary align-middle">explore</span> HEADING
+            </div>
+            <div id="fp-voy-heading" class="text-secondary font-bold text-base">—</div>
+          </div>
+          <div class="bg-surface-container rounded-lg p-3 border border-outline/30 text-center">
+            <div class="text-[9px] text-on-surface-variant uppercase tracking-wider mb-1">
+              <span class="material-symbols-outlined text-sm text-secondary align-middle">place</span> DIST
+            </div>
+            <div id="fp-voy-dist" class="text-secondary font-bold text-base">—</div>
+          </div>
+          <div class="bg-surface-container rounded-lg p-3 border border-outline/30 text-center">
+            <div class="text-[9px] text-on-surface-variant uppercase tracking-wider mb-1">
+              <span class="material-symbols-outlined text-sm text-secondary align-middle">schedule</span> ETA
+            </div>
+            <div id="fp-voy-eta" class="text-secondary font-bold text-base">—</div>
+          </div>
+        </div>
+
+        <!-- Fuel bar -->
+        <div class="bg-surface-container rounded-lg p-3 border border-outline/30">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm text-secondary">local_gas_station</span> Fuel Reserve
+            </span>
+            <span id="fp-voy-fuel" class="text-secondary font-bold text-sm">—</span>
+          </div>
+          <div class="w-full h-2.5 bg-surface rounded-full overflow-hidden border border-outline/30">
+            <div id="fp-fuel-bar" class="h-full bg-secondary transition-all duration-300" style="width:100%"></div>
+          </div>
+        </div>
+
+        <!-- Navigation telemetry -->
+        <div class="bg-surface-container rounded-lg p-3 border border-outline/30 space-y-2">
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-2">Navigation Telemetry</div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Autopilot Mode</span><span id="fp-voy-navmode" class="text-on-surface font-bold">—</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">AP Status</span><span id="fp-voy-ap-status" class="text-secondary text-[11px]">—</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Cross-Track Error</span><span id="fp-voy-xte" class="text-on-surface text-[11px]">—</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Throttle</span><span id="fp-voy-throttle" class="text-on-surface font-bold">—</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Engine Power</span><span id="fp-voy-engine" class="text-on-surface font-bold">—</span></div>
+        </div>
+      </div>
+
+      <!-- ─── SCENARIOS TAB ──────────────────────────────────────────── -->
+      <div id="fp-tab-scenarios" class="hidden p-4 space-y-2 text-xs font-mono">
+        <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-3">15 Scenario Demonstrations — Click to Activate</div>
+
+        <!-- Core Scenarios 1-6 -->
+        <div class="text-[9px] text-on-surface-variant uppercase tracking-wider py-1 border-b border-outline/20 mb-1">Core Scenarios</div>
+
+        <button id="fp-sc-1" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-secondary/50 hover:text-secondary hover:bg-secondary/5 transition-all">
+          <div class="font-bold text-[11px]">1 · Normal Transit</div>
+          <div class="text-[9px] mt-0.5 opacity-70">Clear weather, mild current, open corridor</div>
+        </button>
+        <button id="fp-sc-2" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-secondary/50 hover:text-secondary hover:bg-secondary/5 transition-all">
+          <div class="font-bold text-[11px]">2 · Iceberg Crossing</div>
+          <div class="text-[9px] mt-0.5 opacity-70">Large iceberg drifting across planned path</div>
+        </button>
+        <button id="fp-sc-3" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-secondary/50 hover:text-secondary hover:bg-secondary/5 transition-all">
+          <div class="font-bold text-[11px]">3 · Heavy Sea Ice</div>
+          <div class="text-[9px] mt-0.5 opacity-70">Sea-Ice Trend (Linear Extrapolation) at 75%</div>
+        </button>
+        <button id="fp-sc-4" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-secondary/50 hover:text-secondary hover:bg-secondary/5 transition-all">
+          <div class="font-bold text-[11px]">4 · Extreme Weather</div>
+          <div class="text-[9px] mt-0.5 opacity-70">85kn wind · cross-current · ice field</div>
+        </button>
+        <button id="fp-sc-5" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-secondary/50 hover:text-secondary hover:bg-secondary/5 transition-all">
+          <div class="font-bold text-[11px]">5 · Multi-Hazard Stress</div>
+          <div class="text-[9px] mt-0.5 opacity-70">Storm + 85% ice + 10 moving icebergs</div>
+        </button>
+        <button id="fp-sc-6" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-secondary/50 hover:text-secondary hover:bg-secondary/5 transition-all">
+          <div class="font-bold text-[11px]">6 · Intelligent Recovery</div>
+          <div class="text-[9px] mt-0.5 opacity-70">Full combined: wind + current + ice + iceberg</div>
+        </button>
+
+        <!-- Synthesized Scenarios 7-15 -->
+        <div class="text-[9px] text-on-surface-variant uppercase tracking-wider py-1 border-b border-outline/20 mb-1 mt-3">Synthesized Scenarios</div>
+
+        <button id="fp-sc-7" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-amber-400/50 hover:text-amber-400 hover:bg-amber-400/5 transition-all">
+          <div class="font-bold text-[11px]">7 · Low Fuel Transit</div>
+          <div class="text-[9px] mt-0.5 opacity-70">15% fuel · forces FUEL_EFFICIENT routing</div>
+        </button>
+        <button id="fp-sc-8" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-amber-400/50 hover:text-amber-400 hover:bg-amber-400/5 transition-all">
+          <div class="font-bold text-[11px]">8 · Sensor Degraded</div>
+          <div class="text-[9px] mt-0.5 opacity-70">Radar offline · reduced decision confidence</div>
+        </button>
+        <button id="fp-sc-9" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-amber-400/50 hover:text-amber-400 hover:bg-amber-400/5 transition-all">
+          <div class="font-bold text-[11px]">9 · Ice Field Slalom</div>
+          <div class="text-[9px] mt-0.5 opacity-70">Heavy ice + 5 extra icebergs in corridor</div>
+        </button>
+        <button id="fp-sc-10" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-amber-400/50 hover:text-amber-400 hover:bg-amber-400/5 transition-all">
+          <div class="font-bold text-[11px]">10 · Storm Reroute</div>
+          <div class="text-[9px] mt-0.5 opacity-70">Extreme weather · forces mid-voyage reroute</div>
+        </button>
+        <button id="fp-sc-11" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-sky-400/50 hover:text-sky-400 hover:bg-sky-400/5 transition-all">
+          <div class="font-bold text-[11px]">11 · Fastest Route Demo</div>
+          <div class="text-[9px] mt-0.5 opacity-70">FASTEST mode · A* speed vs safety tradeoff</div>
+        </button>
+        <button id="fp-sc-12" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-emerald-400/50 hover:text-emerald-400 hover:bg-emerald-400/5 transition-all">
+          <div class="font-bold text-[11px]">12 · Safest Route Demo</div>
+          <div class="text-[9px] mt-0.5 opacity-70">SAFEST mode · active iceberg threat</div>
+        </button>
+        <button id="fp-sc-13" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-amber-400/50 hover:text-amber-400 hover:bg-amber-400/5 transition-all">
+          <div class="font-bold text-[11px]">13 · Engine Throttled</div>
+          <div class="text-[9px] mt-0.5 opacity-70">Engine power 40% · reduced thrust capacity</div>
+        </button>
+        <button id="fp-sc-14" class="fp-sc-btn w-full text-left p-2.5 rounded border border-outline/40 text-on-surface-variant hover:border-amber-400/50 hover:text-amber-400 hover:bg-amber-400/5 transition-all">
+          <div class="font-bold text-[11px]">14 · Current Drift</div>
+          <div class="text-[9px] mt-0.5 opacity-70">20 SU/s cross-current · crab-angle compensation</div>
+        </button>
+        <button id="fp-sc-15" class="fp-sc-btn w-full text-left p-2.5 rounded border border-secondary/30 text-secondary bg-secondary/5 hover:bg-secondary/10 hover:border-secondary/60 transition-all">
+          <div class="font-bold text-[11px] flex items-center gap-1"><span class="material-symbols-outlined text-sm">star</span>15 · Full Demo</div>
+          <div class="text-[9px] mt-0.5 opacity-70">Best combined showcase · autonomous recovery</div>
+        </button>
+
+        <div class="pt-2 pb-1"></div>
+      </div>
+
+    </div><!-- end tab contents -->
+  </div><!-- end feature-panel -->
+
+  <!-- Floating Minimal AI Decision Advisor & Route Comparison Panel (HIDDEN — consolidated into sidebar ROUTE tab) -->
+  <div id="ai-decision-panel" class="hidden fixed top-4 right-4 z-40 w-80 bg-surface/90 backdrop-blur-md px-4 py-3 rounded-lg border border-outline/40 shadow-xl text-xs font-mono select-none">
     <div class="flex items-center justify-between border-b border-outline/30 pb-2 mb-2">
       <span class="text-secondary font-bold flex items-center gap-1">
         <span class="material-symbols-outlined text-sm">psychology</span> NAVIGATION ADVISOR

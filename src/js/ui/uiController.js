@@ -536,6 +536,9 @@ export class UIController {
     renderer.addIcebergMode = !renderer.addIcebergMode;
 
     if (renderer.addIcebergMode) {
+      if (this.engine.setPlanningMode && typeof PlanningMode !== 'undefined') {
+        this.engine.setPlanningMode(PlanningMode.NONE);
+      }
       renderer.onPlaceIceberg = (wx, wy) => {
         const specs = typeof this.engine.generateRandomIcebergSpecs === 'function' 
           ? this.engine.generateRandomIcebergSpecs() 
