@@ -9,7 +9,7 @@ This document specifies the map rendering architecture for POLARIS in **REAL DAT
 
 POLARIS enforces a strict conceptual distinction between visualization and route authority:
 
-- **Geographic Basemap (OpenStreetMap / MapLibre / Canvas GeoJSON)**: Provides visual geographical context (coastlines, continent landmass, ocean depth contours, graticules).
+- **POLARIS Custom Canvas Geographic Map Rendering (`RealMapProvider` `[CURRENT]`)**: Renders high-performance vector basemap geometry (Southern Ocean navy fill, 500m & 2000m bathymetry depth contours, Antarctic coastlines, lat/lon graticules, and 100 NM scale bar). Third-party streaming basemaps like MapLibre GL JS or live OSM tiles are `[PROPOSED / FUTURE]` extension points.
 - **POLARIS Navigation Core (`AINavigator` & `activeRoute`)**: Remains the **SOLE NAVIGATIONAL AUTHORITY**. The active route, risk scoring, and collision checks are calculated by POLARIS's A* pathfinding engine operating over validated hazard envelopes.
 
 ---
