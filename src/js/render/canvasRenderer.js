@@ -167,7 +167,11 @@ export class CanvasRenderer {
       ctx.globalAlpha = 1 - t;
       this.camera.applyTransform(ctx);
 
-      try { this.drawBackgroundGrid(ctx, vectorField); } catch(e) { console.warn("drawBackgroundGrid failed", e); }
+      if (this.activeMapProvider && typeof this.activeMapProvider.render === 'function') {
+        try { this.activeMapProvider.render(ctx, this, vectorField); } catch(e) { console.warn("activeMapProvider.render failed", e); }
+      } else {
+        try { this.drawBackgroundGrid(ctx, vectorField); } catch(e) { console.warn("drawBackgroundGrid failed", e); }
+      }
       try { this.drawWaveRipples(ctx, vectorField); } catch(e) { console.warn("drawWaveRipples failed", e); }
       try { this.drawVectorFieldCurrents(ctx, vectorField, simTimeHours, dt); } catch(e) { console.warn("drawVectorFieldCurrents failed", e); }
 

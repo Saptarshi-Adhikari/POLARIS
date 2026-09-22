@@ -72,6 +72,43 @@ export class UIController {
       });
     }
 
+    const demoBtn = document.getElementById('data-mode-demo-btn');
+    const realBtn = document.getElementById('data-mode-real-btn');
+    const retryBtn = document.getElementById('real-data-retry-btn');
+    const demoFallbackBtn = document.getElementById('real-data-demo-fallback-btn');
+
+    if (demoBtn) {
+      demoBtn.addEventListener('click', () => {
+        if (this.engine && typeof this.engine.setDataMode === 'function') {
+          this.engine.setDataMode('DEMO');
+        }
+      });
+    }
+
+    if (realBtn) {
+      realBtn.addEventListener('click', () => {
+        if (this.engine && typeof this.engine.setDataMode === 'function') {
+          this.engine.setDataMode('REAL');
+        }
+      });
+    }
+
+    if (retryBtn) {
+      retryBtn.addEventListener('click', () => {
+        if (this.engine && typeof this.engine.setDataMode === 'function') {
+          this.engine.setDataMode('REAL');
+        }
+      });
+    }
+
+    if (demoFallbackBtn) {
+      demoFallbackBtn.addEventListener('click', () => {
+        if (this.engine && typeof this.engine.setDataMode === 'function') {
+          this.engine.setDataMode('DEMO');
+        }
+      });
+    }
+
     // Drawer Logic
     if (this.toggleEnvDrawerBtn && this.envDrawer) {
       this.toggleEnvDrawerBtn.addEventListener('click', (e) => {
@@ -2143,5 +2180,48 @@ export class UIController {
     setEl('hud-replans', `${replanCount}`);
     const actionStr = ship ? (ship.autopilotStatus || ship._currentGuidanceMode || 'NORMAL') : 'NORMAL';
     setEl('hud-action', actionStr, 'font-bold text-sky-400 truncate');
+
+    this.updateDataModeUI();
+  }
+
+  updateDataModeUI() {
+    if (typeof document === 'undefined') return;
+    const demoBtn = document.getElementById('data-mode-demo-btn');
+    const realBtn = document.getElementById('data-mode-real-btn');
+    const provenanceHud = document.getElementById('real-data-provenance-hud');
+
+    if (!demoBtn || !realBtn) return;
+
+    const isReal = this.engine && this.engine.dataMode === 'REAL';
+
+    if (isReal) {
+      demoBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-l bg-surface-container text-on-surface hover:text-secondary border border-outline/40 transition-all cursor-pointer';
+      realBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-r bg-secondary text-surface border border-secondary transition-all cursor-pointer';
+
+      if (provenanceHud) provenanceHud.classList.remove('hidden');
+
+      const meta = this.engine && this.engine.realReplayProvider ? this.engine.realReplayProvider.getMetadata() : null;
+      const srcEl = document.getElementById('provenance-source-text');
+      const timeEl = document.getElementById('provenance-time-text');
+      const modeEl = document.getElementById('provenance-mode-text');
+      const errContainer = document.getElementById('real-data-error-container');
+      const errText = document.getElementById('real-data-error-text');
+
+      if (srcEl && meta) srcEl.textContent = meta.source || 'USNIC / Copernicus';
+      if (timeEl && meta) timeEl.textContent = meta.timeUTC || '2026-03-15 12:00:00 UTC';
+      if (modeEl && meta) modeEl.textContent = meta.mode || 'HISTORICAL REPLAY';
+
+      if (meta && meta.status === 'ERROR') {
+        if (errContainer) errContainer.classList.remove('hidden');
+        if (errText) errText.textContent = `ERR: ${meta.errorMessage || 'Data Load Failed'}`;
+      } else {
+        if (errContainer) errContainer.classList.add('hidden');
+      }
+    } else {
+      demoBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-l bg-secondary text-surface border border-secondary transition-all cursor-pointer';
+      realBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-r bg-surface-container text-on-surface hover:text-secondary border border-outline/40 transition-all cursor-pointer';
+
+      if (provenanceHud) provenanceHud.classList.add('hidden');
+    }
   }
 }

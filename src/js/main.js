@@ -28,6 +28,10 @@ import { CounterfactualSimulator } from './ai/counterfactualSimulator.js';
 import { ConfidenceIntelligenceEngine } from './ai/confidenceIntelligenceEngine.js';
 import { DecisionIntelligenceEngine } from './ai/decisionIntelligenceEngine.js';
 import { MetricsRegistry } from './ai/metricsRegistry.js';
+import { DemoDataProvider, RealReplayProvider } from './providers/dataProvider.js';
+import { DemoMapProvider, RealMapProvider } from './providers/mapProvider.js';
+import { RealReplayEngine } from './providers/realReplayEngine.js';
+import { geoToWorld, worldToGeo, DEFAULT_ANTARCTIC_BBOX } from './providers/geoTransform.js';
 
 // ── Phase 5: Sensor & Digital Twin Layer ──────────────────────────────────────
 import { gnssSensor } from './sensors/gnssSensor.js';
@@ -176,6 +180,19 @@ export class SimulationEngine {
     this.confidenceIntelligenceEngine = new ConfidenceIntelligenceEngine(this);
     this.decisionIntelligenceEngine = new DecisionIntelligenceEngine(this);
     this.metricsRegistry = new MetricsRegistry(this);
+
+    // ── DATA MODE [DEMO | REAL] Providers & Replay Engine ──
+    this.demoDataProvider = new DemoDataProvider(this);
+    this.realReplayProvider = new RealReplayProvider(DEFAULT_ANTARCTIC_BBOX);
+    this.activeDataProvider = this.demoDataProvider;
+
+    this.demoMapProvider = new DemoMapProvider();
+    this.realMapProvider = new RealMapProvider(DEFAULT_ANTARCTIC_BBOX);
+    this.activeMapProvider = this.demoMapProvider;
+    this.renderer.activeMapProvider = this.activeMapProvider;
+
+    this.realReplayEngine = new RealReplayEngine(this.realReplayProvider);
+    this.dataMode = 'DEMO';
 
     this.scenarioManager.saveDefaultStateCheckpoints();
 
@@ -365,6 +382,61 @@ export class SimulationEngine {
             windResponse: 0.08 + random() * 0.15
           }));
         }
+      }
+    }
+  }
+
+  setDataMode(mode) {
+    if (mode === 'REAL') {
+      this.dataMode = 'REAL';
+      this.activeDataProvider = this.realReplayProvider;
+      this.activeMapProvider = this.realMapProvider;
+      this.renderer.activeMapProvider = this.realMapProvider;
+      this.state.environment.mode = 'REAL-DATA';
+
+      const hazards = this.realReplayProvider.getHazards(this.state.simulation.simTimeHours);
+      if (hazards && hazards.length > 0) {
+        this.icebergs = hazards.map(h => new Iceberg({
+          id: h.id,
+          name: h.id,
+          x: h.position.x,
+          y: h.position.y,
+          mass: h.geometry.mass * 2.5,
+          size: h.geometry.size,
+          collisionRadius: h.geometry.radius
+        }));
+      }
+
+      const env = this.realReplayProvider.getEnvironment();
+      if (env) {
+        this.vectorField.setParams({
+          currentSpeed: env.current.speed,
+          currentDirection: env.current.direction,
+          windSpeed: env.wind.speed,
+          windDirection: env.wind.direction
+        });
+      }
+
+      if (!this.state.navigation.destinationPoint) {
+        this.state.navigation.destinationPoint = { x: WORLD_W - 400, y: 400 };
+        this.state.navigation.destination = this.state.navigation.destinationPoint;
+      }
+
+      this.calculateRoute();
+      if (this.uiController && typeof this.uiController.updateDataModeUI === 'function') {
+        this.uiController.updateDataModeUI();
+      }
+    } else {
+      this.dataMode = 'DEMO';
+      this.activeDataProvider = this.demoDataProvider;
+      this.activeMapProvider = this.demoMapProvider;
+      this.renderer.activeMapProvider = this.demoMapProvider;
+      this.state.environment.mode = 'SIMULATION';
+
+      this.initDefaultIcebergs();
+      this.calculateRoute();
+      if (this.uiController && typeof this.uiController.updateDataModeUI === 'function') {
+        this.uiController.updateDataModeUI();
       }
     }
   }

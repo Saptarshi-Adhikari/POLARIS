@@ -69,8 +69,17 @@
   </div>
 
 
-  <!-- Minimal Surfacing Overlay Toggles -->
+    <!-- Minimal Surfacing Overlay Toggles -->
   <div id="minimal-overlay-controls" class="fixed top-4 left-4 z-40 flex items-center space-x-3 bg-surface/90 backdrop-blur-md px-3.5 py-2 rounded-lg border border-outline/40 shadow-xl text-xs font-mono select-none">
+    <div class="flex items-center space-x-1.5 border-r border-outline/30 pr-3">
+      <span class="text-on-surface font-medium flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm text-secondary">database</span> DATA:
+      </span>
+      <div class="inline-flex rounded-md shadow-sm" role="group">
+        <button id="data-mode-demo-btn" type="button" class="px-2 py-0.5 text-xs font-bold rounded-l bg-secondary text-surface border border-secondary transition-all cursor-pointer">DEMO</button>
+        <button id="data-mode-real-btn" type="button" class="px-2 py-0.5 text-xs font-bold rounded-r bg-surface-container text-on-surface hover:text-secondary border border-outline/40 transition-all cursor-pointer">REAL</button>
+      </div>
+    </div>
     <div class="flex items-center space-x-1.5 border-r border-outline/30 pr-3">
       <span class="text-secondary font-bold flex items-center gap-1">
         <span class="material-symbols-outlined text-sm">ac_unit</span> Sea-Ice Trend:
@@ -118,6 +127,25 @@
         <span class="material-symbols-outlined text-sm text-secondary">security</span> Risk:
       </span>
       <span id="risk-level-tag" class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-700 uppercase tracking-wide">LOW</span>
+    </div>
+  </div>
+
+  <!-- Integrated Real Data Provenance HUD (Shown in REAL Mode) -->
+  <div id="real-data-provenance-hud" class="hidden fixed top-16 left-4 z-40 flex items-center space-x-3 bg-surface/90 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-secondary/40 shadow-xl text-[11px] font-mono select-none text-on-surface">
+    <div class="flex items-center gap-1 text-secondary font-bold">
+      <span class="material-symbols-outlined text-sm">public</span> DATA: REAL
+    </div>
+    <div class="border-r border-outline/30 h-3"></div>
+    <div>SOURCE: <span id="provenance-source-text" class="text-primary font-bold">USNIC / Copernicus</span></div>
+    <div class="border-r border-outline/30 h-3"></div>
+    <div>TIME: <span id="provenance-time-text" class="text-secondary font-bold">2026-03-15 12:00:00 UTC</span></div>
+    <div class="border-r border-outline/30 h-3"></div>
+    <div>MODE: <span id="provenance-mode-text" class="text-amber-400 font-bold">HISTORICAL REPLAY</span></div>
+    <div id="real-data-error-container" class="hidden flex items-center gap-2 text-rose-400 font-bold ml-2">
+      <span id="real-data-error-text">ERR</span>
+      <button id="real-data-retry-btn" class="px-1.5 py-0.5 bg-rose-950 text-rose-200 border border-rose-700 rounded hover:bg-rose-900 cursor-pointer">RETRY</button>
+      <button id="real-data-demo-fallback-btn" class="px-1.5 py-0.5 bg-surface-container text-on-surface border border-outline/40 rounded hover:text-secondary cursor-pointer">TO DEMO</button>
+    </div>
     </div>
   </div>
 

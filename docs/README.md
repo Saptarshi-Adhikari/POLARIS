@@ -17,6 +17,7 @@ This directory contains in-depth technical documentation, architectural specific
 | 🔀 [**ROUTING.md**](ROUTING.md) | Web Worker A* pathfinding, 2.5s timeout guard, replan storm prevention, and candidate route scoring. |
 | ⚙️ [**BACKEND.md**](BACKEND.md) | Python FastAPI microservices (`backend/main.py`), client bridge (`aiClient.js`), and machine learning prediction models. |
 | 📊 [**DATA.md**](DATA.md) | Antarctic synthetic data layer, continuous sea-ice grid, ocean currents, wind vectors, and calibration configs. |
+| 🌐 [**DATA_MODE_REAL_MAPS.md**](DATA_MODE_REAL_MAPS.md) | DEMO ↔ REAL Data Mode architecture, providers layer, normalized schemas, geo transform, USNIC / Copernicus datasets, and real basemaps. |
 | 🧪 [**TESTING.md**](TESTING.md) | Vitest automated unit and integration testing suite breakdown (33+ test files). |
 | 📊 [**STATUS.md**](STATUS.md) | Current capability maturity matrix and verification status. |
 | 📋 [**FEATURE_REALITY_MATRIX.md**](FEATURE_REALITY_MATRIX.md) | Strict capability breakdown classifying implemented vs planned capabilities. |
