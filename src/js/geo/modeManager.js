@@ -12,7 +12,7 @@ export class ModeManager {
 
   init() {
     // Check URL parameters for ?mode=real
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && window.location && window.location.search) {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('mode') === 'real') {
         this.setMode('REAL');

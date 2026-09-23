@@ -2,6 +2,7 @@
  * POLARIS Canonical Entrypoint Test
  */
 
+import { describe, test, expect, beforeAll } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
