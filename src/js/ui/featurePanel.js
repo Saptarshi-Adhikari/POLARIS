@@ -272,13 +272,15 @@ export class FeaturePanel {
     this._cache['fp-hazard-key']=key;
     if (hazards.length===0) { container.innerHTML='<div class="text-on-surface-variant text-[11px] py-2">No immediate hazards detected.</div>'; return; }
     const colorMap = {CRITICAL:'text-error font-bold',HIGH:'text-error',MEDIUM:'text-amber-400',LOW:'text-secondary'};
-    container.innerHTML = hazards.map(h =>
-      '<div class="p-2 bg-surface rounded border border-outline/40 mb-1.5">'
+    const isRealMode = this.engine && this.engine.state && this.engine.state.environment.mode === 'REAL';
+    container.innerHTML = hazards.map(h => {
+      const distStr = isRealMode ? (h.distance / 60).toFixed(1) + ' NM' : h.distance.toFixed(0) + ' SU';
+      return '<div class="p-2 bg-surface rounded border border-outline/40 mb-1.5">'
       + '<div class="flex justify-between font-bold text-[11px]"><span class="text-on-surface">' + h.name + ' (' + h.size + ')</span><span class="' + (colorMap[h.level]||'text-secondary') + '">' + h.level + '</span></div>'
-      + '<div class="flex justify-between text-[10px] text-on-surface-variant mt-0.5"><span>DIST:</span><span>' + h.distance.toFixed(0) + ' SU</span></div>'
+      + '<div class="flex justify-between text-[10px] text-on-surface-variant mt-0.5"><span>DIST:</span><span>' + distStr + '</span></div>'
       + '<div class="flex justify-between text-[10px] text-on-surface-variant"><span>CLOSING:</span><span>' + (h.closingSpeed/1.8).toFixed(1) + ' kts</span></div>'
-      + '</div>'
-    ).join('');
+      + '</div>';
+    }).join('');
   }
 
   _renderIcebergList() {
@@ -291,12 +293,14 @@ export class FeaturePanel {
     this._cache['fp-iceberg-key']=key;
     if (icebergs.length===0) { container.innerHTML='<div class="text-on-surface-variant text-[11px] py-2">No icebergs tracked.</div>'; return; }
     const sorted = [...icebergs].map(ice=>({ice,dist:ship?Math.hypot(ice.x-ship.x,ice.y-ship.y):9999})).sort((a,b)=>a.dist-b.dist).slice(0,8);
+    const isRealMode = this.engine && this.engine.state && this.engine.state.environment.mode === 'REAL';
     container.innerHTML = sorted.map(({ice,dist}) => {
       const hasML = ice.mlTrajectory&&ice.mlTrajectory.length>0;
       const riskCls = dist<200?'text-error':(dist<500?'text-amber-400':'text-secondary');
       const sizeLabel = ice.size>2100?'MASSIVE':(ice.size>1200?'LARGE':(ice.size>600?'MEDIUM':'SMALL'));
+      const distStr = isRealMode ? (dist / 60).toFixed(1) + ' NM' : dist.toFixed(0) + ' SU';
       return '<div class="p-2 bg-surface rounded border border-outline/40 mb-1.5">'
-        + '<div class="flex justify-between font-bold text-[11px]"><span class="text-primary">' + (ice.name||'IB-'+ice.id) + '</span><span class="' + riskCls + '">' + dist.toFixed(0) + ' SU</span></div>'
+        + '<div class="flex justify-between font-bold text-[11px]"><span class="text-primary">' + (ice.name||'IB-'+ice.id) + '</span><span class="' + riskCls + '">' + distStr + '</span></div>'
         + '<div class="flex justify-between text-[10px] text-on-surface-variant mt-0.5"><span>' + sizeLabel + ' / ' + ice.mass.toFixed(1) + ' mt</span><span class="' + (hasML?'text-secondary':'text-on-surface-variant') + '">' + (hasML?'KF-TRACKED':'PHYSICS') + '</span></div>'
         + '</div>';
     }).join('');

@@ -91,7 +91,9 @@ export function buildRouteComparisonCardsData(routeComparisons, recommendedMode 
       };
     }
 
+    const isRealMode = typeof window !== 'undefined' && window.simEngine && window.simEngine.state && window.simEngine.state.environment.mode === 'REAL';
     const distKm = raw.distance !== undefined ? raw.distance : (raw.totalDistance ? raw.totalDistance / 10 : 0);
+    const distStr = isRealMode ? `${(distKm / 1.852).toFixed(1)} NM` : `${distKm.toFixed(1)} km`;
     const etaHrs = raw.eta !== undefined ? raw.eta : (raw.estimatedDuration !== undefined ? raw.estimatedDuration : 0);
     const fuelCons = raw.fuel !== undefined ? raw.fuel : (raw.estimatedFuelConsumption !== undefined ? raw.estimatedFuelConsumption : 0);
     const riskScore = raw.maxRisk !== undefined ? raw.maxRisk : (raw.riskScore !== undefined ? raw.riskScore : (raw.icebergRisk || 0));
@@ -99,7 +101,7 @@ export function buildRouteComparisonCardsData(routeComparisons, recommendedMode 
     return {
       ...def,
       isRecommended,
-      distanceStr: `${distKm.toFixed(1)} km`,
+      distanceStr: distStr,
       timeStr: formatDuration(etaHrs),
       fuelStr: formatFuelRemaining(currentFuelLevel, fuelCons),
       riskStr: formatRiskPercent(riskScore),

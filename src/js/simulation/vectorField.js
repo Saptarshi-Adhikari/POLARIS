@@ -190,8 +190,16 @@ export class VectorField {
   getSeaIceConcentration(x, y) {
     if (!this.lastState || !this.lastState.environment.seaIce.enabled) return 0;
 
+    // Sanity rule: Suppress sea-ice over land polygons in REAL mode
+    if (this.lastState && this.lastState.environment.mode === 'REAL') {
+      // Continent inland bounds suppression (bottom-left region representing Antarctic mainland)
+      if (y > 1800 && x < 2600) {
+        return 0; // Suppress ice over land
+      }
+    }
+
     if (this.lastState && this.lastState.environment.mode === 'DATA-DRIVEN') {
-      const adm = window.simEngine && window.simEngine.antarcticDataManager;
+      const adm = typeof window !== 'undefined' && window.simEngine && window.simEngine.antarcticDataManager;
       if (adm && adm.active) {
         const ice = adm.getSeaIceAt(x, y, this.lastState.simulation.simTimeHours);
         if (ice !== null) return ice;

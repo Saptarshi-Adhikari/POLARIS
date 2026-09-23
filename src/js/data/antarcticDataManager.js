@@ -99,4 +99,39 @@ export class AntarcticDataManager {
     if (hours < 18) return 1;
     return 2;
   }
+
+  async fetchLiveOpenMeteoMarine(lat = -69.4, lon = 76.187) {
+    const isBlackout = typeof window !== 'undefined' && (window.location.search.includes('comms=blackout') || window.__COMMS_BLACKOUT__);
+    if (isBlackout) {
+      console.log('[OpenMeteo] Comms blackout active — skipping live fetch, using CACHED/SIM');
+      return null;
+    }
+
+    const cacheKey = `polaris_meteo_${lat.toFixed(1)}_${lon.toFixed(1)}`;
+    const cached = typeof localStorage !== 'undefined' ? localStorage.getItem(cacheKey) : null;
+    const now = Date.now();
+
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (now - parsed.timestamp < 30 * 60 * 1000) { // 30 min cache
+          return parsed.data;
+        }
+      } catch (e) {}
+    }
+
+    try {
+      const url = `https://marine-api.open-meteo.com/v1/marine?latitude=${lat.toFixed(3)}&longitude=${lon.toFixed(3)}&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,wave_height,wave_direction,wave_period,sea_surface_temperature&forecast_days=2`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(cacheKey, JSON.stringify({ timestamp: now, data }));
+      }
+      return data;
+    } catch (err) {
+      console.warn('[OpenMeteo] Live fetch failed, using cached fallback:', err);
+      return null;
+    }
+  }
 }
