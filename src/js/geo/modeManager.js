@@ -1,13 +1,12 @@
-/**
- * POLARIS Mode Manager: DEMO vs REAL Mode Switcher
- */
-
 import { provenanceRegistry } from '../dataSources.js';
+import { DemoDataProvider } from '../data/DemoDataProvider.js';
+import { RealDataProvider } from '../data/RealDataProvider.js';
 
 export class ModeManager {
   constructor(engine) {
     this.engine = engine;
     this.currentMode = 'DEMO';
+    this.activeProvider = new DemoDataProvider(engine);
   }
 
   init() {
@@ -39,11 +38,17 @@ export class ModeManager {
     if (this.currentMode === mode) return;
     this.currentMode = mode;
 
+    // Dispose previous active provider
+    if (this.activeProvider && typeof this.activeProvider.dispose === 'function') {
+      this.activeProvider.dispose();
+    }
+
     const demoBtn = typeof document !== 'undefined' ? document.getElementById('data-mode-demo-btn') : null;
     const realBtn = typeof document !== 'undefined' ? document.getElementById('data-mode-real-btn') : null;
     const realHud = typeof document !== 'undefined' ? document.getElementById('real-data-provenance-hud') : null;
 
     if (mode === 'REAL') {
+      this.activeProvider = new RealDataProvider(this.engine);
       if (demoBtn) {
         demoBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-l bg-surface-container text-on-surface hover:text-secondary border border-outline/40 transition-all cursor-pointer';
       }
@@ -64,6 +69,7 @@ export class ModeManager {
         this.engine.state.environment.mode = 'REAL';
       }
     } else {
+      this.activeProvider = new DemoDataProvider(this.engine);
       if (demoBtn) {
         demoBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-l bg-secondary text-surface border border-secondary transition-all cursor-pointer';
       }
