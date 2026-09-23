@@ -1,21 +1,24 @@
 [
   {
-    "id": "A23a",
-    "name": "Iceberg A23a (approx.)",
-    "lat": -69.2,
-    "lon": 74.8,
+    "id": "D28",
+    "name": "Iceberg D28 (approx.)",
+    "quadrant": "D (90°E - 0°)",
+    "lat": -68.9,
+    "lon": 74.2,
     "sim_x": 1600,
     "sim_y": 1200,
-    "size_km": 40,
-    "radius_su": 75,
+    "size_km": 30,
+    "radius_su": 65,
     "position": "approximate",
     "snapshot_date": "2026-09-24",
-    "source": "USNIC static snapshot"
+    "source": "USNIC static snapshot",
+    "note": "Calved from Amery Ice Shelf (East Antarctica, 70°E-75°E) in 2019."
   },
   {
     "id": "D15",
     "name": "Iceberg D15 (approx.)",
-    "lat": -68.8,
+    "quadrant": "D (90°E - 0°)",
+    "lat": -68.5,
     "lon": 78.5,
     "sim_x": 2100,
     "sim_y": 950,
@@ -23,19 +26,22 @@
     "radius_su": 50,
     "position": "approximate",
     "snapshot_date": "2026-09-24",
-    "source": "USNIC static snapshot"
+    "source": "USNIC static snapshot",
+    "note": "Tracked D-quadrant iceberg in Prydz Bay / Bharati logistics corridor."
   },
   {
-    "id": "B15a",
-    "name": "Iceberg B15a Fragment (approx.)",
-    "lat": -69.6,
-    "lon": 72.2,
+    "id": "D22A",
+    "name": "Iceberg D22A (approx.)",
+    "quadrant": "D (90°E - 0°)",
+    "lat": -69.4,
+    "lon": 71.8,
     "sim_x": 1200,
     "sim_y": 1500,
-    "size_km": 18,
-    "radius_su": 35,
+    "size_km": 20,
+    "radius_su": 40,
     "position": "approximate",
     "snapshot_date": "2026-09-24",
-    "source": "USNIC static snapshot"
+    "source": "USNIC static snapshot",
+    "note": "Tracked D-quadrant iceberg fragment drifting in Indian Ocean sector."
   }
 ]

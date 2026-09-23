@@ -54,9 +54,9 @@ export class ModeManager {
         realHud.classList.remove('hidden');
       }
 
-      // Repoint provenance badges to BUNDLED / STYLIZED / LIVE
+      // Repoint provenance badges to BUNDLED / STYLIZED / LIVE / CACHED
       provenanceRegistry.updateStatus('open-meteo-marine', 'LIVE', { note: 'Open-Meteo at Bharati Corridor (-69.4°S, 76.18°E)' });
-      provenanceRegistry.updateStatus('usnic-icebergs', 'LIVE', { note: 'USNIC Named Iceberg Dataset' });
+      provenanceRegistry.updateStatus('usnic-icebergs', 'CACHED', { note: 'USNIC Static Snapshot (2026-09-24)' });
       provenanceRegistry.updateStatus('synthetic-sea-ice', 'SIM', { note: 'Sea-Ice Grid reprojected to Lat/Lon' });
 
       // Update engine state
