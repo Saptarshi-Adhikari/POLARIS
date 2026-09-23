@@ -170,7 +170,12 @@ export class CanvasRenderer {
       if (this.activeMapProvider && typeof this.activeMapProvider.render === 'function') {
         try { this.activeMapProvider.render(ctx, this, vectorField); } catch(e) { console.warn("activeMapProvider.render failed", e); }
       } else {
-        try { this.drawBackgroundGrid(ctx, vectorField); } catch(e) { console.warn("drawBackgroundGrid failed", e); }
+        const isRealMode = typeof window !== 'undefined' && window.simEngine && window.simEngine.state && window.simEngine.state.environment.mode === 'REAL';
+        if (isRealMode && window.simEngine.basemapRenderer) {
+          try { window.simEngine.basemapRenderer.render(ctx, true); } catch(e) { console.warn("basemapRenderer.render failed", e); }
+        } else {
+          try { this.drawBackgroundGrid(ctx, vectorField); } catch(e) { console.warn("drawBackgroundGrid failed", e); }
+        }
       }
       try { this.drawWaveRipples(ctx, vectorField); } catch(e) { console.warn("drawWaveRipples failed", e); }
       try { this.drawVectorFieldCurrents(ctx, vectorField, simTimeHours, dt); } catch(e) { console.warn("drawVectorFieldCurrents failed", e); }
@@ -749,9 +754,11 @@ export class CanvasRenderer {
 
         const midX = (ship.x + closestIce.x) / 2;
         const midY = (ship.y + closestIce.y) / 2;
+        const isRealMode = typeof window !== 'undefined' && window.simEngine && window.simEngine.state && window.simEngine.state.environment.mode === 'REAL';
+        const cpaText = isRealMode ? `CPA: ${(minClearance / 60).toFixed(1)} NM` : `CPA: ${Math.round(minClearance)} SU`;
         ctx.fillStyle = minClearance < 50 ? '#f43f5e' : (minClearance < 120 ? '#fbbf24' : '#a1eff8');
         ctx.font = 'bold 10px "JetBrains Mono"';
-        ctx.fillText(`CPA: ${Math.round(minClearance)} SU`, midX + 6, midY - 6);
+        ctx.fillText(cpaText, midX + 6, midY - 6);
       }
     }
 

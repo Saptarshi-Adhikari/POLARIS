@@ -28,6 +28,8 @@ import { CounterfactualSimulator } from './ai/counterfactualSimulator.js';
 import { ConfidenceIntelligenceEngine } from './ai/confidenceIntelligenceEngine.js';
 import { DecisionIntelligenceEngine } from './ai/decisionIntelligenceEngine.js';
 import { MetricsRegistry } from './ai/metricsRegistry.js';
+import { BasemapRenderer } from './geo/basemapRenderer.js';
+import { ModeManager } from './geo/modeManager.js';
 import { DemoDataProvider, RealReplayProvider } from './providers/dataProvider.js';
 import { DemoMapProvider, RealMapProvider } from './providers/mapProvider.js';
 import { RealReplayEngine } from './providers/realReplayEngine.js';
@@ -180,6 +182,12 @@ export class SimulationEngine {
     this.confidenceIntelligenceEngine = new ConfidenceIntelligenceEngine(this);
     this.decisionIntelligenceEngine = new DecisionIntelligenceEngine(this);
     this.metricsRegistry = new MetricsRegistry(this);
+
+    this.basemapRenderer = new BasemapRenderer(canvasEl, this.renderer.camera);
+    this.basemapRenderer.loadAssets();
+
+    this.modeManager = new ModeManager(this);
+    this.modeManager.init();
 
     // ── DATA MODE [DEMO | REAL] Providers & Replay Engine ──
     this.demoDataProvider = new DemoDataProvider(this);

@@ -4,7 +4,7 @@
   "overall_metrics": {
     "destination_success_rate_pct": 100.0,
     "total_collisions": 0,
-    "average_planning_latency_ms": 0.0,
+    "average_planning_latency_ms": 0.3,
     "average_min_clearance_m": 2730.0
   },
   "detailed_results": [
@@ -14,7 +14,7 @@
       "outcome": "AUTO_ACCEPT",
       "baseline_action": "continue",
       "laya_action": "continue",
-      "planning_latency_ms": 0.0,
+      "planning_latency_ms": 1.51,
       "collision": false,
       "min_clearance_m": 2670.0,
       "destination_success": true

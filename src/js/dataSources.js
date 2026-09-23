@@ -38,6 +38,24 @@ export const DATA_SOURCES = [
     updatedAt: new Date().toISOString(),
     license: 'Synthetic Model',
     note: 'Simulated 2D current vector field.'
+  },
+  {
+    id: 'natural-earth-coastline',
+    name: 'Antarctic Coastline GeoJSON',
+    category: 'geography',
+    status: 'BUNDLED',
+    updatedAt: new Date().toISOString(),
+    license: 'Natural Earth (Public Domain)',
+    note: 'Simplified Antarctic coastline vector data clipped < -45°S.'
+  },
+  {
+    id: 'stylized-bathymetry',
+    name: 'Stylized Coastal Bathymetry',
+    category: 'oceanography',
+    status: 'STYLIZED',
+    updatedAt: new Date().toISOString(),
+    license: 'Synthetic Geometry',
+    note: 'Distance-to-coast depth band rendering.'
   }
 ];
 
