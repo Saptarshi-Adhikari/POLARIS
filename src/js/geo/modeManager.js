@@ -23,6 +23,7 @@ export class ModeManager {
   }
 
   bindUI() {
+    if (typeof document === 'undefined') return;
     const demoBtn = document.getElementById('data-mode-demo-btn');
     const realBtn = document.getElementById('data-mode-real-btn');
 
@@ -38,9 +39,9 @@ export class ModeManager {
     if (this.currentMode === mode) return;
     this.currentMode = mode;
 
-    const demoBtn = document.getElementById('data-mode-demo-btn');
-    const realBtn = document.getElementById('data-mode-real-btn');
-    const realHud = document.getElementById('real-data-provenance-hud');
+    const demoBtn = typeof document !== 'undefined' ? document.getElementById('data-mode-demo-btn') : null;
+    const realBtn = typeof document !== 'undefined' ? document.getElementById('data-mode-real-btn') : null;
+    const realHud = typeof document !== 'undefined' ? document.getElementById('real-data-provenance-hud') : null;
 
     if (mode === 'REAL') {
       if (demoBtn) {
