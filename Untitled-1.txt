@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   
-  <link rel="stylesheet" href="/src/css/style.css"/>
+
 
   <script id="tailwind-config">
     tailwind.config = {
@@ -36,6 +36,8 @@
       }
     }
   </script>
+  <script type="module" crossorigin src="/assets/index-CSS2I-Cm.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-veuBRbxX.css">
 </head>
 
 <body class="bg-surface text-on-surface h-screen w-screen overflow-hidden font-body select-none">
@@ -69,17 +71,8 @@
   </div>
 
 
-    <!-- Minimal Surfacing Overlay Toggles -->
+  <!-- Minimal Surfacing Overlay Toggles -->
   <div id="minimal-overlay-controls" class="fixed top-4 left-4 z-40 flex items-center space-x-3 bg-surface/90 backdrop-blur-md px-3.5 py-2 rounded-lg border border-outline/40 shadow-xl text-xs font-mono select-none">
-    <div class="flex items-center space-x-1.5 border-r border-outline/30 pr-3">
-      <span class="text-on-surface font-medium flex items-center gap-1">
-        <span class="material-symbols-outlined text-sm text-secondary">database</span> DATA:
-      </span>
-      <div class="inline-flex rounded-md shadow-sm" role="group">
-        <button id="data-mode-demo-btn" type="button" class="px-2 py-0.5 text-xs font-bold rounded-l bg-secondary text-surface border border-secondary transition-all cursor-pointer">DEMO</button>
-        <button id="data-mode-real-btn" type="button" class="px-2 py-0.5 text-xs font-bold rounded-r bg-surface-container text-on-surface hover:text-secondary border border-outline/40 transition-all cursor-pointer">REAL</button>
-      </div>
-    </div>
     <div class="flex items-center space-x-1.5 border-r border-outline/30 pr-3">
       <span class="text-secondary font-bold flex items-center gap-1">
         <span class="material-symbols-outlined text-sm">ac_unit</span> Sea-Ice Trend:
@@ -110,66 +103,11 @@
         <option value="FUEL_EFFICIENT">FUEL_EFFICIENT</option>
       </select>
     </div>
-    <div class="flex items-center space-x-1.5 border-r border-outline/30 pr-3">
-      <span class="text-on-surface font-medium flex items-center gap-1">
-        <span class="material-symbols-outlined text-sm text-secondary">memory</span> Worker:
-      </span>
-      <span id="worker-status-text" class="text-secondary font-bold text-[11px]">READY</span>
-    </div>
-    <div class="flex items-center space-x-1.5 border-r border-outline/30 pr-3">
-      <button id="toggle-radar-btn" class="flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container text-on-surface hover:text-secondary border border-outline/40 cursor-pointer font-bold text-xs transition-all">
-        <span class="material-symbols-outlined text-sm text-secondary">radar</span>
-        <span>RADAR VIEW</span>
-      </button>
-    </div>
     <div class="flex items-center space-x-1.5 pl-1">
       <span class="text-on-surface font-medium flex items-center gap-1">
         <span class="material-symbols-outlined text-sm text-secondary">security</span> Risk:
       </span>
       <span id="risk-level-tag" class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-700 uppercase tracking-wide">LOW</span>
-    </div>
-  </div>
-
-  <!-- Comms Blackout Alert Banner -->
-  <div id="comms-blackout-banner" class="hidden fixed top-16 left-4 z-50 flex items-center space-x-2 bg-rose-950/90 backdrop-blur-md px-4 py-2 rounded-lg border border-rose-500 shadow-2xl text-xs font-mono text-rose-200 animate-pulse select-none">
-    <span class="material-symbols-outlined text-base text-rose-400">wifi_off</span>
-    <span class="font-bold tracking-wide uppercase">COMMS BLACKOUT</span>
-    <span class="text-[11px] text-rose-300">— Operating on cached/projected data (no live feeds)</span>
-  </div>
-
-  <!-- Data Provenance Legend Bar -->
-  <div id="data-provenance-legend-bar" class="fixed top-16 right-36 z-40 flex items-center space-x-2 bg-surface/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-outline/40 shadow-xl text-[10px] font-mono select-none text-on-surface">
-    <span class="text-on-surface-variant font-bold uppercase tracking-wider flex items-center gap-1">
-      <span class="material-symbols-outlined text-xs text-secondary">verified</span> PROVENANCE:
-    </span>
-    <div id="data-provenance-badges" class="flex items-center space-x-1.5">
-      <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40 uppercase">METEO: SIM</span>
-      <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40 uppercase">ICEBERG: SIM</span>
-      <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-500/20 text-slate-300 border border-slate-500/40 uppercase">SEA-ICE: SIM</span>
-    </div>
-    <div class="border-l border-outline/30 h-3 mx-1"></div>
-    <button id="toggle-blackout-btn" class="px-2 py-0.5 rounded bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-700/50 font-bold text-[9px] cursor-pointer transition-all flex items-center gap-1">
-      <span class="material-symbols-outlined text-xs">signal_cellular_off</span>
-      <span>BLACKOUT KILL-SWITCH</span>
-    </button>
-  </div>
-
-  <!-- Integrated Real Data Provenance HUD (Shown in REAL Mode) -->
-  <div id="real-data-provenance-hud" class="hidden fixed top-16 left-4 z-40 flex items-center space-x-3 bg-surface/90 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-secondary/40 shadow-xl text-[11px] font-mono select-none text-on-surface">
-    <div class="flex items-center gap-1 text-secondary font-bold">
-      <span class="material-symbols-outlined text-sm">public</span> DATA: REAL
-    </div>
-    <div class="border-r border-outline/30 h-3"></div>
-    <div>SOURCE: <span id="provenance-source-text" class="text-primary font-bold">USNIC / Copernicus</span></div>
-    <div class="border-r border-outline/30 h-3"></div>
-    <div>TIME: <span id="provenance-time-text" class="text-secondary font-bold">2026-03-15 12:00:00 UTC</span></div>
-    <div class="border-r border-outline/30 h-3"></div>
-    <div>MODE: <span id="provenance-mode-text" class="text-amber-400 font-bold">HISTORICAL REPLAY</span></div>
-    <div id="real-data-error-container" class="hidden flex items-center gap-2 text-rose-400 font-bold ml-2">
-      <span id="real-data-error-text">ERR</span>
-      <button id="real-data-retry-btn" class="px-1.5 py-0.5 bg-rose-950 text-rose-200 border border-rose-700 rounded hover:bg-rose-900 cursor-pointer">RETRY</button>
-      <button id="real-data-demo-fallback-btn" class="px-1.5 py-0.5 bg-surface-container text-on-surface border border-outline/40 rounded hover:text-secondary cursor-pointer">TO DEMO</button>
-    </div>
     </div>
   </div>
 
@@ -292,22 +230,11 @@
           <div id="fp-scores-table" class="space-y-0"></div>
         </div>
 
-        <!-- Route Comparison Cards (Collapsible) -->
-        <details id="fp-route-comp-details" class="group border border-outline/30 rounded-lg bg-surface-container/40 overflow-hidden" open>
-          <summary class="cursor-pointer font-bold flex items-center justify-between p-3 select-none hover:bg-surface-container/60 transition-colors">
-            <span class="text-[10px] text-on-surface-variant uppercase tracking-wider flex items-center gap-1.5">
-              <span class="material-symbols-outlined text-sm text-secondary">compare_arrows</span>
-              Multi-Route Comparison Cards
-            </span>
-            <span class="material-symbols-outlined text-sm text-on-surface-variant group-open:rotate-180 transition-transform">expand_more</span>
-          </summary>
-          <div class="p-3 pt-0">
-            <div id="fp-route-comparison"></div>
-            <div class="mt-2 text-[9px] text-on-surface-variant/80 italic text-center border-t border-outline/20 pt-1.5">
-              Simulated estimates from onboard physics model — not sea-trial validated.
-            </div>
-          </div>
-        </details>
+        <!-- Route Comparison -->
+        <div>
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-2">A* Path Planning — Mode Comparison</div>
+          <div id="fp-route-comparison"></div>
+        </div>
       </div>
 
       <!-- ─── HAZARDS TAB ────────────────────────────────────────────── -->
@@ -798,20 +725,11 @@
 
   <script>
     if ('serviceWorker' in navigator) {
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-          for (let registration of registrations) {
-            registration.unregister();
-            console.log('[Service Worker] Unregistered dev service worker to prevent stale cache serving.');
-          }
-        });
-      } else {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('Service Worker registered:', reg.scope))
-          .catch(err => console.error('Service Worker registration failed:', err));
-      }
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('Service Worker registered:', reg.scope))
+        .catch(err => console.error('Service Worker registration failed:', err));
     }
   </script>
-  <script type="module" src="/src/js/main.js"></script>
+
 </body>
 </html>

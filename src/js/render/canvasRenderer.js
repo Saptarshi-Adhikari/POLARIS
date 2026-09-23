@@ -959,6 +959,13 @@ export class CanvasRenderer {
         ctx.stroke();
       }
 
+      if (ice.isUSNIC || (ice.name && ice.name.startsWith('Iceberg '))) {
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 10px "JetBrains Mono"';
+        ctx.textAlign = 'center';
+        ctx.fillText(ice.name || ice.id, 0, -r - 12);
+      }
+
       ctx.restore();
     }
     ctx.restore();

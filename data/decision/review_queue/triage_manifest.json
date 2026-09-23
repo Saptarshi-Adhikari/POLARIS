@@ -1,0 +1,29 @@
+{
+  "triage_manifest_version": "2.0.0",
+  "updated_at": "2026-09-23T19:36:44.028191Z",
+  "total_scenarios_processed": 500,
+  "auto_accepted_silver": 75,
+  "human_review_required": 375,
+  "ambiguous_count": 50,
+  "invalid_count": 0,
+  "silver_labels_generated": 75,
+  "gold_labels_count": 0,
+  "action_distribution": {
+    "continue": 75,
+    "slow_down": 275,
+    "reroute": 64,
+    "hold_position": 25,
+    "request_escort": 36,
+    "emergency_response": 25
+  },
+  "disagreement_metrics": {
+    "laya_disagreement_count": 324,
+    "simulation_conflict_count": 0,
+    "safety_conflicts_count": 175,
+    "low_confidence_count": 174
+  },
+  "circularity_audit": "Rule baseline heuristics and physics simulation safety checks share spatial collision definitions from route_validation.py. Simulation safety confirms physical validity within model parameters, but does NOT constitute independent expert validation. Labels are designated SILVER (expert_validated = false).",
+  "holdout_benchmark_protected": true,
+  "original_corpus_unmodified": true,
+  "readiness_status": "DATASET_READY_FOR_DOMAIN_REVIEW"
+}

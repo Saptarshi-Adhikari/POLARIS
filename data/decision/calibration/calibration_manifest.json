@@ -1,0 +1,19 @@
+{
+  "calibration_version": "1.0.0",
+  "created_at": "2026-09-22T19:18:48.288344Z",
+  "total_sample_size": 24,
+  "stratification": {
+    "silver_count": 9,
+    "human_review_count": 15,
+    "action_distribution": {
+      "continue": 9,
+      "slow_down": 6,
+      "reroute": 5,
+      "hold_position": 2,
+      "request_escort": 1,
+      "emergency_response": 1
+    }
+  },
+  "protected_corpus": "C:\\Users\\Saptarshi\\Desktop\\MainFolder\\Hackathon\\shipnav\\v3\\POLARIS\\data\\decision\\generated\\polaris_domain_scenarios_500.jsonl",
+  "protected_benchmark": "C:\\Users\\Saptarshi\\Desktop\\MainFolder\\Hackathon\\shipnav\\v3\\POLARIS\\data\\polaris_decision_cases.json"
+}

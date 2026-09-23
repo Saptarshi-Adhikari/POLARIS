@@ -10,7 +10,10 @@ from pydantic import BaseModel
 from pathlib import Path
 from typing import Optional, Dict
 import numpy as np
-import joblib
+try:
+    import joblib
+except ImportError:
+    joblib = None
 
 router = APIRouter(prefix="/ml", tags=["ML Drift Prediction"])
 
@@ -23,6 +26,8 @@ _model_type = None
 
 def _try_load_model():
     global _model_data, _model_type
+    if not joblib:
+        return
     if HYBRID_MODEL_PATH.exists():
         try:
             _model_data = joblib.load(HYBRID_MODEL_PATH)

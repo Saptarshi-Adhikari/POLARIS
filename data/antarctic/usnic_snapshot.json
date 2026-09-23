@@ -1,0 +1,38 @@
+[
+  {
+    "id": "A23a",
+    "name": "Iceberg A23a",
+    "lat": -68.5,
+    "lon": -42.1,
+    "sim_x": 1600,
+    "sim_y": 1200,
+    "size_km": 40,
+    "radius_su": 75,
+    "snapshot_date": "2026-09-24",
+    "source": "USNIC static snapshot"
+  },
+  {
+    "id": "D15",
+    "name": "Iceberg D15",
+    "lat": -67.2,
+    "lon": -38.5,
+    "sim_x": 2100,
+    "sim_y": 950,
+    "size_km": 25,
+    "radius_su": 50,
+    "snapshot_date": "2026-09-24",
+    "source": "USNIC static snapshot"
+  },
+  {
+    "id": "B15a",
+    "name": "Iceberg B15a Fragment",
+    "lat": -69.1,
+    "lon": -45.0,
+    "sim_x": 1200,
+    "sim_y": 1500,
+    "size_km": 18,
+    "radius_su": 35,
+    "snapshot_date": "2026-09-24",
+    "source": "USNIC static snapshot"
+  }
+]

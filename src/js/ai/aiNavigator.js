@@ -978,13 +978,23 @@ export class AINavigator {
     }
 
     let finalExplanation = decResult.explanation;
+    let citation = '[COLREGs R.15]';
 
     if (maxDangerScore === 4) {
       status = 'CRITICAL COLLISION RISK';
-      finalExplanation = `CRITICAL: Immediate encounter risk with ${closestHazard.name} (${closestHazard.distance.toFixed(0)}m). Auto emergency braking active.`;
+      citation = '[COLREGs R.14]';
+      finalExplanation = `${citation} CRITICAL: Immediate encounter risk with ${closestHazard.name} (${closestHazard.distance.toFixed(0)}m). Auto emergency braking active.`;
     } else if (maxDangerScore === 3) {
       status = 'REDUCE SPEED';
-      finalExplanation = `CAUTION: ${closestHazard.name} detected ahead on course. Reducing speed and recommended rerouting.`;
+      citation = '[COLREGs R.15]';
+      finalExplanation = `${citation} CAUTION: ${closestHazard.name} detected ahead on course. Reducing speed and recommended rerouting.`;
+    } else {
+      if (decResult.recommendedMode === 'SAFEST') {
+        citation = '[Polar Code Cat.A]';
+      } else if (decResult.recommendedMode === 'FUEL_EFFICIENT') {
+        citation = '[COLREGs R.13]';
+      }
+      finalExplanation = `${citation} ${finalExplanation}`;
     }
 
     this.aiRecommendation = {
@@ -992,7 +1002,8 @@ export class AINavigator {
       explanation: finalExplanation,
       recommendedMode: decResult.recommendedMode,
       confidence: decResult.confidence,
-      scores: decResult.scores
+      scores: decResult.scores,
+      ruleCitation: citation
     };
 
     return {
@@ -1001,6 +1012,7 @@ export class AINavigator {
       recommendedMode: decResult.recommendedMode,
       confidence: decResult.confidence,
       scores: decResult.scores,
+      ruleCitation: citation,
       comparisons: { shortest: fastest, balanced, safest, fuelEfficient }
     };
   }

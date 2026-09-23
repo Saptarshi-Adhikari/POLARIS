@@ -2,12 +2,21 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
-import joblib
+try:
+    import joblib
+except ImportError:
+    joblib = None
 import numpy as np
 import os
 
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 # Phase 7: ML drift prediction router
-from ml_api import router as ml_router
+from backend.ml_api import router as ml_router
+from backend.review_api import router as review_router
 
 app = FastAPI(
     title="Astralis ML Iceberg Prediction Service",
@@ -23,8 +32,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount Phase 7 ML router
+# Mount Phase 7 ML router and Domain Review router
 app.include_router(ml_router)
+app.include_router(review_router)
 
 
 # Global model state
@@ -34,7 +44,7 @@ model = None
 @app.on_event("startup")
 def load_prediction_model():
     global model
-    if os.path.exists(MODEL_PATH):
+    if joblib and os.path.exists(MODEL_PATH):
         try:
             model = joblib.load(MODEL_PATH)
             print(f"Loaded ML model from {MODEL_PATH}")
@@ -255,7 +265,7 @@ User query: {question_instruction}
 MODEL_SEA_ICE_PATH = os.path.join(os.path.dirname(__file__), "model_sea_ice.joblib")
 model_sea_ice = None
 
-if os.path.exists(MODEL_SEA_ICE_PATH):
+if joblib and os.path.exists(MODEL_SEA_ICE_PATH):
     model_sea_ice = joblib.load(MODEL_SEA_ICE_PATH)
 
 class SeaIceRequest(BaseModel):

@@ -1,0 +1,40 @@
+{
+  "rules": [
+    {
+      "id": "COLREG_13",
+      "name": "Rule 13 - Overtaking",
+      "citation": "[COLREGs R.13]",
+      "text": "Any vessel overtaking any other shall keep out of the way of the vessel being overtaken."
+    },
+    {
+      "id": "COLREG_14",
+      "name": "Rule 14 - Head-on Situation",
+      "citation": "[COLREGs R.14]",
+      "text": "When two power-driven vessels are meeting on reciprocal courses so as to involve risk of collision, each shall alter her course to starboard."
+    },
+    {
+      "id": "COLREG_15",
+      "name": "Rule 15 - Crossing Situation",
+      "citation": "[COLREGs R.15]",
+      "text": "When two power-driven vessels are crossing so as to involve risk of collision, the vessel which has the other on her own starboard side shall keep out of the way."
+    },
+    {
+      "id": "POLAR_CODE_A",
+      "name": "Category A Ship",
+      "citation": "[Polar Code Cat.A]",
+      "text": "Ship designed for operation in polar waters in at least medium first-year ice."
+    },
+    {
+      "id": "POLAR_CODE_B",
+      "name": "Category B Ship",
+      "citation": "[Polar Code Cat.B]",
+      "text": "Ship not included in Category A, designed for operation in thin first-year ice."
+    },
+    {
+      "id": "POLAR_CODE_C",
+      "name": "Category C Ship",
+      "citation": "[Polar Code Cat.C]",
+      "text": "Ship designed to operate in open water or in ice conditions less severe than Categories A and B."
+    }
+  ]
+}
