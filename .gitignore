@@ -3,6 +3,8 @@ dist/
 __pycache__/
 *.pyc
 .env
+.env.local
+.env*.local
 .DS_Store
 scratch/test_dataset/
 scratch/test_datasets_v2/

@@ -109,6 +109,8 @@ export class UIController {
       });
     }
 
+
+
     // Drawer Logic
     if (this.toggleEnvDrawerBtn && this.envDrawer) {
       this.toggleEnvDrawerBtn.addEventListener('click', (e) => {
@@ -802,10 +804,16 @@ export class UIController {
       }
     }
 
+    const isRealMode = state.environment && state.environment.mode === 'REAL';
+    const unitLabel = isRealMode ? 'NM' : 'SU';
+    const distScale = isRealMode ? 0.001 : 1.0;
+
     const xteEl = document.getElementById('telemetry-xte');
     if (xteEl) {
-      xteEl.innerText = `${(state.vessel.crossTrackError || 0.0).toFixed(1)} SU`;
-      if (Math.abs(state.vessel.crossTrackError || 0.0) > 15) {
+      const rawXte = state.vessel.crossTrackError || 0.0;
+      const xteVal = isRealMode ? (rawXte * distScale).toFixed(2) : rawXte.toFixed(1);
+      xteEl.innerText = `${xteVal} ${unitLabel}`;
+      if (Math.abs(rawXte) > 15) {
         xteEl.className = 'text-error font-bold';
       } else {
         xteEl.className = 'text-secondary font-bold';
@@ -829,16 +837,16 @@ export class UIController {
 
     const distWpEl = document.getElementById('telemetry-dist-wp');
     if (distWpEl) {
-      distWpEl.innerText = ship.targetWaypoint 
-        ? `${Math.hypot(ship.targetWaypoint.x - ship.x, ship.targetWaypoint.y - ship.y).toFixed(0)} SU`
-        : '0 SU';
+      const rawWpDist = ship.targetWaypoint ? Math.hypot(ship.targetWaypoint.x - ship.x, ship.targetWaypoint.y - ship.y) : 0;
+      const wpVal = isRealMode ? (rawWpDist * distScale).toFixed(1) : rawWpDist.toFixed(0);
+      distWpEl.innerText = ship.targetWaypoint ? `${wpVal} ${unitLabel}` : `0 ${unitLabel}`;
     }
 
     const distDestEl = document.getElementById('telemetry-dist-dest');
     if (distDestEl) {
-      distDestEl.innerText = state.navigation.destinationPoint
-        ? `${Math.hypot(state.navigation.destinationPoint.x - ship.x, state.navigation.destinationPoint.y - ship.y).toFixed(0)} SU`
-        : '0 SU';
+      const rawDestDist = state.navigation.destinationPoint ? Math.hypot(state.navigation.destinationPoint.x - ship.x, state.navigation.destinationPoint.y - ship.y) : 0;
+      const destVal = isRealMode ? (rawDestDist * distScale).toFixed(1) : rawDestDist.toFixed(0);
+      distDestEl.innerText = state.navigation.destinationPoint ? `${destVal} ${unitLabel}` : `0 ${unitLabel}`;
     }
 
     // --- Live Voyage Stats HUD ---
@@ -1233,7 +1241,7 @@ export class UIController {
     }
 
     this.updateMissionUI();
-    this.updateDataModeUI();
+    this.updateLegacyDataDrivenModeUI();
     this.updateExplainabilityUI();
     this.updateConfidenceUI();
     this.updateDecisionCenterUI();
@@ -1711,7 +1719,7 @@ export class UIController {
     updateUIStyles();
   }
 
-  updateDataModeUI() {
+  updateLegacyDataDrivenModeUI() {
     const adm = this.engine.antarcticDataManager;
     if (!adm) return;
 
@@ -2184,11 +2192,27 @@ export class UIController {
     this.updateDataModeUI();
   }
 
-  updateDataModeUI() {
+  updateMapView3DUI(is3D) {
+    if (typeof document === 'undefined') return;
+    const view2dBtn = document.getElementById('map-view-2d-btn');
+    const view3dBtn = document.getElementById('map-view-3d-btn');
+    if (!view2dBtn || !view3dBtn) return;
+
+    if (is3D) {
+      view2dBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-l bg-surface-container text-on-surface hover:text-secondary border border-outline/40 transition-all cursor-pointer';
+      view3dBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-r bg-secondary text-surface border border-secondary transition-all cursor-pointer';
+    } else {
+      view2dBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-l bg-secondary text-surface border border-secondary transition-all cursor-pointer';
+      view3dBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-r bg-surface-container text-on-surface hover:text-secondary border border-outline/40 transition-all cursor-pointer';
+    }
+  }
+
+  updateLegacyDataDrivenModeUI() {
     if (typeof document === 'undefined') return;
     const demoBtn = document.getElementById('data-mode-demo-btn');
     const realBtn = document.getElementById('data-mode-real-btn');
     const provenanceHud = document.getElementById('real-data-provenance-hud');
+    const mapViewGroup = document.getElementById('map-view-3d-group');
 
     if (!demoBtn || !realBtn) return;
 
@@ -2199,6 +2223,7 @@ export class UIController {
       realBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-r bg-secondary text-surface border border-secondary transition-all cursor-pointer';
 
       if (provenanceHud) provenanceHud.classList.remove('hidden');
+      if (mapViewGroup) mapViewGroup.classList.remove('hidden');
 
       const meta = this.engine && this.engine.realReplayProvider ? this.engine.realReplayProvider.getMetadata() : null;
       const srcEl = document.getElementById('provenance-source-text');
@@ -2217,11 +2242,114 @@ export class UIController {
       } else {
         if (errContainer) errContainer.classList.add('hidden');
       }
+
+      if (this.engine && this.engine.renderer && this.engine.renderer.camera) {
+        this.updateMapView3DUI(this.engine.renderer.camera.is3D);
+      }
+
+      // Update Phase 7 Route Execution Status HUD
+      const routeStatusEl = document.getElementById('real-route-status-text');
+      const targetWpEl = document.getElementById('real-target-wp-text');
+      const xteEl = document.getElementById('real-xte-text');
+      const hdgEl = document.getElementById('real-hdg-text');
+      const spdEl = document.getElementById('real-spd-text');
+
+      const navState = this.engine && this.engine.state ? this.engine.state.navigation : null;
+      if (this.engine && this.engine.ship && navState) {
+        const hasActiveRoute = navState.activeRoute && Array.isArray(navState.activeRoute.waypoints) && navState.activeRoute.waypoints.length > 0;
+        if (routeStatusEl) {
+          routeStatusEl.textContent = hasActiveRoute ? (navState.isNavigating ? 'EN ROUTE' : 'ACTIVE') : 'NO ROUTE';
+          routeStatusEl.className = hasActiveRoute ? 'text-emerald-400 font-bold' : 'text-slate-400 font-bold';
+        }
+        if (targetWpEl) {
+          const wpIdx = this.engine.ship.waypointIndex || 0;
+          const totalWp = navState.activeRoute?.waypoints?.length || 0;
+          targetWpEl.textContent = hasActiveRoute ? (wpIdx >= totalWp - 1 ? 'DESTINATION' : `WP ${wpIdx + 1}/${totalWp}`) : 'NONE';
+        }
+        if (xteEl) {
+          const xteWorld = this.engine.ship.crossTrackError || 0;
+          const xteNm = (xteWorld / 10).toFixed(1);
+          xteEl.textContent = `${xteNm} NM`;
+        }
+        if (hdgEl) {
+          const hdg = Math.round(this.engine.ship.heading || 0);
+          hdgEl.textContent = `${String((hdg + 360) % 360).padStart(3, '0')}°`;
+        }
+        if (spdEl) {
+          const spd = (this.engine.ship.speedKnots || 0).toFixed(1);
+          spdEl.textContent = `${spd} kn`;
+        }
+      }
+
+      // Phase 6 Route Advisory HUD Card update
+      const advisoryCard = document.getElementById('real-route-advisory-card');
+      if (advisoryCard && navState) {
+        const proposedRoute = navState.proposedRoute;
+        const advisory = navState.routeAdvisory;
+
+        if (proposedRoute && proposedRoute.status === 'PROPOSED' && advisory) {
+          advisoryCard.classList.remove('hidden');
+
+          const trigEl = document.getElementById('route-advisory-trigger-text');
+          const curDistEl = document.getElementById('route-advisory-current-dist');
+          const propDistEl = document.getElementById('route-advisory-proposed-dist');
+          const deltaDistEl = document.getElementById('route-advisory-delta-dist');
+          const reasonEl = document.getElementById('route-advisory-reason-text');
+          const badgeEl = document.getElementById('route-advisory-status-badge');
+
+          if (trigEl) trigEl.textContent = advisory.trigger || 'TRIGGER: Iceberg intersects planned corridor';
+          if (curDistEl) curDistEl.textContent = `${advisory.currentRouteDistanceNM} NM`;
+          if (propDistEl) propDistEl.textContent = `${advisory.proposedRouteDistanceNM} NM`;
+          if (deltaDistEl) deltaDistEl.textContent = `+${advisory.extraDistanceNM} NM`;
+          if (reasonEl) reasonEl.textContent = advisory.reason || 'Computed CPA is below configured planning threshold.';
+          if (badgeEl) badgeEl.textContent = advisory.status || 'PROPOSED';
+
+          const adoptBtn = document.getElementById('real-adopt-route-btn');
+          if (adoptBtn && !adoptBtn._boundAdopt) {
+            adoptBtn._boundAdopt = true;
+            adoptBtn.addEventListener('click', () => {
+              if (this.engine && this.engine.adoptProposedRoute) {
+                this.engine.adoptProposedRoute();
+              }
+            });
+          }
+
+          const rejectBtn = document.getElementById('real-reject-route-btn');
+          if (rejectBtn && !rejectBtn._boundReject) {
+            rejectBtn._boundReject = true;
+            rejectBtn.addEventListener('click', () => {
+              if (this.engine && this.engine.dismissProposedRoute) {
+                this.engine.dismissProposedRoute();
+              }
+            });
+          }
+        } else if (proposedRoute && proposedRoute.status === 'NO_SAFE_ROUTE') {
+          advisoryCard.classList.remove('hidden');
+          const trigEl = document.getElementById('route-advisory-trigger-text');
+          const curDistEl = document.getElementById('route-advisory-current-dist');
+          const propDistEl = document.getElementById('route-advisory-proposed-dist');
+          const deltaDistEl = document.getElementById('route-advisory-delta-dist');
+          const reasonEl = document.getElementById('route-advisory-reason-text');
+          const badgeEl = document.getElementById('route-advisory-status-badge');
+
+          if (trigEl) trigEl.textContent = 'TRIGGER: Route Intersected';
+          if (curDistEl) curDistEl.textContent = `${advisory?.currentRouteDistanceNM || 0} NM`;
+          if (propDistEl) propDistEl.textContent = 'N/A';
+          if (deltaDistEl) deltaDistEl.textContent = 'N/A';
+          if (reasonEl) reasonEl.textContent = 'NO SAFE ALTERNATIVE FOUND — Planned route retained.';
+          if (badgeEl) badgeEl.textContent = 'NO SAFE ROUTE';
+        } else {
+          advisoryCard.classList.add('hidden');
+        }
+      }
     } else {
       demoBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-l bg-secondary text-surface border border-secondary transition-all cursor-pointer';
       realBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-r bg-surface-container text-on-surface hover:text-secondary border border-outline/40 transition-all cursor-pointer';
 
       if (provenanceHud) provenanceHud.classList.add('hidden');
+      if (mapViewGroup) mapViewGroup.classList.add('hidden');
+      const advisoryCard = document.getElementById('real-route-advisory-card');
+      if (advisoryCard) advisoryCard.classList.add('hidden');
     }
   }
 }

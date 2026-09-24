@@ -388,7 +388,8 @@ export class Ship {
     // Fuel burn system - consumption scales with engine throttle & power multiplier
     const baseConsumption = 0.005; // Base idle burn rate
     const throttleBurn = 0.045 * (this.throttle / 100) * enginePowerMultiplier;
-    const totalBurnRate = (baseConsumption + throttleBurn) * dt * (vectorField.stormMode ? 1.3 : 1.0);
+    const isStorm = vectorField && vectorField.stormMode;
+    const totalBurnRate = (baseConsumption + throttleBurn) * dt * (isStorm ? 1.3 : 1.0);
     this.fuel = Math.max(0, this.fuel - totalBurnRate);
     this.fuelBurnRatePerDay = (baseConsumption + throttleBurn) * 12.0; // Scaled for display
 

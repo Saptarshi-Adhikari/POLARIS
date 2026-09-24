@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet"/>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@^5/dist/maplibre-gl.css"/>
   <link rel="stylesheet" href="/src/css/style.css"/>
 
   <script id="tailwind-config">
@@ -40,9 +41,10 @@
 
 <body class="bg-surface text-on-surface h-screen w-screen overflow-hidden font-body select-none">
 
-  <!-- Interactive 2D Digital Twin Canvas Engine -->
-  <div class="absolute inset-0 z-0 bg-background overflow-hidden cursor-crosshair">
+  <!-- Interactive 2D Digital Twin Canvas / MapLibre 2D WebGL Real Antarctic Map -->
+  <div id="map-container" class="absolute inset-0 z-0 bg-background overflow-hidden cursor-crosshair">
     <canvas id="map-canvas" class="w-full h-full block"></canvas>
+    <div id="maplibre-container" class="absolute inset-0 w-full h-full hidden z-10"></div>
   </div>
 
   <!-- Debug HUD (Hidden by Default — Toggle with D key) -->
@@ -80,6 +82,7 @@
         <button id="data-mode-real-btn" type="button" class="px-2 py-0.5 text-xs font-bold rounded-r bg-surface-container text-on-surface hover:text-secondary border border-outline/40 transition-all cursor-pointer">REAL</button>
       </div>
     </div>
+
     <div class="flex items-center space-x-1.5 border-r border-outline/30 pr-3">
       <span class="text-secondary font-bold flex items-center gap-1">
         <span class="material-symbols-outlined text-sm">ac_unit</span> Sea-Ice Trend:
@@ -167,11 +170,75 @@
     <div>TIME: <span id="provenance-time-text" class="text-secondary font-bold">2026-03-15 12:00:00 UTC</span></div>
     <div class="border-r border-outline/30 h-3"></div>
     <div>MODE: <span id="provenance-mode-text" class="text-amber-400 font-bold">HISTORICAL REPLAY</span></div>
+    <div class="border-r border-outline/30 h-3"></div>
+    <div id="real-iceberg-awareness-hud" class="flex items-center gap-2 text-[10px] text-amber-300 font-bold">
+      <span>NEAREST ICEBERG: <span id="real-nearest-iceberg-text" class="text-white">SCANNING...</span></span>
+      <span class="text-outline/40">|</span>
+      <span>NEAR ROUTE: <span id="real-near-route-count-text" class="text-amber-400 font-bold">0</span></span>
+      <span class="text-outline/40">|</span>
+      <span>ACTIVE ENCOUNTERS: <span id="real-active-encounters-count-text" class="text-rose-400 font-bold">0</span></span>
+    </div>
+    <div class="border-r border-outline/30 h-3"></div>
+    <div id="real-route-execution-hud" class="flex items-center gap-2 text-[10px] font-bold">
+      <span class="text-sky-300">ROUTE: <span id="real-route-status-text" class="text-emerald-400 font-bold">ACTIVE</span></span>
+      <span class="text-outline/40">|</span>
+      <span class="text-slate-300">TARGET: <span id="real-target-wp-text" class="text-amber-300 font-bold">WP 1</span></span>
+      <span class="text-outline/40">|</span>
+      <span class="text-slate-300">XTE: <span id="real-xte-text" class="text-sky-300 font-bold">0.0 NM</span></span>
+      <span class="text-outline/40">|</span>
+      <span class="text-slate-300">HDG: <span id="real-hdg-text" class="text-white font-bold">330°</span></span>
+      <span class="text-outline/40">|</span>
+      <span class="text-slate-300">SPD: <span id="real-spd-text" class="text-white font-bold">12 kn</span></span>
+    </div>
     <div id="real-data-error-container" class="hidden flex items-center gap-2 text-rose-400 font-bold ml-2">
       <span id="real-data-error-text">ERR</span>
       <button id="real-data-retry-btn" class="px-1.5 py-0.5 bg-rose-950 text-rose-200 border border-rose-700 rounded hover:bg-rose-900 cursor-pointer">RETRY</button>
       <button id="real-data-demo-fallback-btn" class="px-1.5 py-0.5 bg-surface-container text-on-surface border border-outline/40 rounded hover:text-secondary cursor-pointer">TO DEMO</button>
     </div>
+    </div>
+  </div>
+
+  <!-- Route Advisory Card Overlay (Shown in REAL mode when route advisory / proposed route exists) -->
+  <div id="real-route-advisory-card" class="hidden fixed bottom-6 left-4 z-40 bg-surface/95 backdrop-blur-md p-3.5 rounded-xl border border-amber-500/50 shadow-2xl text-[11px] font-mono text-on-surface max-w-sm select-none">
+    <div class="flex items-center justify-between border-b border-amber-500/30 pb-2 mb-2">
+      <div class="flex items-center gap-1.5 text-amber-400 font-bold text-xs uppercase tracking-wider">
+        <span class="material-symbols-outlined text-sm">alt_route</span>
+        <span>ROUTE ADVISORY</span>
+      </div>
+      <span id="route-advisory-status-badge" class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase">PROPOSED</span>
+    </div>
+
+    <div class="text-[10px] text-slate-300 font-bold mb-2 leading-snug" id="route-advisory-trigger-text">
+      TRIGGER: Iceberg intersects planned corridor
+    </div>
+
+    <div class="grid grid-cols-3 gap-2 bg-surface-container/60 p-2 rounded-lg border border-outline/30 text-center mb-2">
+      <div>
+        <div class="text-[9px] text-on-surface-variant uppercase">CURRENT</div>
+        <div id="route-advisory-current-dist" class="text-xs font-bold text-sky-300">0 NM</div>
+      </div>
+      <div>
+        <div class="text-[9px] text-on-surface-variant uppercase">PROPOSED</div>
+        <div id="route-advisory-proposed-dist" class="text-xs font-bold text-amber-400">0 NM</div>
+      </div>
+      <div>
+        <div class="text-[9px] text-on-surface-variant uppercase">DELTA</div>
+        <div id="route-advisory-delta-dist" class="text-xs font-bold text-emerald-400">+0 NM</div>
+      </div>
+    </div>
+
+    <div id="route-advisory-reason-text" class="text-[9px] text-slate-400 italic mb-3 leading-tight border-l-2 border-amber-500/50 pl-2">
+      Computed CPA is below the configured planning threshold.
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button id="real-adopt-route-btn" class="flex-1 py-1.5 px-3 bg-amber-500 hover:bg-amber-400 text-surface font-bold text-[11px] rounded-lg transition-all shadow-md flex items-center justify-center gap-1 cursor-pointer">
+        <span class="material-symbols-outlined text-sm">check_circle</span>
+        <span>ADOPT PROPOSED ROUTE</span>
+      </button>
+      <button id="real-reject-route-btn" class="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-[11px] rounded-lg border border-slate-600 transition-all cursor-pointer">
+        DISMISS
+      </button>
     </div>
   </div>
 

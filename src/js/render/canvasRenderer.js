@@ -453,7 +453,9 @@ export class CanvasRenderer {
         if (this.baseIceBlobCanvas && this.trendIceBlobCanvas) {
           const sprite = isTrend ? this.trendIceBlobCanvas : this.baseIceBlobCanvas;
           ctx.globalAlpha = isTrend ? Math.min(1.0, conc * 0.28) : Math.min(1.0, conc * 0.20);
-          ctx.drawImage(sprite, x - radius, y - radius, radius * 2, radius * 2);
+          if (sprite && (sprite.width || sprite.naturalWidth) > 0) {
+            ctx.drawImage(sprite, x - radius, y - radius, radius * 2, radius * 2);
+          }
         } else {
           const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
           grad.addColorStop(0, `rgba(210, 235, 255, ${conc * 0.20})`);
@@ -1076,6 +1078,15 @@ export class CanvasRenderer {
     const screenPos = this.getMousePos(e);
     const worldPos  = this.screenToWorld(screenPos.x, screenPos.y);
 
+    if (this.camera.is3D && (e.button === 2 || (e.button === 0 && e.ctrlKey))) {
+      this.isRotating3D = true;
+      this.rotateStartMouse = { x: screenPos.x, y: screenPos.y };
+      this.rotateStartHeading = this.camera.heading;
+      this.rotateStartPitch = this.camera.pitch;
+      this.canvas.style.cursor = 'grabbing';
+      return;
+    }
+
     if (this.isPanGesture(e)) {
       this.isPanning = true;
       this.middleMousePan = e.button === 1;
@@ -1130,6 +1141,17 @@ export class CanvasRenderer {
     this.mouseScreen = screenPos;
     this.mouseWorld  = worldPos;
 
+    if (this.isRotating3D) {
+      const dx = screenPos.x - this.rotateStartMouse.x;
+      const dy = screenPos.y - this.rotateStartMouse.y;
+      this.camera.heading = (this.rotateStartHeading + dx * 0.5) % 360;
+      this.camera.pitch = Math.max(0, Math.min(75, this.rotateStartPitch - dy * 0.3));
+      this.camera.targetHeading = this.camera.heading;
+      this.camera.targetPitch = this.camera.pitch;
+      this.canvas.style.cursor = 'grabbing';
+      return;
+    }
+
     if (this.isPanning) {
       const dx = screenPos.x - this.panStartMouse.x;
       const dy = screenPos.y - this.panStartMouse.y;
@@ -1169,6 +1191,10 @@ export class CanvasRenderer {
   }
 
   handleMouseUp(e) {
+    if (this.isRotating3D) {
+      this.isRotating3D = false;
+      this.canvas.style.cursor = this.spaceHeld ? 'grab' : 'crosshair';
+    }
     if (this.isPanning) {
       this.isPanning = false;
       this.middleMousePan = false;

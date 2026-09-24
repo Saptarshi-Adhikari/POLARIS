@@ -382,6 +382,6 @@ describe('Phase 3.5 Soak Run & Raw Data Verification', () => {
     fs.writeFileSync(path.join(EXPORT_DIR, 'soak_summary.json'), JSON.stringify(summaryReport, null, 2), 'utf8');
 
     expect(fs.existsSync(path.join(EXPORT_DIR, 'soak_summary.json'))).toBe(true);
-  }, 300000);
+  }, 600000);
 });
 

@@ -23,6 +23,7 @@ import { ValidationEngine } from './simulation/validationEngine.js';
 import { RiskIntelligenceEngine } from './ai/riskIntelligenceEngine.js';
 import { MissionPlanner } from './ai/missionPlanner.js';
 import { AntarcticDataManager } from './data/antarcticDataManager.js';
+import { minDistanceToRouteNM, calculateEncounterCPA } from './geo/projection.js';
 import { ExplainabilityEngine } from './ai/explainabilityEngine.js';
 import { CounterfactualSimulator } from './ai/counterfactualSimulator.js';
 import { ConfidenceIntelligenceEngine } from './ai/confidenceIntelligenceEngine.js';
@@ -541,8 +542,244 @@ export class SimulationEngine {
     nav.routeCalculated = true;
     nav.routeInvalid = false;
     nav.statusMessage = `Route calculated (${this.ship.routeWaypoints.length} waypoints)`;
+
+    // Evaluate route impact in REAL mode
+    if (this.dataMode === 'REAL') {
+      this.evaluateRouteImpactAndPropose();
+    }
+
     this.uiController && this.uiController.updateNavStatus();
     return true;
+  }
+
+  evaluateRouteImpactAndPropose() {
+    const nav = this.state.navigation;
+    const activeRoute = nav.activeRoute;
+    if (!activeRoute || !Array.isArray(activeRoute.waypoints) || activeRoute.waypoints.length < 2) {
+      nav.proposedRoute = null;
+      nav.routeAdvisory = null;
+      return;
+    }
+
+    // Get real icebergs
+    const realIcebergs = (this.modeManager && this.modeManager.activeProvider && typeof this.modeManager.activeProvider.getIcebergs === 'function')
+      ? this.modeManager.activeProvider.getIcebergs().data
+      : [];
+
+    if (!realIcebergs || realIcebergs.length === 0) {
+      nav.proposedRoute = null;
+      nav.routeAdvisory = null;
+      return;
+    }
+
+    // Convert route waypoints to Lat/Lon
+    const routeCoords = activeRoute.waypoints.map(w => {
+      const x_nm = (w.x - 1800) / 10;
+      const y_nm = (1200 - w.y) / 10;
+      const p = (this.maplibreRenderer && typeof this.maplibreRenderer.worldToLatLon === 'function')
+        ? this.maplibreRenderer.worldToLatLon(w.x, w.y)
+        : null;
+      return p;
+    }).filter(c => Array.isArray(c) && c.length >= 2);
+
+    if (routeCoords.length < 2) return;
+
+    // Planning threshold margin: 50.0 NM
+    const PLANNING_MARGIN_NM = 50.0;
+    const triggeringHazards = [];
+
+    for (const ice of realIcebergs) {
+      if (typeof ice.latitude !== 'number' || typeof ice.longitude !== 'number') continue;
+
+      let minDist = Infinity;
+      if (routeCoords.length >= 2) {
+        minDist = minDistanceToRouteNM(ice.latitude, ice.longitude, routeCoords);
+      }
+
+      // Check CPA if ship position available
+      let cpaVal = null;
+      let tcpaVal = null;
+      if (this.maplibreRenderer && this.maplibreRenderer.currentShipLatLon) {
+        const shipCoord = this.maplibreRenderer.currentShipLatLon;
+        const cpaRes = calculateEncounterCPA({
+          shipLat: shipCoord[1], shipLon: shipCoord[0],
+          shipSpeedKn: this.ship.speedKnots || 12, shipHeadingDeg: this.ship.heading || 0,
+          targetLat: ice.latitude, targetLon: ice.longitude,
+          targetSpeedKn: ice.observedDrift ? ice.observedDrift.speedKn : null,
+          targetHeadingDeg: ice.observedDrift ? ice.observedDrift.bearingDeg : null
+        });
+        cpaVal = cpaRes.cpaNm;
+        tcpaVal = cpaRes.tcpaMin;
+      }
+
+      if (minDist <= PLANNING_MARGIN_NM || (cpaVal !== null && cpaVal <= 30.0)) {
+        triggeringHazards.push({
+          icebergId: ice.id || ice.name,
+          name: ice.name || ice.id,
+          latitude: ice.latitude,
+          longitude: ice.longitude,
+          source: ice.source || 'USNIC / NOAA ERDDAP',
+          observationTime: ice.timestamp || '2026-09-24',
+          size: ice.lengthNm ? `${ice.lengthNm} NM` : 'STANDARD',
+          driftAvailable: !!ice.observedDrift,
+          cpaNm: cpaVal,
+          tcpaMin: tcpaVal,
+          routeDistanceNM: Math.round(minDist * 10) / 10,
+          planningRelevance: minDist <= 20.0 ? 'CRITICAL_INTERSECT' : 'MONITORED_APPROACH'
+        });
+      }
+    }
+
+    if (triggeringHazards.length === 0) {
+      nav.proposedRoute = null;
+      nav.routeAdvisory = null;
+      return;
+    }
+
+    // Trigger iceberg for explanation
+    triggeringHazards.sort((a, b) => a.routeDistanceNM - b.routeDistanceNM);
+    const primaryTrigger = triggeringHazards[0];
+
+    // Build iceberg obstacle representations in World space for planner
+    const worldHazards = triggeringHazards.map(h => {
+      // Forward projection Lat/Lon -> NM relative to Bharati origin -> World space (x, y)
+      const cosLat0 = Math.cos(-69.4 * Math.PI / 180);
+      const x_nm = (h.longitude - 76.187) * 60 * cosLat0;
+      const y_nm = (h.latitude - (-69.4)) * 60;
+      const wx = 1800 + x_nm * 10;
+      const wy = 1200 - y_nm * 10;
+      return new Iceberg({
+        id: `HAZARD_${h.name}`,
+        name: h.name,
+        x: wx,
+        y: wy,
+        collisionRadius: 80, // Enhanced planning buffer envelope
+        mass: 5000,
+        size: 1500
+      });
+    });
+
+    // Run A* planner to compute alternative route
+    const allIcebergs = [...this.icebergs, ...worldHazards];
+    const candidatePath = this.aiNavigator.generateOptimalRouteAStarSync(
+      { x: this.ship.x, y: this.ship.y },
+      allIcebergs,
+      this.vectorField,
+      nav.destinationPoint,
+      nav.mode || 'SAFEST',
+      this.state,
+      this.ship
+    );
+
+    if (candidatePath && Array.isArray(candidatePath) && candidatePath.length >= 2) {
+      // Calculate distances in NM
+      let curDistNm = 0;
+      for (let i = 0; i < activeRoute.waypoints.length - 1; i++) {
+        curDistNm += Math.hypot(activeRoute.waypoints[i+1].x - activeRoute.waypoints[i].x, activeRoute.waypoints[i+1].y - activeRoute.waypoints[i].y) / 10;
+      }
+      let propDistNm = 0;
+      for (let i = 0; i < candidatePath.length - 1; i++) {
+        propDistNm += Math.hypot(candidatePath[i+1].x - candidatePath[i].x, candidatePath[i+1].y - candidatePath[i].y) / 10;
+      }
+
+      curDistNm = Math.round(curDistNm);
+      propDistNm = Math.round(propDistNm);
+      const extraDistNm = Math.max(0, propDistNm - curDistNm);
+
+      const cpaStr = primaryTrigger.cpaNm !== null ? `${primaryTrigger.cpaNm} NM` : 'N/A';
+      const tcpaStr = primaryTrigger.tcpaMin !== null ? `${primaryTrigger.tcpaMin} min` : 'N/A';
+
+      nav.proposedRoute = {
+        id: `proposed_${Date.now()}`,
+        waypoints: candidatePath,
+        status: 'PROPOSED',
+        totalDistanceNM: propDistNm,
+        extraDistanceNM: extraDistNm,
+        createdAt: performance.now()
+      };
+
+      nav.routeAdvisory = {
+        status: 'PROPOSED',
+        trigger: `TRIGGER: Real Iceberg ${primaryTrigger.name} approaches corridor (${primaryTrigger.routeDistanceNM} NM)`,
+        triggerIcebergs: triggeringHazards,
+        currentRouteDistanceNM: curDistNm,
+        proposedRouteDistanceNM: propDistNm,
+        extraDistanceNM: extraDistNm,
+        reason: `Computed CPA (${cpaStr}, TCPA ${tcpaStr}) is below configured planning threshold (${PLANNING_MARGIN_NM} NM). Safe alternative route avoids observed iceberg position.`,
+        dataBasis: `USNIC / NOAA ERDDAP (${primaryTrigger.source})`
+      };
+    } else {
+      nav.proposedRoute = {
+        status: 'NO_SAFE_ROUTE',
+        waypoints: []
+      };
+      nav.routeAdvisory = {
+        status: 'NO_SAFE_ROUTE',
+        trigger: `TRIGGER: Real Iceberg ${primaryTrigger.name} blocks route corridor`,
+        reason: 'NO SAFE ALTERNATIVE FOUND: Planner constraints or dense hazards block all detour geometries. Planned route retained.',
+        currentRouteDistanceNM: 0,
+        proposedRouteDistanceNM: 0,
+        extraDistanceNM: 0
+      };
+    }
+  }
+
+  adoptProposedRoute() {
+    const nav = this.state.navigation;
+    if (nav.proposedRoute && nav.proposedRoute.status === 'PROPOSED' && Array.isArray(nav.proposedRoute.waypoints) && nav.proposedRoute.waypoints.length >= 2) {
+      const adoptedWaypoints = nav.proposedRoute.waypoints;
+      
+      // Update activeRoute exactly once
+      nav.activeRoute = {
+        id: nav.proposedRoute.id || `active_${Date.now()}`,
+        waypoints: adoptedWaypoints,
+        status: 'valid',
+        createdAt: performance.now(),
+        expiresAt: performance.now() + 60000,
+        totalDistance: nav.proposedRoute.totalDistanceNM * 10
+      };
+
+      // Set waypoints on canonical ship instance (which initializes targetWaypoint & waypointIndex)
+      this.ship.setRouteWaypoints(adoptedWaypoints, nav.activeRoute.id);
+      nav.isNavigating = true;
+      this.state.vessel.autopilot = true;
+
+      // Mission Event Log
+      this.logMissionEvent('ROUTE_ADOPTED', `Navigator explicitly adopted proposed route (${adoptedWaypoints.length} waypoints)`);
+
+      nav.statusMessage = 'Proposed alternative route adopted by navigator — route execution active';
+      nav.proposedRoute = null;
+      nav.routeAdvisory = null;
+
+      if (this.uiController) {
+        this.uiController.updateNavStatus();
+        this.uiController.updateDataModeUI();
+      }
+    }
+  }
+
+  logMissionEvent(type, details) {
+    if (!this.missionLogs) this.missionLogs = [];
+    const event = {
+      timestamp: new Date().toISOString(),
+      simTimeHours: this.state?.simulation?.simTimeHours || 0,
+      type,
+      details,
+      shipPosition: { x: Math.round(this.ship.x), y: Math.round(this.ship.y) },
+      shipHeading: Math.round(this.ship.heading || 0),
+      activeWaypointIndex: this.ship.waypointIndex || 0
+    };
+    this.missionLogs.push(event);
+    console.info(`[MissionLog] [${event.type}] ${event.details}`);
+  }
+
+  dismissProposedRoute() {
+    const nav = this.state.navigation;
+    nav.proposedRoute = null;
+    nav.routeAdvisory = null;
+    if (this.uiController) {
+      this.uiController.updateDataModeUI();
+    }
   }
 
   clearRoute() {
@@ -966,15 +1203,30 @@ export class SimulationEngine {
 
     perfMonitor.timeFunction('rendering', () => {
       try {
-        this.renderer.render(
-          this.vectorField,
-          this.ship,
-          this.icebergs,
-          this.aiNavigator,
-          this.state.simulation.simTimeHours,
-          rawDt,
-          this.state
-        );
+        if (this.dataMode !== 'REAL') {
+          this.renderer.render(
+            this.vectorField,
+            this.ship,
+            this.icebergs,
+            this.aiNavigator,
+            this.state.simulation.simTimeHours,
+            rawDt,
+            this.state
+          );
+        }
+        if (this.dataMode === 'REAL' && this.maplibreRenderer) {
+          const realIcebergs = (this.modeManager && this.modeManager.activeProvider && typeof this.modeManager.activeProvider.getIcebergs === 'function')
+            ? this.modeManager.activeProvider.getIcebergs().data
+            : this.icebergs;
+
+          this.maplibreRenderer.renderFrame(
+            this.ship,
+            this.state.navigation.activeRoute,
+            this.state.navigation.destinationPoint,
+            realIcebergs,
+            this.state.navigation.proposedRoute
+          );
+        }
       } catch (e) {
         console.error('[Renderer] Draw failed:', e);
       }
