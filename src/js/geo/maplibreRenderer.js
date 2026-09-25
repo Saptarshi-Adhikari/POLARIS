@@ -1,13 +1,15 @@
-import * as maplibregl from 'maplibre-gl';
-import maplibreglWorker from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker';
+import { Map, NavigationControl, ScaleControl, Popup, setWorkerUrl } from 'maplibre-gl';
+import maplibreglWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { inverseProjection, haversineDistanceNM, calculateInitialBearing, formatLatLon, minDistanceToRouteNM, calculateEncounterCPA, classifyEncounter } from './projection.js';
 import { byuHistoricalProvider } from '../data/ByuHistoricalProvider.js';
 import { provenanceRegistry } from '../dataSources.js';
 
-if (typeof window !== 'undefined' && maplibregl) {
+if (typeof window !== 'undefined') {
   try {
-    Object.defineProperty(maplibregl, 'workerClass', { value: maplibreglWorker, writable: true, configurable: true });
-  } catch (e) {}
+    setWorkerUrl(maplibreglWorkerUrl);
+  } catch (e) {
+    console.warn('[MapLibreRenderer] setWorkerUrl warning:', e);
+  }
 }
 
 /** Explicit visualization threshold for identifying icebergs near active route (Nautical Miles) */
@@ -90,7 +92,7 @@ export class MapLibreRenderer {
 
       // Do NOT pass maxBounds in constructor options (prevents 0x0 container bounds constraint failure during init).
       // maxBounds is safely applied via setMaxBounds() on map 'load'.
-      this.map = new maplibregl.Map({
+      this.map = new Map({
         container: this.containerId,
         style: mapStyle,
         center: safeCenter,
@@ -108,13 +110,13 @@ export class MapLibreRenderer {
       });
 
       // Navigation controls
-      this.map.addControl(new maplibregl.NavigationControl({
+      this.map.addControl(new NavigationControl({
         showCompass: true,
         showZoom: true,
         visualizePitch: false
       }), 'top-right');
 
-      this.map.addControl(new maplibregl.ScaleControl({
+      this.map.addControl(new ScaleControl({
         maxWidth: 150,
         unit: 'nautical'
       }), 'bottom-left');
@@ -133,7 +135,7 @@ export class MapLibreRenderer {
       window.addEventListener('resize', this.windowResizeHandler);
 
       // Viewport-aware Antarctic Camera Clamp
-      const ALLOWED_BOUNDS = { west: -180, south: -90, east: 180, north: -45 };
+      const ALLOWED_BOUNDS = { west: -179.99, south: -90, east: 179.99, north: -45 };
       let isUpdatingBounds = false;
 
       this.updateDynamicMaxBounds = () => {
@@ -303,11 +305,13 @@ export class MapLibreRenderer {
       id: 'active-route-corridor',
       type: 'line',
       source: 'active-route',
-      paint: {
-        'line-color': 'rgba(56, 189, 248, 0.25)',
-        'line-width': 18,
+      layout: {
         'line-cap': 'round',
         'line-join': 'round'
+      },
+      paint: {
+        'line-color': 'rgba(56, 189, 248, 0.25)',
+        'line-width': 18
       }
     });
     // Planned Navigation Route Line
@@ -333,11 +337,13 @@ export class MapLibreRenderer {
       id: 'proposed-route-corridor',
       type: 'line',
       source: 'proposed-route',
-      paint: {
-        'line-color': 'rgba(245, 158, 11, 0.25)',
-        'line-width': 16,
+      layout: {
         'line-cap': 'round',
         'line-join': 'round'
+      },
+      paint: {
+        'line-color': 'rgba(245, 158, 11, 0.25)',
+        'line-width': 16
       }
     });
 
@@ -458,7 +464,7 @@ export class MapLibreRenderer {
     // Add Iceberg Popup & Hover Interactions
     if (!this.icebergPopupAdded) {
       this.icebergPopupAdded = true;
-      const popup = new maplibregl.Popup({
+      const popup = new Popup({
         closeButton: true,
         closeOnClick: false
       });
