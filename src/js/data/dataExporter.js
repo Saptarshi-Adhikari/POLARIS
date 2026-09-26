@@ -68,6 +68,17 @@ export class DataExporter {
     }
   }
 
+  exportRealSnapshot(snapshot, format = 'json') {
+    if (!snapshot) return;
+    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    if (format === 'csv') {
+      const records = snapshot.icebergs || [];
+      this.exportToCSV(records, `polaris_real_snapshot_${ts}.csv`);
+    } else {
+      this.exportToJson(snapshot, `polaris_real_snapshot_${ts}.json`);
+    }
+  }
+
   // ── Internal ─────────────────────────────────────────────────────────────
 
   _downloadBlob(content, filename, mimeType) {

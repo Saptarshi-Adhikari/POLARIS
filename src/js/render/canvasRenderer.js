@@ -959,11 +959,16 @@ export class CanvasRenderer {
         ctx.stroke();
       }
 
-      if (ice.isUSNIC || (ice.name && ice.name.startsWith('Iceberg '))) {
+      if (ice.isUSNIC || ice.name || (ice.id && typeof ice.id === 'string' && ice.id.includes('-'))) {
         ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 10px "JetBrains Mono"';
+        ctx.font = 'bold 11px "JetBrains Mono"';
         ctx.textAlign = 'center';
         ctx.fillText(ice.name || ice.id, 0, -r - 12);
+        if (ice.lat !== undefined && ice.lon !== undefined) {
+          ctx.fillStyle = 'rgba(218, 226, 253, 0.7)';
+          ctx.font = '9px "JetBrains Mono"';
+          ctx.fillText(`${Math.abs(ice.lat).toFixed(1)}°S ${Math.abs(ice.lon).toFixed(1)}°W`, 0, -r - 2);
+        }
       }
 
       ctx.restore();

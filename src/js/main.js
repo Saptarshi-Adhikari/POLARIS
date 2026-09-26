@@ -29,6 +29,7 @@ import { ConfidenceIntelligenceEngine } from './ai/confidenceIntelligenceEngine.
 import { DecisionIntelligenceEngine } from './ai/decisionIntelligenceEngine.js';
 import { MetricsRegistry } from './ai/metricsRegistry.js';
 import { DemoDataProvider, RealReplayProvider } from './providers/dataProvider.js';
+import { RealDataProvider } from './data/RealDataProvider.js';
 import { DemoMapProvider, RealMapProvider } from './providers/mapProvider.js';
 import { RealReplayEngine } from './providers/realReplayEngine.js';
 import { geoToWorld, worldToGeo, DEFAULT_ANTARCTIC_BBOX } from './providers/geoTransform.js';
@@ -386,29 +387,69 @@ export class SimulationEngine {
     }
   }
 
-  setDataMode(mode) {
+  async setDataMode(mode) {
     if (mode === 'REAL') {
       this.dataMode = 'REAL';
-      this.activeDataProvider = this.realReplayProvider;
-      this.activeMapProvider = this.realMapProvider;
-      this.renderer.activeMapProvider = this.realMapProvider;
+      if (!this.realDataProvider) {
+        this.realDataProvider = new RealDataProvider();
+      }
+      this.activeDataProvider = this.realDataProvider;
+      this.activeMapProvider = this.demoMapProvider;
+      this.renderer.activeMapProvider = this.demoMapProvider;
       this.state.environment.mode = 'REAL-DATA';
 
-      const hazards = this.realReplayProvider.getHazards(this.state.simulation.simTimeHours);
+      // Load cached or immediate real snapshot first
+      let hazards = this.realDataProvider.getHazards();
       if (hazards && hazards.length > 0) {
         this.icebergs = hazards.map(h => new Iceberg({
           id: h.id,
-          name: h.id,
+          name: h.name || h.id,
           x: h.position.x,
           y: h.position.y,
+          lat: h.latitude,
+          lon: h.longitude,
           mass: h.geometry.mass * 2.5,
           size: h.geometry.size,
           collisionRadius: h.geometry.radius
         }));
+        this.icebergs.forEach(ice => { ice.isUSNIC = true; });
       }
 
-      const env = this.realReplayProvider.getEnvironment();
-      if (env) {
+      // Refresh background network data atomically
+      this.realDataProvider.refresh().then(snapshot => {
+        if (this.dataMode === 'REAL' && snapshot && snapshot.icebergs) {
+          this.icebergs = snapshot.icebergs.map(h => new Iceberg({
+            id: h.id,
+            name: h.name || h.id,
+            x: h.position.x,
+            y: h.position.y,
+            lat: h.latitude,
+            lon: h.longitude,
+            mass: h.geometry.mass * 2.5,
+            size: h.geometry.size,
+            collisionRadius: h.geometry.radius
+          }));
+          this.icebergs.forEach(ice => { ice.isUSNIC = true; });
+
+          if (snapshot.currents && snapshot.wind) {
+            this.vectorField.setParams({
+              currentSpeed: snapshot.currents.speed,
+              currentDirection: snapshot.currents.direction,
+              windSpeed: snapshot.wind.speed,
+              windDirection: snapshot.wind.direction
+            });
+          }
+          this.calculateRoute();
+          if (this.uiController && typeof this.uiController.updateDataModeUI === 'function') {
+            this.uiController.updateDataModeUI();
+          }
+        }
+      }).catch(err => {
+        console.warn('[setDataMode] Background real data refresh error (using cached):', err);
+      });
+
+      const env = this.realDataProvider.getEnvironment();
+      if (env && env.current && env.wind) {
         this.vectorField.setParams({
           currentSpeed: env.current.speed,
           currentDirection: env.current.direction,

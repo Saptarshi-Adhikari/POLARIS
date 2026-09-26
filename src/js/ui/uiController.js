@@ -1712,43 +1712,44 @@ export class UIController {
   }
 
   updateDataModeUI() {
-    const adm = this.engine.antarcticDataManager;
-    if (!adm) return;
+    const demoBtn = document.getElementById('data-mode-demo-btn');
+    const realBtn = document.getElementById('data-mode-real-btn');
+    const realHud = document.getElementById('real-data-provenance-hud');
+    const provSource = document.getElementById('provenance-source-text');
+    const provTime = document.getElementById('provenance-time-text');
+    const provMode = document.getElementById('provenance-mode-text');
 
-    const lblStatus = document.getElementById('data-lbl-status');
-    const lblDataset = document.getElementById('data-lbl-dataset');
-    const lblSeaice = document.getElementById('data-lbl-seaice');
-    const lblCurrent = document.getElementById('data-lbl-current');
-    const lblWind = document.getElementById('data-lbl-wind');
-    const lblIceberg = document.getElementById('data-lbl-iceberg');
+    const isReal = this.engine.dataMode === 'REAL';
 
-    const mode = this.engine.state.environment.mode;
+    if (demoBtn && realBtn) {
+      if (isReal) {
+        demoBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-l bg-surface-container text-on-surface hover:text-secondary border border-outline/40 transition-all cursor-pointer';
+        realBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-r bg-secondary text-surface border border-secondary transition-all cursor-pointer';
+      } else {
+        demoBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-l bg-secondary text-surface border border-secondary transition-all cursor-pointer';
+        realBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-r bg-surface-container text-on-surface hover:text-secondary border border-outline/40 transition-all cursor-pointer';
+      }
+    }
 
-    if (mode === 'DATA-DRIVEN') {
-      if (lblStatus) {
-        if (adm.status === 'FALLBACK') {
-          lblStatus.innerText = 'DATA STATUS: FALLBACK';
-          lblStatus.className = 'font-bold text-error';
-        } else {
-          lblStatus.innerText = 'DATA MODE ACTIVE';
-          lblStatus.className = 'font-bold text-secondary';
+    if (realHud) {
+      if (isReal) {
+        realHud.classList.remove('hidden');
+        if (this.engine.realDataProvider) {
+          const status = this.engine.realDataProvider.getStatus();
+          const prov = this.engine.realDataProvider.getProvenance();
+          if (provSource && prov && prov.providers) {
+            provSource.innerText = prov.providers.join(' / ');
+          }
+          if (provTime) {
+            provTime.innerText = new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC';
+          }
+          if (provMode) {
+            provMode.innerText = status.status;
+          }
         }
+      } else {
+        realHud.classList.add('hidden');
       }
-      if (lblDataset) lblDataset.innerText = adm.metadata.time_period || 'ANTARCTIC SAMPLE';
-      if (lblSeaice) lblSeaice.innerText = 'OBSERVED GRID';
-      if (lblCurrent) lblCurrent.innerText = 'OBSERVED FIELD';
-      if (lblWind) lblWind.innerText = 'OBSERVED FIELD';
-      if (lblIceberg) lblIceberg.innerText = 'TRACK DATA';
-    } else {
-      if (lblStatus) {
-        lblStatus.innerText = 'SIMULATION ACTIVE';
-        lblStatus.className = 'font-bold text-secondary';
-      }
-      if (lblDataset) lblDataset.innerText = 'N/A';
-      if (lblSeaice) lblSeaice.innerText = 'PROCEDURAL';
-      if (lblCurrent) lblCurrent.innerText = 'PROCEDURAL';
-      if (lblWind) lblWind.innerText = 'PROCEDURAL';
-      if (lblIceberg) lblIceberg.innerText = 'PROCEDURAL';
     }
   }
 
