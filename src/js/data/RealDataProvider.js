@@ -11,6 +11,8 @@ import { UsnicIcebergProvider } from './providers/UsnicIcebergProvider.js';
 import { ByuIcebergProvider } from './providers/ByuIcebergProvider.js';
 import { OpenMeteoWindProvider } from './providers/OpenMeteoWindProvider.js';
 import { CopernicusCurrentProvider } from './providers/CopernicusCurrentProvider.js';
+import { SarContactProvider } from './SarContactProvider.js';
+import { ContactCorrelationEngine } from './ContactCorrelationEngine.js';
 
 export class RealDataProvider extends DataProvider {
   constructor() {
@@ -22,6 +24,8 @@ export class RealDataProvider extends DataProvider {
     this.byuProvider = new ByuIcebergProvider();
     this.windProvider = new OpenMeteoWindProvider();
     this.currentProvider = new CopernicusCurrentProvider();
+    this.sarProvider = new SarContactProvider();
+    this.correlationEngine = new ContactCorrelationEngine();
 
     this.activeSnapshot = null;
     this.status = 'INITIALIZING';
@@ -97,6 +101,10 @@ export class RealDataProvider extends DataProvider {
         normalizedCurrent = this.normalizer.normalizeOceanCurrents({ current: currentRes.value }, Date.now());
       }
 
+      // Ingest SAR Contacts and correlate with USNIC icebergs
+      const rawSar = this.sarProvider.loadSampleSarScene();
+      const correlatedSar = this.correlationEngine.correlate(rawSar, normalizedIcebergs, []);
+
       const normEnd = performance.now();
       this.metrics.normalizeDurationMs = Math.round(normEnd - normStart);
 
@@ -109,14 +117,16 @@ export class RealDataProvider extends DataProvider {
         sourceStatus: 'ONLINE',
 
         icebergs: normalizedIcebergs,
+        sarContacts: correlatedSar,
         currents: normalizedCurrent,
         wind: normalizedWind,
         seaIce: { concentration: 0.25, source: 'Synthetic / Satellite Grid' },
 
         provenance: {
-          providers: [icebergSource, normalizedWind.source, normalizedCurrent.source],
+          providers: [icebergSource, 'Sentinel-1 SAR', normalizedWind.source, normalizedCurrent.source],
           sourceUrls: [
             'https://polarwatch.noaa.gov/erddap/tabledap/usnic_weekly_iceberg',
+            'https://scihub.copernicus.eu/dhus',
             'https://api.open-meteo.com/v1/forecast',
             'https://marine.copernicus.eu'
           ],

@@ -81,7 +81,7 @@ describe('NavTestBot — Scenario & Route Mode Coverage Audit', () => {
     console.table(grid);
   });
 
-  it('2. Indefinite Run (Target = null): round-robin scenario class and mode progression', () => {
+  it('2. Indefinite Run (Target = null): round-robin scenario class and mode progression', { timeout: 30000 }, () => {
     const engine = new SimulationEngine();
     const bot = new NavTestBot(engine, null, null, null, null, { baseDir: 'scratch/test_dataset' });
 

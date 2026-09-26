@@ -857,17 +857,21 @@ export class UIController {
         ? 'text-error font-bold ml-0.5'
         : 'text-secondary font-bold ml-0.5';
 
-      // Distance to destination in SU
+      // Distance to destination (SU for DEMO, NM for REAL)
       let distToDest = null;
+      const isReal = this.engine && this.engine.dataMode === 'REAL';
+      const unitLabel = isReal ? 'NM' : 'SU';
+      const scale = isReal ? 0.001 : 1.0;
+
       if (state.navigation.destinationPoint) {
         distToDest = Math.hypot(
           state.navigation.destinationPoint.x - ship.x,
           state.navigation.destinationPoint.y - ship.y
         );
-        voyDistEl.innerText = distToDest.toFixed(0);
+        voyDistEl.innerText = `${(distToDest * scale).toFixed(isReal ? 1 : 0)} ${unitLabel}`;
       } else if (state.navigation.activeRoute && state.navigation.activeRoute.directDestinationDistance != null) {
         distToDest = state.navigation.activeRoute.directDestinationDistance;
-        voyDistEl.innerText = distToDest.toFixed(0);
+        voyDistEl.innerText = `${(distToDest * scale).toFixed(isReal ? 1 : 0)} ${unitLabel}`;
       } else {
         voyDistEl.innerText = '—';
       }
@@ -2190,6 +2194,7 @@ export class UIController {
     const demoBtn = document.getElementById('data-mode-demo-btn');
     const realBtn = document.getElementById('data-mode-real-btn');
     const provenanceHud = document.getElementById('real-data-provenance-hud');
+    const spawnIcebergBtn = document.getElementById('bottom-spawn-iceberg-btn');
 
     if (!demoBtn || !realBtn) return;
 
@@ -2200,21 +2205,22 @@ export class UIController {
       realBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-r bg-secondary text-surface border border-secondary transition-all cursor-pointer';
 
       if (provenanceHud) provenanceHud.classList.remove('hidden');
+      if (spawnIcebergBtn) spawnIcebergBtn.classList.add('hidden');
 
-      const meta = this.engine && this.engine.realReplayProvider ? this.engine.realReplayProvider.getMetadata() : null;
+      const meta = this.engine && this.engine.realDataProvider ? this.engine.realDataProvider.status : null;
       const srcEl = document.getElementById('provenance-source-text');
       const timeEl = document.getElementById('provenance-time-text');
       const modeEl = document.getElementById('provenance-mode-text');
       const errContainer = document.getElementById('real-data-error-container');
       const errText = document.getElementById('real-data-error-text');
 
-      if (srcEl && meta) srcEl.textContent = meta.source || 'USNIC / Copernicus';
-      if (timeEl && meta) timeEl.textContent = meta.timeUTC || '2026-03-15 12:00:00 UTC';
-      if (modeEl && meta) modeEl.textContent = meta.mode || 'HISTORICAL REPLAY';
+      if (srcEl) srcEl.textContent = 'ICEBERG: USNIC | OCEAN: COPERNICUS | WIND: OPEN-METEO';
+      if (timeEl) timeEl.textContent = new Date().toISOString().slice(0, 19).replace('T', ' ') + ' UTC';
+      if (modeEl) modeEl.textContent = 'REAL DATA / CACHED FIXTURE';
 
-      if (meta && meta.status === 'ERROR') {
+      if (meta && meta === 'ERROR') {
         if (errContainer) errContainer.classList.remove('hidden');
-        if (errText) errText.textContent = `ERR: ${meta.errorMessage || 'Data Load Failed'}`;
+        if (errText) errText.textContent = `ERR: Real Data Load Failed`;
       } else {
         if (errContainer) errContainer.classList.add('hidden');
       }
@@ -2223,6 +2229,7 @@ export class UIController {
       realBtn.className = 'px-2 py-0.5 text-xs font-bold rounded-r bg-surface-container text-on-surface hover:text-secondary border border-outline/40 transition-all cursor-pointer';
 
       if (provenanceHud) provenanceHud.classList.add('hidden');
+      if (spawnIcebergBtn) spawnIcebergBtn.classList.remove('hidden');
     }
   }
 }

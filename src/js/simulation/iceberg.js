@@ -108,7 +108,17 @@ export class Iceberg {
     this.x += this.vx * dt;
     this.y += this.vy * dt;
 
-    // ── STEP 1 & 5: DYNAMIC ICEBERG OBSERVATION AND UNCERTAINTY GROWTH ──
+    // OpenDrift-Style Multi-Component Trajectory Decomposition
+    this.drifts = {
+      observedVelocity: { vx: this.vx, vy: this.vy },
+      currentComponent: { u: oceanVel.u, v: oceanVel.v },
+      windComponent: { vx: windVx * 0.02, vy: windVy * 0.02 }, // 2% windage rule
+      modelVelocity: { vx: targetVx, vy: targetVy },
+      uncertainty: this.uncertaintyRadius || 15,
+      source: this.isUSNIC ? 'USNIC_OBSERVED' : 'MODELLED_DRIFT'
+    };
+
+    // ── STEP 1 & 5: OPEN-DRIFT TRAJECTORY FORECASTING & UNCERTAINTY CONES (0h, 6h, 12h, 24h) ──
     const now = performance.now();
     if (now - this.lastPredictionUpdate > 10000) {
       this.lastPredictionUpdate = now;
@@ -117,21 +127,36 @@ export class Iceberg {
       this.acceleration.x = oceanVel.u * 0.1 + windVx * windFactor * 0.1;
       this.acceleration.y = oceanVel.v * 0.1 + windVy * windFactor * 0.1;
       
-      // Update trajectory predictions (10m, 30m, 60m future frames)
-      const times = [600, 1800, 3600];
-      this.predictedTrajectory = times.map(tSec => {
-        const futureX = this.x + this.vx * tSec;
-        const futureY = this.y + this.vy * tSec;
-        const uncertainty = this.collisionRadius + this.uncertaintyGrowthRate * tSec;
-        return { t: tSec, x: futureX, y: futureY, uncertainty };
+      // Update trajectory forecasts for 0h, 6h, 12h, 24h horizons
+      const horizons = [
+        { hour: 0, tSec: 0 },
+        { hour: 6, tSec: 6 * 3600 / 100 },
+        { hour: 12, tSec: 12 * 3600 / 100 },
+        { hour: 24, tSec: 24 * 3600 / 100 }
+      ];
+
+      const WW = (state && state.gridWidth) || 1200;
+      const WH = (state && state.gridHeight) || 800;
+      this.trajectoryForecast = horizons.map(h => {
+        const futureX = Math.max(0, Math.min(WW, this.x + targetVx * h.tSec));
+        const futureY = Math.max(0, Math.min(WH, this.y + targetVy * h.tSec));
+        const uncertainty = this.collisionRadius + (h.hour * 2.5);
+        return {
+          hour: h.hour,
+          x: futureX,
+          y: futureY,
+          uncertainty,
+          confidence: Math.max(0.4, 0.95 - (h.hour * 0.02))
+        };
       });
+      this.predictedTrajectory = this.trajectoryForecast;
     }
 
     // Uncertainty grows quadratically with elapsed time since last observation
     const elapsedSec = (now - this.lastPredictionUpdate) / 1000;
     this.uncertaintyRadius = this.collisionRadius + this.uncertaintyGrowthRate * elapsedSec;
-    // Cap uncertainty at 3x base collision radius
-    this.uncertaintyRadius = Math.min(this.uncertaintyRadius, this.collisionRadius * 3.0);
+    // Cap uncertainty at 3.5x base collision radius
+    this.uncertaintyRadius = Math.min(this.uncertaintyRadius, this.collisionRadius * 3.5);
 
     // Heading rotation
     this.heading = (this.heading + this.angularVelocity * dt * 10 + 360) % 360;

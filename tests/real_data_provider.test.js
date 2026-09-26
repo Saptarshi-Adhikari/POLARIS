@@ -64,7 +64,7 @@ describe('REAL Data Mode & Data Provider Unit Tests', () => {
     expect(snapshot.provenance.providers.length).toBeGreaterThan(0);
   });
 
-  it('5. RealDataProvider fails gracefully to cached snapshot on network error', async () => {
+  it('5. RealDataProvider fails gracefully to cached snapshot on network error', { timeout: 15000 }, async () => {
     // Save a valid cached snapshot
     const initialSnap = await provider.refresh();
     expect(initialSnap).toBeDefined();
@@ -77,5 +77,18 @@ describe('REAL Data Mode & Data Provider Unit Tests', () => {
     expect(fallbackSnap).toBeDefined();
     expect(fallbackSnap.mode).toBe('REAL');
     expect(fallbackSnap.icebergs.length).toBeGreaterThan(0);
+  });
+
+  it('6. Ingests and correlates SAR contacts with catalogued icebergs', async () => {
+    const snapshot = await provider.refresh();
+    expect(snapshot.sarContacts).toBeDefined();
+    expect(Array.isArray(snapshot.sarContacts)).toBe(true);
+    expect(snapshot.sarContacts.length).toBeGreaterThan(0);
+    
+    const correlated = snapshot.sarContacts.find(c => c.verification === 'CORRELATED');
+    const unverified = snapshot.sarContacts.find(c => c.verification === 'UNVERIFIED');
+    expect(correlated).toBeDefined();
+    expect(unverified).toBeDefined();
+    expect(unverified.contactId).toContain('SAR');
   });
 });

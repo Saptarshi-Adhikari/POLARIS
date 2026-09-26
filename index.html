@@ -200,26 +200,77 @@
     </div>
 
     <!-- Tab Bar -->
-    <div class="flex border-b border-outline/40 bg-surface-container/40 shrink-0 text-[10px] font-bold">
-      <button id="fp-tab-btn-route"     class="flex-1 py-2.5 px-1 flex flex-col items-center gap-0.5 border-b-2 border-secondary text-secondary transition-colors hover:text-secondary">
-        <span class="material-symbols-outlined text-sm">route</span><span class="uppercase tracking-wider">Route</span>
+    <div class="grid grid-cols-5 border-b border-outline/40 bg-surface-container/40 shrink-0 text-[9px] font-bold">
+      <button id="fp-tab-btn-mission"   class="py-2 px-0.5 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-xs">flag</span><span class="uppercase tracking-wider">Mission</span>
       </button>
-      <button id="fp-tab-btn-hazards"   class="flex-1 py-2.5 px-1 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
-        <span class="material-symbols-outlined text-sm">warning</span><span class="uppercase tracking-wider">Hazards</span>
+      <button id="fp-tab-btn-route"     class="py-2 px-0.5 flex flex-col items-center gap-0.5 border-b-2 border-secondary text-secondary transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-xs">route</span><span class="uppercase tracking-wider">Routes</span>
       </button>
-      <button id="fp-tab-btn-env"       class="flex-1 py-2.5 px-1 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
-        <span class="material-symbols-outlined text-sm">cloud</span><span class="uppercase tracking-wider">Env</span>
+      <button id="fp-tab-btn-env"       class="py-2 px-0.5 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-xs">cloud</span><span class="uppercase tracking-wider">Env</span>
       </button>
-      <button id="fp-tab-btn-voyage"    class="flex-1 py-2.5 px-1 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
-        <span class="material-symbols-outlined text-sm">explore</span><span class="uppercase tracking-wider">Voyage</span>
+      <button id="fp-tab-btn-hazards"   class="py-2 px-0.5 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-xs">warning</span><span class="uppercase tracking-wider">Hazards</span>
       </button>
-      <button id="fp-tab-btn-scenarios" class="flex-1 py-2.5 px-1 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
-        <span class="material-symbols-outlined text-sm">play_circle</span><span class="uppercase tracking-wider">Demo</span>
+      <button id="fp-tab-btn-vessel"    class="py-2 px-0.5 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-xs">directions_boat</span><span class="uppercase tracking-wider">Vessel</span>
+      </button>
+      <button id="fp-tab-btn-scenarios" class="py-2 px-0.5 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-xs">play_circle</span><span class="uppercase tracking-wider">Demo</span>
+      </button>
+      <button id="fp-tab-btn-history"   class="py-2 px-0.5 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-xs">history</span><span class="uppercase tracking-wider">History</span>
+      </button>
+      <button id="fp-tab-btn-reports"   class="py-2 px-0.5 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-xs">description</span><span class="uppercase tracking-wider">Report</span>
+      </button>
+      <button id="fp-tab-btn-data"      class="py-2 px-0.5 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-xs">database</span><span class="uppercase tracking-wider">Data</span>
+      </button>
+      <button id="fp-tab-btn-alerts"    class="py-2 px-0.5 flex flex-col items-center gap-0.5 text-on-surface-variant transition-colors hover:text-secondary">
+        <span class="material-symbols-outlined text-xs">notifications</span><span class="uppercase tracking-wider">Alerts</span>
       </button>
     </div>
 
     <!-- Tab Contents -->
     <div class="flex-1 overflow-y-auto">
+
+      <!-- ─── MISSION TAB ────────────────────────────────────────────── -->
+      <div id="fp-tab-mission" class="hidden p-4 space-y-4 text-xs font-mono">
+        <div class="bg-surface-container rounded-lg p-3 border border-outline/30 space-y-2">
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-1">Human / AI Route Approval</div>
+          <div class="flex items-center justify-between">
+            <span class="text-on-surface font-bold">ACTIVE STRATEGY:</span>
+            <span id="fp-mission-mode" class="font-bold text-secondary text-sm">BALANCED</span>
+          </div>
+          <div id="fp-mission-rec-box" class="bg-surface/60 p-2 rounded border border-outline/20 space-y-1">
+            <div class="text-[9px] text-on-surface-variant uppercase">AI Recommendation</div>
+            <div id="fp-mission-rec-text" class="text-[11px] text-primary font-bold">BALANCED — Safe corridor around forecasted ice drift</div>
+            <div id="fp-mission-why-box" class="text-[9px] text-on-surface-variant/80 border-t border-outline/10 pt-1">
+              Safety: 42% | Fuel: 28% | Distance: 14% | Sea Ice: 9% | Iceberg: 5% | Weather: 2%
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button id="fp-approve-route-btn" class="bg-secondary/20 hover:bg-secondary/30 text-secondary border border-secondary/50 py-1.5 rounded font-bold text-[10px] transition-colors flex items-center justify-center gap-1">
+              <span class="material-symbols-outlined text-sm">check_circle</span> APPROVE ROUTE
+            </button>
+            <button id="fp-reject-route-btn" class="bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 border border-rose-700/50 py-1.5 rounded font-bold text-[10px] transition-colors flex items-center justify-center gap-1">
+              <span class="material-symbols-outlined text-sm">cancel</span> REJECT
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-surface-container rounded-lg p-3 border border-outline/30 space-y-2">
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-1">Custom Strategy Weights</div>
+          <div class="space-y-1.5 text-[10px]">
+            <div class="flex justify-between items-center"><span class="text-on-surface-variant">Safety Weight</span><input id="fp-weight-safety" type="range" min="1" max="20" value="10" class="w-24 accent-secondary"/><span id="fp-weight-safety-val" class="font-bold text-secondary">10</span></div>
+            <div class="flex justify-between items-center"><span class="text-on-surface-variant">Fuel Weight</span><input id="fp-weight-fuel" type="range" min="1" max="20" value="4" class="w-24 accent-secondary"/><span id="fp-weight-fuel-val" class="font-bold text-secondary">4</span></div>
+            <div class="flex justify-between items-center"><span class="text-on-surface-variant">ETA Weight</span><input id="fp-weight-eta" type="range" min="1" max="20" value="4" class="w-24 accent-secondary"/><span id="fp-weight-eta-val" class="font-bold text-secondary">4</span></div>
+            <div class="flex justify-between items-center"><span class="text-on-surface-variant">Weather Weight</span><input id="fp-weight-weather" type="range" min="1" max="20" value="2" class="w-24 accent-secondary"/><span id="fp-weight-weather-val" class="font-bold text-secondary">2</span></div>
+          </div>
+        </div>
+      </div>
 
       <!-- ─── ROUTE TAB ──────────────────────────────────────────────── -->
       <div id="fp-tab-route" class="p-4 space-y-4 text-xs font-mono">
@@ -510,6 +561,68 @@
         <div class="pt-2 pb-1"></div>
       </div>
 
+      <!-- ─── VESSEL TAB ─────────────────────────────────────────────── -->
+      <div id="fp-tab-vessel" class="hidden p-4 space-y-4 text-xs font-mono">
+        <div class="bg-surface-container rounded-lg p-3 border border-outline/30 space-y-2">
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-1">Vessel Telemetry & Controls</div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Heading</span><span id="fp-vessel-hdg" class="text-secondary font-bold">330°</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Speed</span><span id="fp-vessel-spd" class="text-secondary font-bold">12.5 kts</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Throttle</span><span id="fp-vessel-thr" class="text-on-surface font-bold">65%</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Rudder</span><span id="fp-vessel-rud" class="text-on-surface font-bold">0.0°</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Cross-Track Error (XTE)</span><span id="fp-vessel-xte" class="text-on-surface font-bold">0.12 SU</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-variant">Fuel Level (Estimate)</span><span id="fp-vessel-fuel" class="text-secondary font-bold">100%</span></div>
+        </div>
+      </div>
+
+      <!-- ─── HISTORY TAB ────────────────────────────────────────────── -->
+      <div id="fp-tab-history" class="hidden p-4 space-y-4 text-xs font-mono">
+        <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-2">Mission & Replan History</div>
+        <div id="fp-history-list" class="space-y-2 max-h-96 overflow-y-auto pr-1">
+          <div class="text-on-surface-variant text-[11px] py-2">No past history recorded in current session.</div>
+        </div>
+      </div>
+
+      <!-- ─── REPORTS TAB ────────────────────────────────────────────── -->
+      <div id="fp-tab-reports" class="hidden p-4 space-y-4 text-xs font-mono">
+        <div class="bg-surface-container rounded-lg p-3 border border-outline/30 space-y-2">
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-1">Voyage Report Generation</div>
+          <p class="text-[10px] text-on-surface-variant/80">Export complete voyage telemetry, active route metrics, data provenance, and alert logs.</p>
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <button id="fp-export-json-btn" class="bg-secondary/20 hover:bg-secondary/30 text-secondary border border-secondary/50 py-1.5 rounded font-bold text-[10px] transition-colors flex items-center justify-center gap-1">
+              <span class="material-symbols-outlined text-sm">download</span> EXPORT JSON
+            </button>
+            <button id="fp-export-csv-btn" class="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/40 py-1.5 rounded font-bold text-[10px] transition-colors flex items-center justify-center gap-1">
+              <span class="material-symbols-outlined text-sm">table_chart</span> EXPORT CSV
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── DATA TAB ───────────────────────────────────────────────── -->
+      <div id="fp-tab-data" class="hidden p-4 space-y-4 text-xs font-mono">
+        <div class="bg-surface-container rounded-lg p-3 border border-outline/30 space-y-2">
+          <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-1">Data Mode & Provenance</div>
+          <div class="flex items-center justify-between">
+            <span class="text-on-surface-variant">Active Mode:</span>
+            <span id="fp-data-mode-label" class="font-bold text-secondary text-sm">DEMO</span>
+          </div>
+          <div class="space-y-1 pt-1 text-[10px]">
+            <div class="flex justify-between"><span class="text-on-surface-variant">Meteorology:</span><span id="fp-prov-meteo" class="font-bold text-on-surface">SIMULATED</span></div>
+            <div class="flex justify-between"><span class="text-on-surface-variant">Icebergs:</span><span id="fp-prov-iceberg" class="font-bold text-on-surface">SIMULATED</span></div>
+            <div class="flex justify-between"><span class="text-on-surface-variant">Ocean Currents:</span><span id="fp-prov-current" class="font-bold text-on-surface">SIMULATED</span></div>
+            <div class="flex justify-between"><span class="text-on-surface-variant">SAR Satellites:</span><span id="fp-prov-sar" class="font-bold text-on-surface">SIMULATED</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── ALERTS TAB ─────────────────────────────────────────────── -->
+      <div id="fp-tab-alerts" class="hidden p-4 space-y-4 text-xs font-mono">
+        <div class="text-[10px] text-on-surface-variant uppercase tracking-wider mb-2">Operational Alerts Log</div>
+        <div id="fp-alerts-list" class="space-y-2 max-h-96 overflow-y-auto pr-1">
+          <div class="text-on-surface-variant text-[11px] py-2">System nominal — zero active warnings.</div>
+        </div>
+      </div>
+
     </div><!-- end tab contents -->
   </div><!-- end feature-panel -->
 
@@ -570,7 +683,7 @@
     <div class="w-px h-4 bg-outline/30"></div>
     <div class="flex items-center gap-1 text-on-surface-variant">
       <span class="material-symbols-outlined text-sm text-secondary">local_gas_station</span>
-      <span class="uppercase tracking-wider text-[10px]">FUEL</span>
+      <span class="uppercase tracking-wider text-[10px]">FUEL (ESTIMATE)</span>
       <span id="voy-fuel" class="text-secondary font-bold ml-0.5">—</span>
       <span class="text-on-surface-variant text-[10px]">%</span>
     </div>
@@ -579,7 +692,6 @@
       <span class="material-symbols-outlined text-sm text-secondary">place</span>
       <span class="uppercase tracking-wider text-[10px]">DIST</span>
       <span id="voy-dist" class="text-secondary font-bold ml-0.5">—</span>
-      <span class="text-on-surface-variant text-[10px]">SU</span>
     </div>
     <div class="w-px h-4 bg-outline/30"></div>
     <div class="flex items-center gap-1 text-on-surface-variant">

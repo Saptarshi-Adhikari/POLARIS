@@ -17,6 +17,7 @@ import { CanvasRenderer, PlanningMode } from './render/canvasRenderer.js';
 import { UIController } from './ui/uiController.js';
 import { AIClient } from './ui/aiClient.js';
 import { FeaturePanel } from './ui/featurePanel.js';
+import { CanonicalMissionStore } from './data/CanonicalMissionStore.js';
 import { AutonomousController } from './ai/autonomousController.js';
 import { ScenarioManager } from './simulation/scenarioManager.js';
 import { ValidationEngine } from './simulation/validationEngine.js';
@@ -168,6 +169,8 @@ export class SimulationEngine {
       }
     };
 
+    this.missionStore = new CanonicalMissionStore(this);
+    this.dataExporter = dataExporter;
     this.uiController = new UIController(this);
     this.featurePanel = new FeaturePanel(this);
     this.aiClient = new AIClient(this);
@@ -394,8 +397,8 @@ export class SimulationEngine {
         this.realDataProvider = new RealDataProvider();
       }
       this.activeDataProvider = this.realDataProvider;
-      this.activeMapProvider = this.demoMapProvider;
-      this.renderer.activeMapProvider = this.demoMapProvider;
+      this.activeMapProvider = this.realMapProvider;
+      this.renderer.activeMapProvider = this.realMapProvider;
       this.state.environment.mode = 'REAL-DATA';
 
       // Load cached or immediate real snapshot first
@@ -418,7 +421,7 @@ export class SimulationEngine {
       // Refresh background network data atomically
       this.realDataProvider.refresh().then(snapshot => {
         if (this.dataMode === 'REAL' && snapshot && snapshot.icebergs) {
-          this.icebergs = snapshot.icebergs.map(h => new Iceberg({
+          const usnicBergs = snapshot.icebergs.map(h => new Iceberg({
             id: h.id,
             name: h.name || h.id,
             x: h.position.x,
@@ -429,7 +432,27 @@ export class SimulationEngine {
             size: h.geometry.size,
             collisionRadius: h.geometry.radius
           }));
-          this.icebergs.forEach(ice => { ice.isUSNIC = true; });
+          usnicBergs.forEach(ice => { ice.isUSNIC = true; });
+
+          const sarBergs = (snapshot.sarContacts || []).map(s => {
+            const ice = new Iceberg({
+              id: s.contactId,
+              name: `${s.contactId} (${s.verification})`,
+              x: s.worldX,
+              y: s.worldY,
+              lat: s.latitude,
+              lon: s.longitude,
+              mass: 1.5,
+              size: s.size || 500,
+              collisionRadius: s.collisionRadius || 20
+            });
+            ice.isSarContact = true;
+            ice.verification = s.verification;
+            ice.classification = s.classification;
+            return ice;
+          });
+
+          this.icebergs = [...usnicBergs, ...sarBergs];
 
           if (snapshot.currents && snapshot.wind) {
             this.vectorField.setParams({

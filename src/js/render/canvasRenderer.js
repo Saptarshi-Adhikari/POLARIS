@@ -1446,39 +1446,70 @@ export class CanvasRenderer {
         const blipSize = Math.max(4, (ice.collisionRadius || 25) * (radarRadius / maxRangeSU) * 1.5);
 
         ctx.save();
+        const isSar = !!(ice.isSarContact || ice.isSar);
+        const isShipContact = ice.classification === 'SHIP';
+        const isProjected = !!ice.isProjected;
+
         if (isDangerous) {
-          // Red / Amber Warning Blip
-          ctx.fillStyle = '#ef4444';
-          ctx.shadowColor = '#ef4444';
+          ctx.fillStyle = isSar ? '#c084fc' : (isShipContact ? '#38bdf8' : '#ef4444');
+          ctx.shadowColor = ctx.fillStyle;
           ctx.shadowBlur = 10 + afterglow * 8;
+
           ctx.beginPath();
-          ctx.arc(blipX, blipY, blipSize + 1, 0, Math.PI * 2);
+          if (isSar) {
+            // ◇ Diamond symbol for SAR Detected Contact
+            ctx.moveTo(blipX, blipY - blipSize - 2);
+            ctx.lineTo(blipX + blipSize + 2, blipY);
+            ctx.lineTo(blipX, blipY + blipSize + 2);
+            ctx.lineTo(blipX - blipSize - 2, blipY);
+            ctx.closePath();
+          } else if (isShipContact) {
+            // ▲ Triangle symbol for Ship Contact
+            ctx.moveTo(blipX, blipY - blipSize - 2);
+            ctx.lineTo(blipX + blipSize + 2, blipY + blipSize + 2);
+            ctx.lineTo(blipX - blipSize - 2, blipY + blipSize + 2);
+            ctx.closePath();
+          } else {
+            // ● Circle symbol for Catalogued USNIC Iceberg
+            ctx.arc(blipX, blipY, blipSize + 1, 0, Math.PI * 2);
+          }
           ctx.fill();
 
           // Pulsing Hazard Halo Ring
-          ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)';
+          ctx.strokeStyle = isSar ? 'rgba(192, 132, 252, 0.8)' : 'rgba(239, 68, 68, 0.8)';
           ctx.lineWidth = 1.5;
           ctx.beginPath();
           ctx.arc(blipX, blipY, blipSize + 6 + Math.sin(simTimeHours * 1000) * 2, 0, Math.PI * 2);
           ctx.stroke();
 
-          ctx.fillStyle = '#fca5a5';
+          ctx.fillStyle = isSar ? '#e9d5ff' : '#fca5a5';
           ctx.font = 'bold 9px "JetBrains Mono", monospace';
-          ctx.fillText(`! ${ice.id || 'HAZARD'} (${Math.round(iDist)}u)`, blipX + blipSize + 4, blipY + 3);
+          const labelPrefix = isSar ? '◇ SAR' : (isShipContact ? '▲ SHIP' : '● USNIC');
+          ctx.fillText(`! ${labelPrefix} ${ice.id || 'HAZARD'} (${Math.round(iDist)}u)`, blipX + blipSize + 4, blipY + 3);
         } else {
-          // Green Phosphor Contact Blip
+          // Normal Phosphor Contact Blip
           const alpha = 0.6 + afterglow * 0.4;
-          ctx.fillStyle = `rgba(74, 222, 128, ${alpha.toFixed(2)})`;
-          ctx.shadowColor = '#4ade80';
+          ctx.fillStyle = isSar ? `rgba(192, 132, 252, ${alpha.toFixed(2)})` : `rgba(74, 222, 128, ${alpha.toFixed(2)})`;
+          ctx.shadowColor = isSar ? '#c084fc' : '#4ade80';
           ctx.shadowBlur = 4 + afterglow * 10;
+
           ctx.beginPath();
-          ctx.arc(blipX, blipY, blipSize, 0, Math.PI * 2);
+          if (isSar) {
+            ctx.moveTo(blipX, blipY - blipSize);
+            ctx.lineTo(blipX + blipSize, blipY);
+            ctx.lineTo(blipX, blipY + blipSize);
+            ctx.lineTo(blipX - blipSize, blipY);
+            ctx.closePath();
+          } else {
+            ctx.arc(blipX, blipY, blipSize, 0, Math.PI * 2);
+          }
           ctx.fill();
 
           if (afterglow > 0.3) {
-            ctx.fillStyle = 'rgba(187, 247, 208, 0.9)';
+            ctx.fillStyle = isSar ? 'rgba(233, 213, 255, 0.9)' : 'rgba(187, 247, 208, 0.9)';
             ctx.font = '8px "JetBrains Mono", monospace';
-            ctx.fillText(`${Math.round(iDist)}u`, blipX + blipSize + 3, blipY + 3);
+            const tag = isSar ? `◇ SAR (${Math.round(iDist)}u)` : `${Math.round(iDist)}u`;
+            ctx.fillText(tag, blipX + blipSize + 3, blipY + 3);
           }
         }
         ctx.restore();

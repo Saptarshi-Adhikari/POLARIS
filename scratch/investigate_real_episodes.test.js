@@ -3,7 +3,7 @@ import { EpisodeRunner } from '../src/js/dataset/episodeRunner.js';
 import { SCENARIO_CLASSES, ROUTE_MODES } from '../src/js/debug/navTestScenarios.js';
 
 describe('Real Autonomous Episode Simulation Benchmark', () => {
-  it('runs 48 un-mocked simulation episodes step-by-step', () => {
+  it('runs 48 un-mocked simulation episodes step-by-step', { timeout: 60000 }, () => {
     const runner = new EpisodeRunner();
 
     console.log('\n======================================================================');

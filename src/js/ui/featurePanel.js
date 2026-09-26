@@ -48,15 +48,72 @@ export class FeaturePanel {
   }
 
   _bindTabs() {
-    ['route','hazards','env','voyage','scenarios'].forEach(tab => {
+    this._allTabs = ['mission', 'route', 'env', 'hazards', 'vessel', 'scenarios', 'history', 'reports', 'data', 'alerts'];
+    this._allTabs.forEach(tab => {
       const btn = document.getElementById('fp-tab-btn-' + tab);
       if (btn) btn.addEventListener('click', () => this._switchTab(tab));
+    });
+
+    // Approval buttons
+    const approveBtn = document.getElementById('fp-approve-route-btn');
+    if (approveBtn) {
+      approveBtn.addEventListener('click', () => {
+        if (this.engine.missionStore) {
+          const recMode = this.engine.aiNavigator?.aiRecommendation?.recommendedMode || 'BALANCED';
+          this.engine.missionStore.approveRoute(recMode);
+        }
+      });
+    }
+
+    const rejectBtn = document.getElementById('fp-reject-route-btn');
+    if (rejectBtn) {
+      rejectBtn.addEventListener('click', () => {
+        if (this.engine.missionStore) {
+          this.engine.missionStore.rejectRoute('Operator requested alternative');
+        }
+      });
+    }
+
+    // Export buttons
+    const expJson = document.getElementById('fp-export-json-btn');
+    if (expJson) {
+      expJson.addEventListener('click', () => {
+        if (this.engine.dataExporter) {
+          const snapshot = this.engine.missionStore ? this.engine.missionStore.getSnapshot() : {};
+          this.engine.dataExporter.exportToJson([snapshot], `polaris_voyage_report_${Date.now()}.json`);
+        }
+      });
+    }
+
+    const expCsv = document.getElementById('fp-export-csv-btn');
+    if (expCsv) {
+      expCsv.addEventListener('click', () => {
+        if (this.engine.dataExporter) {
+          const snapshot = this.engine.missionStore ? this.engine.missionStore.getSnapshot() : {};
+          this.engine.dataExporter.exportToCSV([snapshot], `polaris_voyage_report_${Date.now()}.csv`);
+        }
+      });
+    }
+
+    // Strategy weights sliders
+    ['safety', 'fuel', 'eta', 'weather'].forEach(w => {
+      const input = document.getElementById(`fp-weight-${w}`);
+      const val = document.getElementById(`fp-weight-${w}-val`);
+      if (input && val) {
+        input.addEventListener('input', (e) => {
+          val.textContent = e.target.value;
+          if (this.engine.aiNavigator && this.engine.aiNavigator.decisionEngine) {
+            this.engine.aiNavigator.decisionEngine.weights[w] = parseFloat(e.target.value);
+            this.engine.state.navigation.routeInvalid = true;
+          }
+        });
+      }
     });
   }
 
   _switchTab(tab) {
     this._activeTab = tab;
-    ['route','hazards','env','voyage','scenarios'].forEach(t => {
+    (this._allTabs || ['mission','route','env','hazards','vessel','scenarios','history','reports','data','alerts']).forEach(t => {
       const content = document.getElementById('fp-tab-' + t);
       const btn     = document.getElementById('fp-tab-btn-' + t);
       if (content) content.classList.toggle('hidden', t !== tab);
@@ -166,10 +223,106 @@ export class FeaturePanel {
   update(timestamp) {
     if (timestamp - this._lastUpdate < this._throttleMs) return;
     this._lastUpdate = timestamp;
+    try { this._updateMissionTab(); } catch(e) {}
     try { this._updateRouteTab(); }   catch(e) {}
     try { this._updateHazardsTab(); } catch(e) {}
     try { this._updateEnvTab(); }     catch(e) {}
     try { this._updateVoyageTab(); }  catch(e) {}
+    try { this._updateVesselTab(); }  catch(e) {}
+    try { this._updateHistoryTab(); } catch(e) {}
+    try { this._updateDataTab(); }    catch(e) {}
+    try { this._updateAlertsTab(); }  catch(e) {}
+  }
+
+  _updateMissionTab() {
+    const aiNav = this.engine.aiNavigator;
+    const rec = aiNav && aiNav.aiRecommendation;
+    const store = this.engine.missionStore;
+
+    const curMode = this.engine.state.navigation.mode || 'BALANCED';
+    this._set('fp-mission-mode', curMode);
+
+    if (rec) {
+      this._set('fp-mission-rec-text', `${rec.recommendedMode} — ${rec.explanation || 'Optimal corridor selected'}`);
+      if (rec.scores) {
+        const s = rec.scores;
+        this._set('fp-mission-why-box', `FASTEST: ${s.FASTEST || '—'} | BALANCED: ${s.BALANCED || '—'} | SAFEST: ${s.SAFEST || '—'} | FUEL: ${s.FUEL_EFFICIENT || '—'}`);
+      }
+    }
+  }
+
+  _updateVesselTab() {
+    const ship = this.engine.ship;
+    if (!ship) return;
+    this._set('fp-vessel-hdg', Math.round(ship.heading) + '°');
+    this._set('fp-vessel-spd', ship.speedKnots.toFixed(1) + ' kts');
+    this._set('fp-vessel-thr', Math.round(ship.throttle) + '%');
+    this._set('fp-vessel-rud', ship.rudder.toFixed(1) + '°');
+    this._set('fp-vessel-xte', (ship.crossTrackError || 0).toFixed(2) + ' SU');
+    this._set('fp-vessel-fuel', ship.fuel.toFixed(1) + '%');
+  }
+
+  _updateHistoryTab() {
+    const container = document.getElementById('fp-history-list');
+    if (!container || !this.engine.missionStore) return;
+    const history = this.engine.missionStore.history || [];
+    if (history.length === 0) {
+      container.innerHTML = '<div class="text-on-surface-variant text-[11px] py-2">No past history recorded in current session.</div>';
+      return;
+    }
+    const key = history.length + '_' + (history[0]?.timestamp || 0);
+    if (this._cache['fp-hist-key'] === key) return;
+    this._cache['fp-hist-key'] = key;
+
+    container.innerHTML = history.slice(0, 10).map(h => `
+      <div class="p-2 bg-surface rounded border border-outline/30 text-[10px]">
+        <div class="flex justify-between font-bold text-secondary">
+          <span>${h.eventType}</span>
+          <span class="text-on-surface-variant font-normal">${new Date(h.timestamp).toLocaleTimeString()}</span>
+        </div>
+        <div class="text-on-surface-variant text-[9px] mt-0.5">${JSON.stringify(h.details)}</div>
+      </div>
+    `).join('');
+  }
+
+  _updateDataTab() {
+    const mode = this.engine.dataMode || 'DEMO';
+    this._set('fp-data-mode-label', mode, mode === 'REAL' ? 'font-bold text-emerald-400 text-sm' : 'font-bold text-secondary text-sm');
+
+    if (mode === 'REAL') {
+      this._set('fp-prov-meteo', 'OPEN-METEO (LIVE)');
+      this._set('fp-prov-iceberg', 'USNIC (CACHED / IMPORTED)');
+      this._set('fp-prov-current', 'COPERNICUS (REPLAY)');
+      this._set('fp-prov-sar', 'SENTINEL-1 (FIXTURE)');
+    } else {
+      this._set('fp-prov-meteo', 'SIMULATED');
+      this._set('fp-prov-iceberg', 'SIMULATED');
+      this._set('fp-prov-current', 'SIMULATED');
+      this._set('fp-prov-sar', 'SIMULATED');
+    }
+  }
+
+  _updateAlertsTab() {
+    const container = document.getElementById('fp-alerts-list');
+    if (!container || !this.engine.missionStore) return;
+    const alerts = this.engine.missionStore.alerts || [];
+    if (alerts.length === 0) {
+      container.innerHTML = '<div class="text-on-surface-variant text-[11px] py-2">System nominal — zero active warnings.</div>';
+      return;
+    }
+    const key = alerts.length + '_' + (alerts[0]?.id || '');
+    if (this._cache['fp-alerts-key'] === key) return;
+    this._cache['fp-alerts-key'] = key;
+
+    container.innerHTML = alerts.slice(0, 10).map(a => `
+      <div class="p-2 bg-surface rounded border ${a.severity === 'CRITICAL' ? 'border-error text-error' : 'border-outline/30 text-on-surface'} text-[10px]">
+        <div class="flex justify-between font-bold">
+          <span>${a.type}</span>
+          <span class="text-[9px] font-normal">${new Date(a.timestamp).toLocaleTimeString()}</span>
+        </div>
+        <div class="text-[9px] mt-0.5">${a.message}</div>
+      </div>
+    `).join('');
   }
 
   _set(id, value, className) {

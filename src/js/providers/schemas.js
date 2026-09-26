@@ -14,28 +14,42 @@ export function createNormalizedHazard({
   timestamp = Date.now(),
   uncertainty = 0.05,
   confidence = 0.95,
-  source = 'DEMO_SYNTHETIC',
-  rawObserved = true
-}) {
-  return {
-    id: String(id),
-    type,
-    latitude: Number(latitude),
-    longitude: Number(longitude),
-    position: { x: Number(position.x || 0), y: Number(position.y || 0) },
-    velocity: { vx: Number(velocity.vx || 0), vy: Number(velocity.vy || 0) },
-    geometry: {
-      size: Number(geometry.size || 500),
-      radius: Number(geometry.radius || geometry.collisionRadius || 25),
-      mass: Number(geometry.mass || 1.0)
-    },
-    timestamp: Number(timestamp),
-    uncertainty: Number(uncertainty),
-    confidence: Number(confidence),
-    source: String(source),
-    rawObserved: Boolean(rawObserved)
-  };
-}
+    source = 'DEMO_SYNTHETIC',
+    verification = 'SIMULATED',
+    observedTrack = [],
+    projectedTrack = [],
+    safetyRadius = 30,
+    cautionRadius = 80,
+    isHardBlocked = true,
+    hardBlockReason = 'COLLISION_SAFETY_MARGIN',
+    rawObserved = true
+  }) {
+    return {
+      id: String(id),
+      type,
+      source: String(source),
+      verification: String(verification),
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      position: { x: Number(position.x || 0), y: Number(position.y || 0) },
+      geometry: {
+        size: Number(geometry.size || 500),
+        radius: Number(geometry.radius || geometry.collisionRadius || 25),
+        mass: Number(geometry.mass || 1.0)
+      },
+      velocity: { vx: Number(velocity.vx || 0), vy: Number(velocity.vy || 0) },
+      timestamp: Number(timestamp),
+      observedTrack: Array.isArray(observedTrack) ? observedTrack : [],
+      projectedTrack: Array.isArray(projectedTrack) ? projectedTrack : [],
+      uncertainty: Number(uncertainty),
+      safetyRadius: Number(safetyRadius),
+      cautionRadius: Number(cautionRadius),
+      confidence: Number(confidence),
+      isHardBlocked: Boolean(isHardBlocked),
+      hardBlockReason: String(hardBlockReason),
+      rawObserved: Boolean(rawObserved)
+    };
+  }
 
 export function createNormalizedEnvironment({
   timestamp = Date.now(),

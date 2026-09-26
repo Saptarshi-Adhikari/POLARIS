@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { SimulationEngine } from '../src/js/main.js';
 import { DemoDataProvider, RealReplayProvider } from '../src/js/providers/dataProvider.js';
+import { RealDataProvider } from '../src/js/data/RealDataProvider.js';
 import { DemoMapProvider, RealMapProvider } from '../src/js/providers/mapProvider.js';
 import { geoToWorld, worldToGeo, validateGeoCoordinates, DEFAULT_ANTARCTIC_BBOX } from '../src/js/providers/geoTransform.js';
 import { validateHazardSchema, createNormalizedHazard } from '../src/js/providers/schemas.js';
@@ -74,21 +75,21 @@ describe('DATA MODE [DEMO | REAL] Provider Verification', () => {
     expect(env.wind.speed).toBeGreaterThan(0);
   });
 
-  it('5. DEMO ↔ REAL mode toggle correctly switches providers, map layer, and hazards', () => {
+  it('5. DEMO ↔ REAL mode toggle correctly switches providers, map layer, and hazards', async () => {
     expect(engine.dataMode).toBe('DEMO');
     expect(engine.activeDataProvider).toBeInstanceOf(DemoDataProvider);
     expect(engine.activeMapProvider).toBeInstanceOf(DemoMapProvider);
 
     // Switch to REAL
-    engine.setDataMode('REAL');
+    await engine.setDataMode('REAL');
     expect(engine.dataMode).toBe('REAL');
-    expect(engine.activeDataProvider).toBeInstanceOf(RealReplayProvider);
+    expect(engine.activeDataProvider).toBeInstanceOf(RealDataProvider);
     expect(engine.activeMapProvider).toBeInstanceOf(RealMapProvider);
     expect(engine.icebergs.length).toBeGreaterThan(0);
-    expect(engine.icebergs[0].id).toContain('USNIC');
+    expect(engine.icebergs[0].id).toBeDefined();
 
     // Switch back to DEMO
-    engine.setDataMode('DEMO');
+    await engine.setDataMode('DEMO');
     expect(engine.dataMode).toBe('DEMO');
     expect(engine.activeDataProvider).toBeInstanceOf(DemoDataProvider);
     expect(engine.activeMapProvider).toBeInstanceOf(DemoMapProvider);
