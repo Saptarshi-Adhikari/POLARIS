@@ -870,11 +870,12 @@ export class AINavigator {
       requestId: 0,
       ship: { x: ship.x, y: ship.y, speed: 20, throttle: ship.throttle || 65 },
       dest: { x: dest.x, y: dest.y },
+      icebergs: (icebergs || []),
       mode,
       state,
       width: this.width,
       height: this.height,
-      vectorFieldData: { stormMode: vectorField.stormMode, seaIceGrid: vectorField ? vectorField.seaIceGrid : undefined }
+      vectorFieldData: { stormMode: vectorField?.stormMode, seaIceGrid: vectorField ? vectorField.seaIceGrid : undefined }
     };
     const res = runRoutePlannerCore(payload);
     

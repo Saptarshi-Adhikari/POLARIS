@@ -1032,8 +1032,16 @@ export class Ship {
           state.navigation.routeInvalid = true;
           state.navigation.navigationMode = 'AVOIDANCE';
         }
-      } else if (state && state.navigation) {
-        state.navigation.navigationMode = 'AVOIDANCE';
+        if (state && state.vessel) {
+          state.vessel.autopilotStatus = 'EMERGENCY_AVOIDANCE';
+        }
+      } else {
+        if (state && state.navigation) {
+          state.navigation.navigationMode = 'AVOIDANCE';
+        }
+        if (state && state.vessel) {
+          state.vessel.autopilotStatus = 'EMERGENCY_AVOIDANCE';
+        }
       }
       
       // Determine optimal evasion side by testing CPA for +35° vs -35° turns

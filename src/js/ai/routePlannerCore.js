@@ -45,7 +45,12 @@ function getIcebergPositionAt(ice, etaHours) {
   return calculateIcebergPositionAt(ice, etaHours);
 }
 
-export function isHardBlocked(cx, cy, etaHours, icebergs = []) {
+import { isWorldPointInWater, isWorldSegmentWaterOnly } from '../geo/antarcticLandMask.js';
+
+export function isHardBlocked(cx, cy, etaHours, icebergs = [], state = null) {
+  const isReal = state?.environment?.mode === 'REAL' || state?.dataMode === 'REAL';
+  if (isReal && !isWorldPointInWater(cx, cy)) return true;
+
   for (let ice of (icebergs || [])) {
     const icePos = getIcebergPositionAt(ice, etaHours);
     const dist = wrappedDistanceCoords(cx, cy, icePos.x, icePos.y);
@@ -56,7 +61,10 @@ export function isHardBlocked(cx, cy, etaHours, icebergs = []) {
   return false;
 }
 
-export function isSegmentHardBlocked(pA, pB, etaStart = 0, etaEnd = 0, icebergs = []) {
+export function isSegmentHardBlocked(pA, pB, etaStart = 0, etaEnd = 0, icebergs = [], state = null) {
+  const isReal = state?.environment?.mode === 'REAL' || state?.dataMode === 'REAL';
+  if (isReal && !isWorldSegmentWaterOnly(pA, pB)) return true;
+
   let dx = pB.x - pA.x;
   let dy = pB.y - pA.y;
   if (Math.abs(dx) > 3000 || Math.abs(dy) > 2000) {
@@ -114,7 +122,7 @@ export function getTraversalCost(cx, cy, etaHours, cellW, cellH, icebergCostMult
   return cost;
 }
 
-export function validateRoute(waypoints, icebergs, shipSpeed = 20.0, width = 3600, height = 2400) {
+export function validateRoute(waypoints, icebergs, shipSpeed = 20.0, width = 3600, height = 2400, options = null) {
   if (!waypoints || waypoints.length < 2) return { valid: false, reason: "Insufficient points" };
 
   for (let pt of waypoints) {
@@ -126,10 +134,15 @@ export function validateRoute(waypoints, icebergs, shipSpeed = 20.0, width = 360
     }
   }
 
+  const isReal = options?.isRealMode === true || options?.state?.environment?.mode === 'REAL' || options?.state?.dataMode === 'REAL';
+
   let accumulatedTimeSec = 0;
   for (let i = 0; i < waypoints.length - 1; i++) {
     const ptA = waypoints[i];
     const ptB = waypoints[i+1];
+    if (isReal && !isWorldSegmentWaterOnly(ptA, ptB)) {
+      return { valid: false, reason: "Route segment intersects Antarctic land / ice shelf polygon" };
+    }
     const { dist: segLen } = wrappedDelta(ptA.x, ptA.y, ptB.x, ptB.y);
     const midX = (ptA.x + ptB.x) / 2;
     const midY = (ptA.y + ptB.y) / 2;
@@ -595,7 +608,8 @@ export function runRoutePlannerCore(payload) {
     const ptB = finalPath[i + 1];
 
     let minClearance = Infinity;
-    for (const iceberg of icebergs) {
+    for (const iceberg of (icebergs || [])) {
+      if (!iceberg || typeof iceberg.x !== 'number' || typeof iceberg.y !== 'number') continue;
       const dx = ptB.x - ptA.x;
       const dy = ptB.y - ptA.y;
       const segLen2 = dx * dx + dy * dy;

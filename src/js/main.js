@@ -1203,30 +1203,15 @@ export class SimulationEngine {
 
     perfMonitor.timeFunction('rendering', () => {
       try {
-        if (this.dataMode !== 'REAL') {
-          this.renderer.render(
-            this.vectorField,
-            this.ship,
-            this.icebergs,
-            this.aiNavigator,
-            this.state.simulation.simTimeHours,
-            rawDt,
-            this.state
-          );
-        }
-        if (this.dataMode === 'REAL' && this.maplibreRenderer) {
-          const realIcebergs = (this.modeManager && this.modeManager.activeProvider && typeof this.modeManager.activeProvider.getIcebergs === 'function')
-            ? this.modeManager.activeProvider.getIcebergs().data
-            : this.icebergs;
-
-          this.maplibreRenderer.renderFrame(
-            this.ship,
-            this.state.navigation.activeRoute,
-            this.state.navigation.destinationPoint,
-            realIcebergs,
-            this.state.navigation.proposedRoute
-          );
-        }
+        this.renderer.render(
+          this.vectorField,
+          this.ship,
+          this.icebergs,
+          this.aiNavigator,
+          this.state.simulation.simTimeHours,
+          rawDt,
+          this.state
+        );
       } catch (e) {
         console.error('[Renderer] Draw failed:', e);
       }
@@ -1411,6 +1396,7 @@ if (typeof window !== 'undefined') {
   window.addEventListener('DOMContentLoaded', () => {
     try {
       window.simEngine = new SimulationEngine();
+      window.__POLARIS_ENGINE__ = window.simEngine;
       window.simEngine.perfMonitor = perfMonitor;
     } catch (err) {
       console.error("CRITICAL INITIALIZATION ERROR IN SIMULATION ENGINE:", err);

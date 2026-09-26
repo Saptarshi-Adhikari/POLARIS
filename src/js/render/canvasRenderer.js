@@ -469,8 +469,10 @@ export class CanvasRenderer {
   }
 
   drawVectorFieldCurrents(ctx, vectorField, simTimeHours) {
+    if (!vectorField) return;
     ctx.save();
-    for (let p of vectorField.particles) {
+    const particles = vectorField.particles || [];
+    for (let p of particles) {
       const alpha = Math.sin((p.life / p.maxLife) * Math.PI) * 0.5;
       ctx.fillStyle = `rgba(165, 243, 252, ${alpha})`;
       ctx.fillRect(p.x, p.y, 2, 2);
