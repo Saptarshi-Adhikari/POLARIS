@@ -1,5 +1,7 @@
-import routeCalibration from '../../data/routeCalibration.json' with { type: 'json' };
 import { calculateIcebergPositionAt, wrappedDelta, wrappedDistanceCoords, getSegmentSpeed } from '../utils.js';
+import { continuousCollisionValidator } from './continuousCollisionValidator.js';
+
+const routeCalibration = { icebergWeight: 10.0, seaIceWeight: 5.0 };
 
 /**
  * Self-contained binary min-heap for A* open set.
@@ -45,43 +47,19 @@ function getIcebergPositionAt(ice, etaHours) {
   return calculateIcebergPositionAt(ice, etaHours);
 }
 
-export function isHardBlocked(cx, cy, etaHours, icebergs = []) {
+export function isHardBlocked(cx, cy, etaHours, icebergs = [], vessel = null) {
+  const vState = { x: cx, y: cy, heading: 0, length: vessel?.length || 80, beam: vessel?.beam || 20 };
   for (let ice of (icebergs || [])) {
     const icePos = getIcebergPositionAt(ice, etaHours);
-    const dist = wrappedDistanceCoords(cx, cy, icePos.x, icePos.y);
-    // Hard collision envelope: Iceberg radius + Ship hull radius (30) + Physical safety margin (15) = 45 SU
-    const hardR = (ice.collisionRadius || 20) + 30 + 15;
-    if (dist < hardR) return true;
+    const res = continuousCollisionValidator.calculateVesselToIcebergClearance(vState, { ...ice, ...icePos }, etaHours);
+    if (res.clearance <= 0) return true;
   }
   return false;
 }
 
-export function isSegmentHardBlocked(pA, pB, etaStart = 0, etaEnd = 0, icebergs = []) {
-  let dx = pB.x - pA.x;
-  let dy = pB.y - pA.y;
-  if (Math.abs(dx) > 3000 || Math.abs(dy) > 2000) {
-    const wrapped = wrappedDelta(pA.x, pA.y, pB.x, pB.y);
-    dx = wrapped.dx;
-    dy = wrapped.dy;
-  }
-  const segLen = Math.hypot(dx, dy);
-
-  const numSamples = Math.max(5, Math.ceil(segLen / 10));
-  for (let k = 0; k <= numSamples; k++) {
-    const ratio = k / numSamples;
-    const sx = pA.x + ratio * dx;
-    const sy = pA.y + ratio * dy;
-    const etaSample = etaStart + ratio * (etaEnd - etaStart);
-
-    for (let ice of (icebergs || [])) {
-      const icePos = getIcebergPositionAt(ice, etaSample);
-      // Safety envelope: iceberg radius + ship hull (30) + static buffer (30) + maneuvering margin (20) = 80
-      const hardR = (ice.collisionRadius || 20) + 30 + 30 + 20;
-      const dist = wrappedDistanceCoords(sx, sy, icePos.x, icePos.y);
-      if (dist < hardR) return true;
-    }
-  }
-  return false;
+export function isSegmentHardBlocked(pA, pB, etaStart = 0, etaEnd = 0, icebergs = [], vessel = null) {
+  const res = continuousCollisionValidator.validateSegmentSpaceTime(pA, pB, etaStart, etaEnd, vessel, icebergs);
+  return !res.isValid;
 }
 
 export function getTraversalCost(cx, cy, etaHours, cellW, cellH, icebergCostMult, seaIceCostMult, state, vectorFieldData, icebergs) {
@@ -114,7 +92,7 @@ export function getTraversalCost(cx, cy, etaHours, cellW, cellH, icebergCostMult
   return cost;
 }
 
-export function validateRoute(waypoints, icebergs, shipSpeed = 20.0, width = 3600, height = 2400) {
+export function validateRoute(waypoints, icebergs, shipSpeed = 20.0, width = 3600, height = 2400, vessel = null) {
   if (!waypoints || waypoints.length < 2) return { valid: false, reason: "Insufficient points" };
 
   for (let pt of waypoints) {
@@ -126,31 +104,9 @@ export function validateRoute(waypoints, icebergs, shipSpeed = 20.0, width = 360
     }
   }
 
-  let accumulatedTimeSec = 0;
-  for (let i = 0; i < waypoints.length - 1; i++) {
-    const ptA = waypoints[i];
-    const ptB = waypoints[i+1];
-    const { dist: segLen } = wrappedDelta(ptA.x, ptA.y, ptB.x, ptB.y);
-    const midX = (ptA.x + ptB.x) / 2;
-    const midY = (ptA.y + ptB.y) / 2;
-
-    let turnAngle = 0;
-    if (i > 0) {
-      const ptPrev = waypoints[i-1];
-      const h1 = Math.atan2(ptA.y - ptPrev.y, ptA.x - ptPrev.x) * 180 / Math.PI;
-      const h2 = Math.atan2(ptB.y - ptA.y, ptB.x - ptA.x) * 180 / Math.PI;
-      turnAngle = Math.abs((h2 - h1 + 180) % 360 - 180);
-    }
-
-    const speed = getSegmentSpeed(midX, midY, shipSpeed, icebergs, turnAngle);
-    const segTimeSec = segLen / speed;
-    const etaStart = accumulatedTimeSec / 3600;
-    const etaEnd = (accumulatedTimeSec + segTimeSec) / 3600;
-
-    if (isSegmentHardBlocked(ptA, ptB, etaStart, etaEnd, icebergs)) {
-      return { valid: false, reason: "Segment crosses iceberg collision zone" };
-    }
-    accumulatedTimeSec += segTimeSec;
+  const fullVal = continuousCollisionValidator.validateFullRoute(waypoints, vessel, icebergs, shipSpeed);
+  if (!fullVal.isValid) {
+    return { valid: false, reason: fullVal.reason, minClearance: fullVal.minPredictedClearance };
   }
 
   // Check self-intersection loops
@@ -180,7 +136,7 @@ export function validateRoute(waypoints, icebergs, shipSpeed = 20.0, width = 360
     return { valid: false, reason: "Route length is excessively inefficient" };
   }
 
-  return { valid: true };
+  return { valid: true, reason: fullVal.reason, minClearance: fullVal.minPredictedClearance };
 }
 
 export function runRoutePlannerCore(payload) {

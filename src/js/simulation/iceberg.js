@@ -6,7 +6,6 @@ import { calculateIcebergPositionAt } from '../utils.js';
 
 export class Iceberg {
   constructor({
-
     id,
     name,
     x,
@@ -17,7 +16,9 @@ export class Iceberg {
     size = 720, // meters
     currentResponse = 0.85,
     windResponse = 0.15,
-    waveResponse = 0.05
+    waveResponse = 0.05,
+    heading = 0,
+    angularVelocity = 0
   }) {
     this.id = id;
     this.name = name;
@@ -34,8 +35,8 @@ export class Iceberg {
     // Velocity state
     this.vx = 0;
     this.vy = 0;
-    this.heading = Math.floor(Math.random() * 360);
-    this.angularVelocity = (Math.random() - 0.5) * 0.2; // degrees per sec
+    this.heading = heading;
+    this.angularVelocity = angularVelocity;
 
     this.collisionRadius = Math.max(10, this.size / 35);
 

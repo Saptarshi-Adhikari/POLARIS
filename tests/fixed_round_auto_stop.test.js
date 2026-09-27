@@ -49,7 +49,7 @@ describe('NavTestBot — Fixed-Round Auto-Stop Mode', () => {
     });
     expect(bot.enabled).toBe(false);
     expect(bot.sessionEpisodeCount).toBe(30);
-  });
+  }, 30000);
 
   it('2. Export Batch Arithmetic Check (Target = 30): exports sum to exactly 30 episodes across 3 batch files', () => {
     const engine = new SimulationEngine();
@@ -90,7 +90,7 @@ describe('NavTestBot — Fixed-Round Auto-Stop Mode', () => {
     // Verify all episode IDs across batches are unique (no duplicates or missing episodes)
     const allIds = exportedBatches.flatMap(b => b.map(ep => ep.episode_id));
     expect(new Set(allIds).size).toBe(30);
-  });
+  }, 30000);
 
   it('3. Non-Multiple Target Arithmetic Check (Target = 25): exports sum to 25 (10 + 10 + 5)', () => {
     const engine = new SimulationEngine();

@@ -7,6 +7,8 @@
  * and vessel state constraints into an explainable navigation recommendation.
  */
 
+import { continuousCollisionValidator } from './continuousCollisionValidator.js';
+
 export const SAFE_RISK_CEILING = 0.65;
 
 export const DEFAULT_WEIGHTS = {
@@ -85,6 +87,16 @@ export class DecisionEngine {
       if (!r) {
         scores[m] = 999.0;
         continue;
+      }
+
+      // Hard Collision Gate Check via ContinuousCollisionValidator
+      if (r.waypoints && r.waypoints.length >= 2 && icebergTrajectories.length > 0) {
+        const valRes = continuousCollisionValidator.validateFullRoute(r.waypoints, vesselState, icebergTrajectories);
+        if (!valRes.isValid) {
+          scores[m] = Infinity;
+          details[m] = { score: Infinity, rejected: true, reason: `Space/Time Collision Validation Failed (${valRes.reason})` };
+          continue;
+        }
       }
 
       const riskScore = r.maxRisk !== undefined ? r.maxRisk : (r.riskScore || 0.2);

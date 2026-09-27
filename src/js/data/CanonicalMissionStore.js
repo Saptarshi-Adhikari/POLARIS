@@ -103,6 +103,14 @@ export class CanonicalMissionStore {
         confidence: aiNav.routeConfidence || 92
       },
 
+      // Advanced Forecasting & Adaptive Calibration
+      forecasting: {
+        hybridAgreement: aiNav.hybridForecaster ? (engine.icebergs && engine.icebergs[0]?.hybridForecast?.overallAgreement || 'HIGH') : 'HIGH',
+        adaptiveUncertaintyScale: aiNav.adaptiveCalibrationEngine ? aiNav.adaptiveCalibrationEngine.uncertaintyScaleFactor : 1.0,
+        modelVersion: aiNav.adaptiveCalibrationEngine ? aiNav.adaptiveCalibrationEngine.activeModelVersion : 'v1.0.0',
+        openDriftReferenceAvailable: true
+      },
+
       // Alerts & History
       alerts: [...this.alerts],
       provenance: dataProvider.activeSnapshot?.provenance || {

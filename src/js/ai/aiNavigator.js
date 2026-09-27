@@ -1,10 +1,14 @@
-import routeCalibration from '../../data/routeCalibration.json' with { type: 'json' };
 import { createHierarchicalPlanner } from '../pathfinding/hierarchicalPlanner.js';
 import { llmCopilot } from './llmCopilot.js';
 import { runRoutePlannerCore, isHardBlocked } from './routePlannerCore.js';
 import { DecisionEngine } from './decisionEngine.js';
 import { IcebergPredictionTracker } from './icebergPredictionTracker.js';
+import { hybridForecaster } from './HybridIcebergForecaster.js';
+import { adaptiveCalibrationEngine } from './AdaptiveCalibrationEngine.js';
+import { continuousCollisionValidator } from './continuousCollisionValidator.js';
 import { getSegmentSpeed, wrappedDelta, wrappedDistanceCoords, calculateIcebergPositionAt } from '../utils.js';
+
+const routeCalibration = { icebergWeight: 10.0, seaIceWeight: 5.0 };
 
 
 const hierarchicalPlanner = createHierarchicalPlanner(3600, 2400, {
@@ -32,10 +36,16 @@ export class AINavigator {
     this.hazardZones = [];
     this.riskGrid = [];
 
-    // Phase 5 & 5.1: Planner instrumentation & Canonical route metadata
+    // Phase 5 & 5.1 & Stability Audit: Planner instrumentation & Canonical route metadata
     this.plannerCallCount = 0;
     this.plannerCalls = 0;
     this.routeGenerationAttempts = 0;
+
+    // Canonical Terminal Replanning Event Ledger (plannerCalls = accepted + rejected + errorsCancelled)
+    this.accepted = 0;
+    this.rejected = 0;
+    this.errorsCancelled = 0;
+
     this.routeAdoptions = 0;
     this.routeRejections = 0;
     this.routeInvalidations = 0;
@@ -45,6 +55,18 @@ export class AINavigator {
     this.temporalRiskExits = 0;
     this.uniqueHazards = new Set();
     this.uniqueReplanEvents = new Set();
+
+    // Stability & Churn Tracking
+    this.leftSelections = 0;
+    this.rightSelections = 0;
+    this.leftToRightSwitches = 0;
+    this.rightToLeftSwitches = 0;
+    this.sameRouteReplacements = 0;
+    this.minorImprovementReplacements = 0;
+    this.oscillationEvents = [];
+    this.lastSelectedSide = null;
+    this.sideHistory = [];
+    this.routeHistory = []; // { routeId, createdAtSim, activatedAtSim, invalidatedAtSim, reason, durationSim, side }
 
     this.temporalRiskState = 'CLEAR'; // 'CLEAR', 'WARNING', 'BLOCKED', 'RESOLVED'
     this.latchedHazards = new Set();  // Latched hazard keys for current active route
@@ -60,6 +82,8 @@ export class AINavigator {
     this.aiRecommendation = null;
     this.lastAIRecommendTime = 0;
     this.predictionTracker = new IcebergPredictionTracker();
+    this.hybridForecaster = hybridForecaster;
+    this.adaptiveCalibrationEngine = adaptiveCalibrationEngine;
     this._lastStormActive = false;
 
     this.workerRequestId = 0;
@@ -188,6 +212,7 @@ export class AINavigator {
 
     if (!candidateValid) {
       this.routeRejections++;
+      this.rejected++;
       this.lastPlannerCallSimulationTime = currentSimHours;
       if (this.currentState && this.currentState.navigation) {
         this.currentState.navigation.routeInvalid = false;
@@ -207,6 +232,7 @@ export class AINavigator {
     }
 
     // 3. CANDIDATE ADOPTION
+    this.accepted++;
     this.optimalRoute = waypoints;
     this.lastRouteTime = typeof performance !== 'undefined' ? performance.now() : Date.now();
 
@@ -214,55 +240,109 @@ export class AINavigator {
       this.lastValidRoute = waypoints;
     }
 
-      this.routeVersion = (this.routeVersion || 0) + 1;
-      this.routeAdoptions++;
-      const epIdx = this.currentState?.simulation?.episodeIndex !== undefined ? this.currentState.simulation.episodeIndex : 0;
-      const newRouteId = `route_${epIdx}_${this.routeVersion}`;
-      
-      const newActiveRoute = {
-        routeId: newRouteId,
-        id: newRouteId,
-        waypoints: Object.freeze(waypoints.map(p => ({ x: p.x, y: p.y, riskScore: p.riskScore || 0, status: p.status || 'safe', minClearance: p.minClearance }))),
-        rawPath: e.data.rawPath || waypoints,
-        smoothPath: waypoints,
-        status: 'valid',
-        createdAt: performance.now(),
-        createdAtSimulationTime: currentSimHours,
-        replanReason: this.lastReplanReason || 'INITIAL_ROUTE',
-        plannerCost: totalDistance,
-        expectedTravelTime: estimatedDuration,
-        routeVersion: this.routeVersion,
-        totalDistance: totalDistance,
-        estimatedDuration: estimatedDuration,
-        maxRiskSegment: maxRisk,
-        destination: dest
-      };
-
-      this.lastDest = dest ? { x: dest.x, y: dest.y } : null;
-      this.lastMode = this.currentState?.navigation?.mode || 'BALANCED';
-      this.currentState.navigation.activeRoute = newActiveRoute;
-      this.currentState.navigation.routeCalculated = true;
-      // Keep latched hazards across candidate adoption to prevent immediate re-invalidation
-
-      // Log structured planner call
-      const logEntry = {
-        event: 'CANDIDATE_ADOPTED',
-        simulation_time: currentSimHours,
-        routeId_before: prevRouteId,
-        routeId_after: newRouteId,
-        reason: this.lastReplanReason || 'INITIAL_ROUTE',
-        candidateCost: totalDistance,
-        activeCost: Number.isFinite(prevCost) ? prevCost : totalDistance,
-        candidateTravelTime: estimatedDuration,
-        activeTravelTime: Number.isFinite(prevDuration) ? prevDuration : estimatedDuration
-      };
-      this.plannerLogs.push(logEntry);
-      this.replanEventTrace.push(logEntry);
-      if (this.plannerLogs.length > 100) this.plannerLogs.shift();
-
-      if (this.currentRealShip && typeof this.currentRealShip.setRouteWaypoints === 'function') {
-        this.currentRealShip.setRouteWaypoints(waypoints, newRouteId);
+    // Finalize lifetime of previous route if present
+    if (prevActiveRoute && this.routeHistory && this.routeHistory.length > 0) {
+      const lastEntry = this.routeHistory[this.routeHistory.length - 1];
+      if (lastEntry && !lastEntry.invalidatedAtSim) {
+        lastEntry.invalidatedAtSim = currentSimHours;
+        lastEntry.durationSimSec = (currentSimHours - lastEntry.activatedAtSim) * 3600;
+        lastEntry.invalidationReason = this.lastReplanReason || 'REPLACED';
       }
+    }
+
+    this.routeVersion = (this.routeVersion || 0) + 1;
+    this.routeAdoptions++;
+    const epIdx = this.currentState?.simulation?.episodeIndex !== undefined ? this.currentState.simulation.episodeIndex : 0;
+    const newRouteId = `route_${epIdx}_${this.routeVersion}`;
+
+    // Track side selection & side switching
+    const currentSide = e.data.selectedSide || 'NONE';
+    if (currentSide === 'LEFT') this.leftSelections++;
+    if (currentSide === 'RIGHT') this.rightSelections++;
+
+    if (this.lastSelectedSide === 'LEFT' && currentSide === 'RIGHT') this.leftToRightSwitches++;
+    if (this.lastSelectedSide === 'RIGHT' && currentSide === 'LEFT') this.rightToLeftSwitches++;
+
+    this.sideHistory.push({ side: currentSide, simTime: currentSimHours, routeId: newRouteId });
+    if (this.sideHistory.length > 20) this.sideHistory.shift();
+
+    // Oscillation detection: LEFT -> RIGHT -> LEFT or RIGHT -> LEFT -> RIGHT within 10s simulation time
+    const len = this.sideHistory.length;
+    if (len >= 3) {
+      const s1 = this.sideHistory[len - 3];
+      const s2 = this.sideHistory[len - 2];
+      const s3 = this.sideHistory[len - 1];
+      const dtSimSec = (s3.simTime - s1.simTime) * 3600;
+      if (dtSimSec <= 10.0 && s1.side !== 'NONE' && s2.side !== 'NONE' && s3.side !== 'NONE') {
+        if ((s1.side === 'LEFT' && s2.side === 'RIGHT' && s3.side === 'LEFT') ||
+            (s1.side === 'RIGHT' && s2.side === 'LEFT' && s3.side === 'RIGHT')) {
+          this.oscillationEvents.push({
+            event: 'SIDE_OSCILLATION_DETECTED',
+            sequence: `${s1.side}->${s2.side}->${s3.side}`,
+            timeWindowSec: dtSimSec,
+            simTimeHours: currentSimHours
+          });
+        }
+      }
+    }
+    this.lastSelectedSide = currentSide;
+
+    const newActiveRoute = {
+      routeId: newRouteId,
+      id: newRouteId,
+      waypoints: Object.freeze(waypoints.map(p => ({ x: p.x, y: p.y, riskScore: p.riskScore || 0, status: p.status || 'safe', minClearance: p.minClearance }))),
+      rawPath: e.data.rawPath || waypoints,
+      smoothPath: waypoints,
+      status: 'valid',
+      createdAt: performance.now(),
+      createdAtSimulationTime: currentSimHours,
+      replanReason: this.lastReplanReason || 'INITIAL_ROUTE',
+      plannerCost: totalDistance,
+      expectedTravelTime: estimatedDuration,
+      routeVersion: this.routeVersion,
+      totalDistance: totalDistance,
+      estimatedDuration: estimatedDuration,
+      maxRiskSegment: maxRisk,
+      destination: dest,
+      side: currentSide
+    };
+
+    this.routeHistory.push({
+      routeId: newRouteId,
+      routeVersion: this.routeVersion,
+      createdAtSim: currentSimHours,
+      activatedAtSim: currentSimHours,
+      invalidatedAtSim: null,
+      reason: this.lastReplanReason || 'INITIAL_ROUTE',
+      durationSimSec: null,
+      side: currentSide
+    });
+
+    this.lastDest = dest ? { x: dest.x, y: dest.y } : null;
+    this.lastMode = this.currentState?.navigation?.mode || 'BALANCED';
+    this.currentState.navigation.activeRoute = newActiveRoute;
+    this.currentState.navigation.routeCalculated = true;
+
+    // Log structured planner call
+    const logEntry = {
+      event: 'CANDIDATE_ADOPTED',
+      simulation_time: currentSimHours,
+      routeId_before: prevRouteId,
+      routeId_after: newRouteId,
+      reason: this.lastReplanReason || 'INITIAL_ROUTE',
+      side: currentSide,
+      candidateCost: totalDistance,
+      activeCost: Number.isFinite(prevCost) ? prevCost : totalDistance,
+      candidateTravelTime: estimatedDuration,
+      activeTravelTime: Number.isFinite(prevDuration) ? prevDuration : estimatedDuration
+    };
+    this.plannerLogs.push(logEntry);
+    this.replanEventTrace.push(logEntry);
+    if (this.plannerLogs.length > 100) this.plannerLogs.shift();
+
+    if (this.currentRealShip && typeof this.currentRealShip.setRouteWaypoints === 'function') {
+      this.currentRealShip.setRouteWaypoints(waypoints, newRouteId);
+    }
   }
 
   initRiskGrid(cols = 20, rows = 15) {
@@ -452,34 +532,34 @@ export class AINavigator {
       this.latchedHazards.clear();
     }
 
-    // ── STEP 2 & 4: CALCULATE CPA AND PERFORM PREDICTIVE AVOIDANCE ──
+    // ── STEP 2 & 4: CALCULATE CPA AND PERFORM PREDICTIVE AVOIDANCE WITH CONTINUOUS COLLISION VALIDATOR ──
     let imminentCollisionDetected = false;
     let highestRiskIceberg = null;
     let shortestT_CPA = Infinity;
 
     if (isNavigating) {
+      const vState = {
+        x: ship.x,
+        y: ship.y,
+        heading: ship.heading,
+        speed: Math.hypot(ship.vx, ship.vy) || ship.speed || 15.0,
+        vx: ship.vx,
+        vy: ship.vy,
+        length: state?.vessel?.length || 80.0,
+        beam: state?.vessel?.beam || 20.0
+      };
+
       for (const ice of icebergs) {
-        const { dx: rx, dy: ry, dist: dCurr } = wrappedDelta(ship.x, ship.y, ice.x, ice.y);
-        const rvx = ice.vx - ship.vx;
-        const rvy = ice.vy - ship.vy;
-        
-        const rvSq = rvx * rvx + rvy * rvy;
-        let tCPA = 0;
-        if (rvSq > 0.001) {
-          tCPA = -(rx * rvx + ry * rvy) / rvSq;
-        }
-        if (tCPA < 0) tCPA = 0;
+        const { cpa, tcpa } = continuousCollisionValidator.calculateCPATCPA(vState, ice);
+        const clearanceRes = continuousCollisionValidator.calculateVesselToIcebergClearance(vState, ice, 0);
 
-        const futureRx = rx + rvx * tCPA;
-        const futureRy = ry + rvy * tCPA;
-        const dCPA = Math.sqrt(futureRx * futureRx + futureRy * futureRy);
-        const safeMargin = ice.collisionRadius + ship.collisionRadius;
-
-        // Genuine imminent collision override threshold: distance < 80 SU, tCPA <= 6.0s, and dCPA < safeMargin
-        if (dCurr < 80 && tCPA > 0 && tCPA <= 6.0 && dCPA < safeMargin) {
+        // Genuine imminent collision override threshold using full continuous validator:
+        // 1) Current vessel footprint/uncertainty breach (clearance <= 15 SU)
+        // 2) Impending CPA intersection within 15 seconds below total exclusion radius
+        if (clearanceRes.clearance <= 15.0 || (tcpa > 0 && tcpa <= 15.0 && cpa < clearanceRes.totalExclusionRadius)) {
           imminentCollisionDetected = true;
-          if (tCPA < shortestT_CPA) {
-            shortestT_CPA = tCPA;
+          if (tcpa < shortestT_CPA) {
+            shortestT_CPA = tcpa;
             highestRiskIceberg = ice;
           }
         }
@@ -500,9 +580,10 @@ export class AINavigator {
       if (state && state.navigation) state.navigation.routeInvalid = true;
     }
 
-    // Iceberg Prediction Accuracy Tracker Update
+    // Iceberg Prediction Accuracy Tracker Update & Hybrid Forecast Generation
     if (this.predictionTracker) {
       const simTimeHours = state?.simulation?.simTimeHours || 0;
+      const env = state?.environment || {};
       for (const ice of icebergs) {
         if (ice.trajectoryForecast && ice.trajectoryForecast.length > 0) {
           for (const f of ice.trajectoryForecast) {
@@ -510,8 +591,24 @@ export class AINavigator {
             this.predictionTracker.recordPrediction(ice.id, simTimeHours, horizon, f.x, f.y);
           }
         }
+
+        // Generate Hybrid Physics + ML Forecast for each iceberg
+        if (this.hybridForecaster) {
+          ice.hybridForecast = this.hybridForecaster.forecastHybridTrajectory(ice, env, 24);
+        }
       }
       this.predictionTracker.update(simTimeHours, icebergs);
+
+      // Record EWMA error calibration
+      const lastErr = this.predictionTracker.getLastError();
+      if (lastErr && this.adaptiveCalibrationEngine) {
+        const ice = icebergs.find(i => i.id === lastErr.icebergId);
+        if (ice) {
+          this.adaptiveCalibrationEngine.observePredictionError(
+            ice.x, ice.y, ice.x + lastErr.errorSU, ice.y, lastErr.forecastHorizonHours
+          );
+        }
+      }
     }
 
     const timeSinceLastRoute = currentTime - (this.lastRouteTime || 0);

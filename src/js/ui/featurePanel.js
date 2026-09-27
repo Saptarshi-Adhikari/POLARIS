@@ -45,6 +45,12 @@ export class FeaturePanel {
     toggleBtn.addEventListener('click', () =>
       panel.classList.contains('translate-x-full') ? open() : close());
     if (closeBtn) closeBtn.addEventListener('click', close);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !panel.classList.contains('translate-x-full')) {
+        close();
+      }
+    });
   }
 
   _bindTabs() {
