@@ -7,10 +7,12 @@
 
 export const ALERT_PRIORITY = {
   INFO: 1,
-  WARNING: 2,
-  CRITICAL: 3,
-  EMERGENCY: 4
+  ADVISORY: 2,
+  WARNING: 3,
+  URGENT: 4,
+  EMERGENCY: 5
 };
+
 
 export class BridgeVoiceAlerts {
   constructor(options = {}) {
@@ -83,6 +85,34 @@ export class BridgeVoiceAlerts {
     }
   }
 
+  /**
+   * Speak structured XAI explanation with severity mapping and hysteresis.
+   */
+  speakStructuredExplanation(structuredExplanation) {
+    if (!structuredExplanation) return false;
+
+    const riskLevel = structuredExplanation.risk ? structuredExplanation.risk.level : 'LOW';
+    let priority = ALERT_PRIORITY.ADVISORY;
+
+    if (riskLevel === 'CRITICAL' || structuredExplanation.hazardState === 'IMMINENT_COLLISION') {
+      priority = ALERT_PRIORITY.EMERGENCY;
+    } else if (riskLevel === 'HIGH' || structuredExplanation.hazardState === 'EXCLUSION_ZONE_BREACH') {
+      priority = ALERT_PRIORITY.URGENT;
+    } else if (riskLevel === 'MEDIUM') {
+      priority = ALERT_PRIORITY.WARNING;
+    } else if (structuredExplanation.decisionType === 'INITIAL') {
+      priority = ALERT_PRIORITY.INFO;
+    }
+
+    const actionText = structuredExplanation.selectedAction ? structuredExplanation.selectedAction.replace(/_/g, ' ') : 'route update';
+    const primaryRule = structuredExplanation.applicableRules && structuredExplanation.applicableRules[0]
+      ? structuredExplanation.applicableRules[0].title
+      : 'standard seamanship';
+
+    const speechText = `${riskLevel} alert: Executing ${actionText}. Associated with ${primaryRule}.`;
+    return this.speak(speechText, priority);
+  }
+
   toggleMute() {
     this.muted = !this.muted;
     if (this.muted && this.synth) {
@@ -91,3 +121,4 @@ export class BridgeVoiceAlerts {
     return this.muted;
   }
 }
+

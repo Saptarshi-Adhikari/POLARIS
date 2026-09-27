@@ -521,7 +521,11 @@ export class NavTestBot {
     }
     const finalMinClearance = parseFloat(calculatedMinClearance.toFixed(2));
 
+    const latestExplanation = nav.aiRecommendation?.structuredExplanation || null;
+    this.currentEpisode.explanation_record = latestExplanation;
+
     this.currentEpisode.metrics = {
+
       routeMode: this.currentEpisode.routeMode || 'BALANCED',
       route_mode: this.currentEpisode.route_mode || 'BALANCED',
       maxXte: 0,

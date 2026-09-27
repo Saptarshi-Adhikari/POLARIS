@@ -322,6 +322,11 @@ export class ContinuousCollisionValidator {
       nearestHazardId: primaryNearestHazard
     };
   }
+
+  validateTrajectory(trajectory = {}, icebergs = []) {
+    const waypoints = [trajectory.startPoint || { x: 0, y: 0 }, trajectory.endPoint || { x: 100, y: 0 }];
+    return this.validateFullRoute(waypoints, {}, icebergs);
+  }
 }
 
 export const continuousCollisionValidator = new ContinuousCollisionValidator();

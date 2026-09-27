@@ -3,6 +3,7 @@
  */
 
 import { calculateIcebergPositionAt } from '../utils.js';
+import { dynamicIcebergDragEstimator } from '../ai/DynamicIcebergDragEstimator.js';
 
 export class Iceberg {
   constructor({
@@ -95,11 +96,16 @@ export class Iceberg {
     // 3. Wave drift effect
     const waveDrift = 1.2 * 0.1; // fallback if waveHeight moved
 
-    // 4. Combine physics forces: V_iceberg = alpha * V_current + beta * V_wind + gamma * V_wave
+    // 4. Combine physics forces: V_iceberg = (alpha * V_current + beta * V_wind + gamma * V_wave) * Cd_eff
     const driftMultiplier = state.icebergs.driftStrength || 1.0;
     
-    const targetVx = (oceanVel.u * this.currentResponse * 12 + windVx * this.windResponse * 2 + waveDrift * this.waveResponse) * driftMultiplier;
-    const targetVy = (oceanVel.v * this.currentResponse * 12 + windVy * this.windResponse * 2 + waveDrift * this.waveResponse) * driftMultiplier;
+    // Ingest adaptive effective drift parameter if available
+    const paramInfo = dynamicIcebergDragEstimator.getEffectiveParameter(this.id);
+    const effectiveDragParam = paramInfo.parameter;
+    this.effectiveDragParamInfo = paramInfo;
+
+    const targetVx = (oceanVel.u * this.currentResponse * 12 + windVx * this.windResponse * 2 + waveDrift * this.waveResponse) * driftMultiplier * effectiveDragParam;
+    const targetVy = (oceanVel.v * this.currentResponse * 12 + windVy * this.windResponse * 2 + waveDrift * this.waveResponse) * driftMultiplier * effectiveDragParam;
 
     // Smooth inertia acceleration
     this.vx += (targetVx - this.vx) * Math.min(1, dt * 2);

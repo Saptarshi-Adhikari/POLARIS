@@ -1,0 +1,2008 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.2 [39m[90mC:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS[39m
+
+[90mstderr[2m | tests/full_reaudit_and_fixes.test.js[2m > [22m[2mPOLARIS Comprehensive Re-Audit & Fixes Verification Suite[2m > [22m[2mTEST 5 — Ship physics prevents hull from clipping iceberg collision envelope
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice_block at dist 30.0
+
+[90mstderr[2m | tests/full_reaudit_and_fixes.test.js[2m > [22m[2mPOLARIS Comprehensive Re-Audit & Fixes Verification Suite[2m > [22m[2mTEST 7 — Collision response removes inward velocity and enables tangential sliding
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice_slide at dist 22.1
+
+[90mstdout[2m | tests/phase6_dataset_engine.test.js[2m > [22m[2mPhase 6 Autonomous Episode Generation & Dataset Engine[2m > [22m[2m1. Deterministic Reset Test — verifies state is restored to canonical initial state
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/navigation_safety_monte_carlo.test.js[2m > [22m[2mPHASE 36-40: 1000-Scenario Monte Carlo Safety & Collision Avoidance Harness[2m > [22m[2m1. 500 DEMO Deterministic Scenarios — Zero Collisions Assertion
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/full_reaudit_and_fixes.test.js[2m > [22m[2mPOLARIS Comprehensive Re-Audit & Fixes Verification Suite[2m > [22m[2mTEST 8 — Enforces single canonical route line rendering guard
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/full_reaudit_and_fixes.test.js[2m > [22m[2mPOLARIS Comprehensive Re-Audit & Fixes Verification Suite[2m > [22m[2mTEST 9 — Fresh startup has no startPoint marker or START anchor
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/data_mode_provider.test.js[2m > [22m[2mDATA MODE [DEMO | REAL] Provider Verification[2m > [22m[2m1. Geographic coordinate transform maps lat/lon to world units and back
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/data_mode_provider.test.js[2m > [22m[2mDATA MODE [DEMO | REAL] Provider Verification[2m > [22m[2m2. Invalid geographic coordinates are rejected with descriptive validation errors
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/data_mode_provider.test.js[2m > [22m[2mDATA MODE [DEMO | REAL] Provider Verification[2m > [22m[2m3. DemoDataProvider produces normalized hazards matching schema
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/data_mode_provider.test.js[2m > [22m[2mDATA MODE [DEMO | REAL] Provider Verification[2m > [22m[2m4. RealReplayProvider normalizes USNIC & Copernicus Marine datasets
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/data_mode_provider.test.js[2m > [22m[2mDATA MODE [DEMO | REAL] Provider Verification[2m > [22m[2m5. DEMO ↔ REAL mode toggle correctly switches providers, map layer, and hazards
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/phase6_dataset_engine.test.js[2m > [22m[2mPhase 6 Autonomous Episode Generation & Dataset Engine[2m > [22m[2m2. Collision Termination & Automatic Reset Test — verifies collision halts episode and preserves state
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstderr[2m | tests/phase6_dataset_engine.test.js[2m > [22m[2mPhase 6 Autonomous Episode Generation & Dataset Engine[2m > [22m[2m2. Collision Termination & Automatic Reset Test — verifies collision halts episode and preserves state
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice_block at dist 27.4
+
+[90mstdout[2m | tests/phase6_dataset_engine.test.js[2m > [22m[2mPhase 6 Autonomous Episode Generation & Dataset Engine[2m > [22m[2m3. Destination Termination Test — verifies clean arrival and SUCCESS label
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/phase6_dataset_engine.test.js[2m > [22m[2mPhase 6 Autonomous Episode Generation & Dataset Engine[2m > [22m[2m4. Deterministic Replay Test — running same seed twice produces bit-exact telemetry
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/phase6_dataset_engine.test.js[2m > [22m[2mPhase 6 Autonomous Episode Generation & Dataset Engine[2m > [22m[2m6. JSONL Exporter & Manifest Engine Test — verifies episode storage and manifest stats
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/hard_scenario.test.js[2m > [22m[2mHard Scenario A* Iteration Cap Audit[2m > [22m[2mtests search behavior when destination is completely blocked by an wall of icebergs
+[22m[39m
+=== IMPASSABLE WALL BENCHMARK RESULTS ===
+Search Time: 6351.48 ms
+Waypoints Count: 2
+Is direct fallback route (2 waypoints)? true
+===========================================
+
+
+ [31m❯[39m tests/hard_scenario.test.js [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 6367[2mms[22m[39m
+   [31m❯[39m Hard Scenario A* Iteration Cap Audit [2m(1)[22m
+[31m     [31m×[31m tests search behavior when destination is completely blocked by an wall of icebergs[39m[33m 6364[2mms[22m[39m
+[90mstdout[2m | tests/data_mode_provider.test.js[2m > [22m[2mDATA MODE [DEMO | REAL] Provider Verification[2m > [22m[2m6. REAL mode hazard enters AINavigator and active route is generated
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/full_reaudit_and_fixes.test.js[2m > [22m[2mPOLARIS Comprehensive Re-Audit & Fixes Verification Suite[2m > [22m[2mTEST 10 — Reset restores ship state while preserving destination and regenerating route
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/phase6_dataset_engine.test.js[2m > [22m[2mPhase 6 Autonomous Episode Generation & Dataset Engine[2m > [22m[2m7. Collision Geometry Clarity Test — verifies explicit clearance metrics
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+ [32m✓[39m tests/real_data_provider.test.js [2m([22m[2m6 tests[22m[2m)[22m[33m 8204[2mms[22m[39m
+   [32m✓[39m REAL Data Mode & Data Provider Unit Tests [2m(6)[22m
+     [33m[2m✓[22m[39m 4. RealDataProvider returns normalized snapshot structure[33m 3267[2mms[22m[39m
+     [33m[2m✓[22m[39m 5. RealDataProvider fails gracefully to cached snapshot on network error[33m 3442[2mms[22m[39m
+     [33m[2m✓[22m[39m 6. Ingests and correlates SAR contacts with catalogued icebergs[33m 1485[2mms[22m[39m
+[90mstdout[2m | tests/scenario_mode_coverage.test.js[2m > [22m[2mNavTestBot — Scenario & Route Mode Coverage Audit[2m > [22m[2m1. Round-Robin Coverage Grid (Target = 48): exact 4 episodes per class, 1 per mode per class
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[NavTestBot] Status changed -> ENABLED
+[NavTestBot] Episode ep_1001_1790502226084 finished -> COLLISION
+[NavTestBot] Episode ep_1002_1790502226360 finished -> COLLISION
+[NavTestBot] Episode ep_1003_1790502226361 finished -> COLLISION
+[NavTestBot] Episode ep_1004_1790502226995 finished -> COLLISION
+[NavTestBot] Episode ep_1005_1790502226996 finished -> COLLISION
+[NavTestBot] Episode ep_1006_1790502227304 finished -> COLLISION
+[NavTestBot] Episode ep_1007_1790502227305 finished -> COLLISION
+[NavTestBot] Episode ep_1008_1790502227580 finished -> COLLISION
+[NavTestBot] Episode ep_1009_1790502227581 finished -> COLLISION
+[NavTestBot] Episode ep_1010_1790502227843 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 10
+[NavTestBot] Episode ep_1011_1790502227845 finished -> COLLISION
+[NavTestBot] Episode ep_1012_1790502228141 finished -> COLLISION
+[NavTestBot] Episode ep_1013_1790502228141 finished -> COLLISION
+[NavTestBot] Episode ep_1014_1790502228305 finished -> COLLISION
+[NavTestBot] Episode ep_1015_1790502228306 finished -> COLLISION
+[NavTestBot] Episode ep_1016_1790502229139 finished -> COLLISION
+[NavTestBot] Episode ep_1017_1790502229140 finished -> COLLISION
+[NavTestBot] Episode ep_1018_1790502229308 finished -> COLLISION
+[NavTestBot] Episode ep_1019_1790502229309 finished -> COLLISION
+[NavTestBot] Episode ep_1020_1790502229356 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 20
+[NavTestBot] Episode ep_1021_1790502229358 finished -> COLLISION
+[NavTestBot] Episode ep_1022_1790502229541 finished -> COLLISION
+[NavTestBot] Episode ep_1023_1790502229542 finished -> COLLISION
+[NavTestBot] Episode ep_1024_1790502229847 finished -> COLLISION
+[NavTestBot] Episode ep_1025_1790502229848 finished -> COLLISION
+[NavTestBot] Episode ep_1026_1790502230036 finished -> COLLISION
+[NavTestBot] Episode ep_1027_1790502230036 finished -> COLLISION
+[NavTestBot] Episode ep_1028_1790502230037 finished -> COLLISION
+[NavTestBot] Episode ep_1029_1790502230037 finished -> COLLISION
+[NavTestBot] Episode ep_1030_1790502230081 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 30
+[NavTestBot] Episode ep_1031_1790502230083 finished -> COLLISION
+[NavTestBot] Episode ep_1032_1790502230286 finished -> COLLISION
+[NavTestBot] Episode ep_1033_1790502230287 finished -> COLLISION
+[NavTestBot] Episode ep_1034_1790502230452 finished -> COLLISION
+[NavTestBot] Episode ep_1035_1790502230453 finished -> COLLISION
+[NavTestBot] Episode ep_1036_1790502230753 finished -> COLLISION
+[NavTestBot] Episode ep_1037_1790502230753 finished -> COLLISION
+[NavTestBot] Episode ep_1038_1790502230798 finished -> COLLISION
+[NavTestBot] Episode ep_1039_1790502230798 finished -> COLLISION
+[NavTestBot] Episode ep_1040_1790502231525 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 40
+[NavTestBot] Episode ep_1041_1790502231526 finished -> COLLISION
+[NavTestBot] Episode ep_1042_1790502231724 finished -> COLLISION
+[NavTestBot] Episode ep_1043_1790502231725 finished -> COLLISION
+[NavTestBot] Episode ep_1044_1790502232014 finished -> COLLISION
+[NavTestBot] Episode ep_1045_1790502232015 finished -> COLLISION
+[NavTestBot] Episode ep_1046_1790502232076 finished -> COLLISION
+[NavTestBot] Episode ep_1047_1790502232076 finished -> COLLISION
+[NavTestBot] Episode ep_1048_1790502232604 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 48
+[NavTestBot] Target episode count reached (48/48). Auto-stop complete.
+
+=== 12 CLASS x 4 ROUTE MODE COVERAGE BREAKDOWN (Target = 48) ===
+┌────────────────────────────────────────┬─────────┬──────────┬────────┬────────────────┬───────┐
+│ (index)                                │ FASTEST │ BALANCED │ SAFEST │ FUEL_EFFICIENT │ total │
+├────────────────────────────────────────┼─────────┼──────────┼────────┼────────────────┼───────┤
+│ CLASS_A_CLEAR_SEAS                     │ [33m1[39m       │ [33m1[39m        │ [33m1[39m      │ [33m1[39m              │ [33m4[39m     │
+│ CLASS_B_STATIC_OBSTACLE                │ [33m1[39m       │ [33m1[39m        │ [33m1[39m      │ [33m1[39m              │ [33m4[39m     │
+│ CLASS_C_MOVING_CROSSING                │ [33m1[39m       │ [33m1[39m        │ [33m1[39m      │ [33m1[39m              │ [33m4[39m     │
+│ CLASS_D_MULTI_ICEBERG_FIELD            │ [33m1[39m       │ [33m1[39m        │ [33m1[39m      │ [33m1[39m              │ [33m4[39m     │
+│ CLASS_E_SIDE_APPROACH                  │ [33m1[39m       │ [33m1[39m        │ [33m1[39m      │ [33m1[39m              │ [33m4[39m     │
+│ CLASS_F_HEAD_ON_APPROACH               │ [33m1[39m       │ [33m1[39m        │ [33m1[39m      │ [33m1[39m              │ [33m4[39m     │
+│ CLASS_G_ESCAPE_CORRIDORS               │ [33m1[39m       │ [33m1[39m        │ [33m1[39m      │ [33m1[39m              │ [33m4[39m     │
+│ CLASS_H_CLOSE_CONFLICT_EARLY_AVOIDANCE │ [33m1[39m       │ [33m1[39m        │ [33m1[39m      │ [33m1[39m              │ [33m4[39m     │
+│ CLASS_I_SLOW_DOWN_BETTER               │ [33m1[39m       │ [33m1[39m        │ [33m1[39m      │ [33m1[39m              │ [33m4[39m     │
+│ CLASS_J_TURN_BETTER                    │ [33m1[39m       │ [33m1[39m        │ [33m1[39m      │ [33m1[39m              │ [33m4[39m     │
+│ CLASS_K_WORLD_WRAP_CROSSING            │ [33m1[39m       │ [33m1[39m        │ [33m1[39m      │ [33m1[39m              │ [33m4[39m     │
+│ CLASS_L_SAFE_VS_RISKY_CHOICE           │ [33m1[39m       │ [33m1[39m        │ [33m1[39m      │ [33m1[39m              │ [33m4[39m     │
+└────────────────────────────────────────┴─────────┴──────────┴────────┴────────────────┴───────┘
+
+[90mstdout[2m | tests/data_mode_provider.test.js[2m > [22m[2mDATA MODE [DEMO | REAL] Provider Verification[2m > [22m[2m7. Clear route works properly in both DEMO and REAL modes
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | scratch/investigate_issue1_telemetry.test.js[2m > [22m[2mIssue 1 Telemetry Inspection[2m > [22m[2minspects distance-to-destination over time for 3000-step runs
+[22m[39m
+=== DISTANCE-TO-DESTINATION OVER TIME TRACE ===
+
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+Scenario: CLASS_A_CLEAR_SEAS
+Start Pos: (400, 1800) -> Dest: (3000, 600)
+Straight-Line Initial Distance: 2863.6 SU
+Termination Reason: DESTINATION_REACHED
+Duration: 132.2s (1322 steps)
+Sample Distance-to-Destination Profile:
+  t=0.0s: ship=(400.2, 1799.9) speed=12.0 SU/s -> distToDest=2863.4 SU
+  t=13.2s: ship=(656.5, 1688.0) speed=12.0 SU/s -> distToDest=2583.8 SU
+  t=26.4s: ship=(927.8, 1566.1) speed=12.0 SU/s -> distToDest=2286.4 SU
+  t=39.6s: ship=(1194.0, 1432.7) speed=12.0 SU/s -> distToDest=1988.7 SU
+  t=52.8s: ship=(1467.5, 1310.4) speed=12.0 SU/s -> distToDest=1689.2 SU
+  t=66.0s: ship=(1744.8, 1192.3) speed=12.0 SU/s -> distToDest=1387.9 SU
+  t=79.2s: ship=(2012.8, 1054.5) speed=12.0 SU/s -> distToDest=1086.8 SU
+  t=92.4s: ship=(2286.6, 927.1) speed=12.0 SU/s -> distToDest=784.9 SU
+  t=105.6s: ship=(2569.2, 814.6) speed=12.0 SU/s -> distToDest=481.3 SU
+  t=118.8s: ship=(2829.1, 679.9) speed=12.0 SU/s -> distToDest=188.7 SU
+  t=132.0s: ship=(2995.1, 614.7) speed=12.0 SU/s -> distToDest=15.5 SU
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+Scenario: CLASS_B_STATIC_OBSTACLE
+Start Pos: (400, 1800) -> Dest: (3000, 600)
+Straight-Line Initial Distance: 2863.6 SU
+Termination Reason: DESTINATION_REACHED
+Duration: 146s (1460 steps)
+Sample Distance-to-Destination Profile:
+  t=0.0s: ship=(400.2, 1799.9) speed=12.0 SU/s -> distToDest=2863.4 SU
+  t=14.6s: ship=(637.3, 1621.4) speed=12.0 SU/s -> distToDest=2574.0 SU
+  t=29.2s: ship=(873.1, 1409.8) speed=12.0 SU/s -> distToDest=2275.9 SU
+  t=43.8s: ship=(1077.6, 1164.4) speed=12.0 SU/s -> distToDest=2003.6 SU
+  t=58.4s: ship=(1300.7, 934.8) speed=12.0 SU/s -> distToDest=1732.0 SU
+  t=73.0s: ship=(1550.0, 722.8) speed=12.0 SU/s -> distToDest=1455.2 SU
+  t=87.6s: ship=(1826.3, 628.7) speed=12.0 SU/s -> distToDest=1174.0 SU
+  t=102.2s: ship=(2147.3, 747.0) speed=12.0 SU/s -> distToDest=865.3 SU
+  t=116.8s: ship=(2478.4, 808.1) speed=12.0 SU/s -> distToDest=561.6 SU
+  t=131.4s: ship=(2802.6, 772.0) speed=12.0 SU/s -> distToDest=261.9 SU
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+Scenario: CLASS_D_MULTI_ICEBERG_FIELD
+Start Pos: (400, 1800) -> Dest: (3000, 600)
+Straight-Line Initial Distance: 2863.6 SU
+Termination Reason: DESTINATION_REACHED
+Duration: 146.1s (1461 steps)
+Sample Distance-to-Destination Profile:
+  t=0.0s: ship=(400.2, 1799.9) speed=12.0 SU/s -> distToDest=2863.4 SU
+  t=14.6s: ship=(637.3, 1621.4) speed=12.0 SU/s -> distToDest=2574.0 SU
+  t=29.2s: ship=(871.8, 1410.9) speed=12.0 SU/s -> distToDest=2277.5 SU
+  t=43.8s: ship=(1076.4, 1165.6) speed=12.0 SU/s -> distToDest=2005.0 SU
+  t=58.4s: ship=(1299.3, 935.9) speed=12.0 SU/s -> distToDest=1733.6 SU
+  t=73.0s: ship=(1548.7, 724.1) speed=12.0 SU/s -> distToDest=1456.6 SU
+  t=87.6s: ship=(1824.0, 627.9) speed=12.0 SU/s -> distToDest=1176.3 SU
+  t=102.2s: ship=(2144.8, 746.4) speed=12.0 SU/s -> distToDest=867.6 SU
+  t=116.8s: ship=(2475.9, 808.0) speed=12.0 SU/s -> distToDest=563.8 SU
+  t=131.4s: ship=(2800.3, 773.0) speed=12.0 SU/s -> distToDest=264.2 SU
+  t=146.0s: ship=(3001.8, 614.4) speed=12.0 SU/s -> distToDest=14.6 SU
+
+ [32m✓[39m scratch/investigate_issue1_telemetry.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 8383[2mms[22m[39m
+   [32m✓[39m Issue 1 Telemetry Inspection [2m(1)[22m
+     [33m[2m✓[22m[39m inspects distance-to-destination over time for 3000-step runs[33m 8380[2mms[22m[39m
+[90mstdout[2m | tests/full_reaudit_and_fixes.test.js[2m > [22m[2mPOLARIS Comprehensive Re-Audit & Fixes Verification Suite[2m > [22m[2mTEST 13 — Risk scores are evaluated on individual segments of the single active route
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/full_reaudit_and_fixes.test.js[2m > [22m[2mPOLARIS Comprehensive Re-Audit & Fixes Verification Suite[2m > [22m[2mTEST 14 — Route planner does not run A* search every frame when route is valid and stable
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/fixed_round_auto_stop.test.js[2m > [22m[2mNavTestBot — Fixed-Round Auto-Stop Mode[2m > [22m[2m1. Fixed-Round Auto-Stop (Target = 30): stops after exactly 30 episodes without starting 31st
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[NavTestBot] Status changed -> ENABLED
+[NavTestBot] Episode ep_1001_1790502226127 finished -> COLLISION
+[NavTestBot] Episode ep_1002_1790502226819 finished -> COLLISION
+[NavTestBot] Episode ep_1003_1790502226911 finished -> COLLISION
+[NavTestBot] Episode ep_1004_1790502228033 finished -> COLLISION
+[NavTestBot] Episode ep_1005_1790502228156 finished -> COLLISION
+[NavTestBot] Episode ep_1006_1790502228391 finished -> COLLISION
+[NavTestBot] Episode ep_1007_1790502228776 finished -> COLLISION
+[NavTestBot] Episode ep_1008_1790502229050 finished -> COLLISION
+[NavTestBot] Episode ep_1009_1790502229059 finished -> COLLISION
+[NavTestBot] Episode ep_1010_1790502229658 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5337
+[NavTestBot] Episode ep_1011_1790502229971 finished -> COLLISION
+[NavTestBot] Episode ep_1012_1790502230425 finished -> COLLISION
+[NavTestBot] Episode ep_1013_1790502230447 finished -> COLLISION
+[NavTestBot] Episode ep_1014_1790502230725 finished -> COLLISION
+[NavTestBot] Episode ep_1015_1790502230753 finished -> COLLISION
+[NavTestBot] Episode ep_1016_1790502231611 finished -> COLLISION
+[NavTestBot] Episode ep_1017_1790502231650 finished -> COLLISION
+[NavTestBot] Episode ep_1018_1790502231838 finished -> COLLISION
+[NavTestBot] Episode ep_1019_1790502231844 finished -> COLLISION
+[NavTestBot] Episode ep_1020_1790502232184 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5347
+[NavTestBot] Episode ep_1021_1790502232754 finished -> COLLISION
+[NavTestBot] Episode ep_1022_1790502232954 finished -> COLLISION
+[NavTestBot] Episode ep_1023_1790502232998 finished -> COLLISION
+[NavTestBot] Episode ep_1024_1790502233213 finished -> COLLISION
+[NavTestBot] Episode ep_1025_1790502233233 finished -> COLLISION
+[NavTestBot] Episode ep_1026_1790502233639 finished -> COLLISION
+[NavTestBot] Episode ep_1027_1790502233648 finished -> COLLISION
+[NavTestBot] Episode ep_1028_1790502233667 finished -> COLLISION
+[NavTestBot] Episode ep_1029_1790502233948 finished -> COLLISION
+[NavTestBot] Episode ep_1030_1790502234099 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5362
+[NavTestBot] Target episode count reached (30/30). Auto-stop complete.
+
+[90mstdout[2m | tests/data_mode_provider.test.js[2m > [22m[2mDATA MODE [DEMO | REAL] Provider Verification[2m > [22m[2m8. REAL data failure sets ERROR status and does not silently convert to DEMO mode
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/data_mode_provider.test.js
+[22m[39m[OpenMeteoWindProvider] Live wind fetch offline/fallback: This operation was aborted
+
+[90mstdout[2m | tests/data_mode_provider.test.js
+[22m[39m[OpenMeteoWindProvider] Live wind fetch offline/fallback: This operation was aborted
+
+[90mstdout[2m | tests/data_mode_provider.test.js
+[22m[39m[UsnicIcebergProvider] Live ERDDAP fetch unavailable/offline. Using bundled USNIC dataset: This operation was aborted
+
+[90mstdout[2m | tests/data_mode_provider.test.js
+[22m[39m[UsnicIcebergProvider] Live ERDDAP fetch unavailable/offline. Using bundled USNIC dataset: This operation was aborted
+
+ [32m✓[39m tests/data_mode_provider.test.js [2m([22m[2m8 tests[22m[2m)[22m[33m 8980[2mms[22m[39m
+   [32m✓[39m DATA MODE [DEMO | REAL] Provider Verification [2m(8)[22m
+     [33m[2m✓[22m[39m 5. DEMO ↔ REAL mode toggle correctly switches providers, map layer, and hazards[33m 4359[2mms[22m[39m
+     [33m[2m✓[22m[39m 6. REAL mode hazard enters AINavigator and active route is generated[33m 2734[2mms[22m[39m
+     [33m[2m✓[22m[39m 7. Clear route works properly in both DEMO and REAL modes[33m 1450[2mms[22m[39m
+[90mstdout[2m | tests/training_lab_suite.test.js[2m > [22m[2mCORE REQUIREMENT #27 — Training Lab Suite (20 Deterministic Tests)[2m > [22m[2m5. Iceberg directly ahead: one meaningful replan
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | scratch/test_route_rendering_repro.test.js[2m > [22m[2mRoute Rendering Regression Verification Test[2m > [22m[2mConfirms navLineDrawCount <= 1 and only activeRoute is rendered during manual iceberg spawn
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/training_lab_suite.test.js[2m > [22m[2mCORE REQUIREMENT #27 — Training Lab Suite (20 Deterministic Tests)[2m > [22m[2m6. Moving crossing iceberg: no replan storm
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/training_lab_suite.test.js[2m > [22m[2mCORE REQUIREMENT #27 — Training Lab Suite (20 Deterministic Tests)[2m > [22m[2m7. Multiple icebergs: bounded planner calls
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/phase6_autoreset_loop.test.js[2m > [22m[2mPhase 6 End-to-End Auto-Reset Loop & Toggle-Off Export[2m > [22m[2m1. Collision Auto-Reset Test — collision finalizes episode and begins new episode at exact start position
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[NavTestBot] Status changed -> ENABLED
+[NavTestBot] Episode ep_1001_1790502237290 finished -> COLLISION
+
+[90mstdout[2m | tests/training_lab_suite.test.js[2m > [22m[2mCORE REQUIREMENT #27 — Training Lab Suite (20 Deterministic Tests)[2m > [22m[2m9. Collision: terminal collision event + exact reset
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/training_lab_suite.test.js[2m > [22m[2mCORE REQUIREMENT #27 — Training Lab Suite (20 Deterministic Tests)[2m > [22m[2m10. Repeated collisions: episode N does not contaminate episode N+1
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/full_reaudit_and_fixes.test.js[2m > [22m[2mPOLARIS Comprehensive Re-Audit & Fixes Verification Suite[2m > [22m[2mTEST 15 — Active route remains valid and visible during background replanning
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/training_lab_suite.test.js[2m > [22m[2mCORE REQUIREMENT #27 — Training Lab Suite (20 Deterministic Tests)[2m > [22m[2m14. Dataset: correct 10Hz sampling
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/training_lab_suite.test.js[2m > [22m[2mCORE REQUIREMENT #27 — Training Lab Suite (20 Deterministic Tests)[2m > [22m[2m15. Dataset: terminal sample exists
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/training_lab_suite.test.js[2m > [22m[2mCORE REQUIREMENT #27 — Training Lab Suite (20 Deterministic Tests)[2m > [22m[2m16. Dataset: collisions retained
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/training_lab_suite.test.js[2m > [22m[2mCORE REQUIREMENT #27 — Training Lab Suite (20 Deterministic Tests)[2m > [22m[2m20. Shift+F6: starts/stops autonomous generation
+[22m[39m[NavTestBot] Status changed -> ENABLED
+[NavTestBot] Status changed -> DISABLED
+[NavTestBot] Episode ep_1001_1790502238706 finished -> MANUAL_STOP
+[NavTestBot] Manifest updated. Total episodes: 16
+
+[90mstderr[2m | tests/training_lab_suite.test.js[2m > [22m[2mCORE REQUIREMENT #27 — Training Lab Suite (20 Deterministic Tests)[2m > [22m[2m20. Shift+F6: starts/stops autonomous generation
+[22m[39m[DatasetExporter] Episode ep_1001_1790502238706 rejected due to validation errors: [ [32m'Telemetry array is empty'[39m ]
+
+ [32m✓[39m tests/training_lab_suite.test.js [2m([22m[2m20 tests[22m[2m)[22m[33m 4662[2mms[22m[39m
+   [32m✓[39m CORE REQUIREMENT #27 — Training Lab Suite (20 Deterministic Tests) [2m(20)[22m
+     [33m[2m✓[22m[39m 5. Iceberg directly ahead: one meaningful replan[33m 2456[2mms[22m[39m
+     [33m[2m✓[22m[39m 6. Moving crossing iceberg: no replan storm[33m 979[2mms[22m[39m
+     [33m[2m✓[22m[39m 7. Multiple icebergs: bounded planner calls[33m 332[2mms[22m[39m
+[90mstdout[2m | scratch/test_route_rendering_repro.test.js[2m > [22m[2mRoute Rendering Regression Verification Test[2m > [22m[2mVerifies rejected candidate routes from CANDIDATE_REJECTED events are never drawn to canvas
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+ [32m✓[39m scratch/test_route_rendering_repro.test.js [2m([22m[2m3 tests[22m[2m)[22m[33m 4688[2mms[22m[39m
+   [32m✓[39m Route Rendering Regression Verification Test [2m(3)[22m
+     [33m[2m✓[22m[39m Confirms navLineDrawCount <= 1 and only activeRoute is rendered during manual iceberg spawn[33m 1990[2mms[22m[39m
+     [33m[2m✓[22m[39m Verifies rejected candidate routes from CANDIDATE_REJECTED events are never drawn to canvas[33m 2596[2mms[22m[39m
+[90mstdout[2m | tests/scenario_mode_coverage.test.js[2m > [22m[2mNavTestBot — Scenario & Route Mode Coverage Audit[2m > [22m[2m2. Indefinite Run (Target = null): round-robin scenario class and mode progression
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[NavTestBot] Status changed -> ENABLED
+[NavTestBot] Episode ep_1001_1790502232756 finished -> COLLISION
+[NavTestBot] Episode ep_1002_1790502233027 finished -> COLLISION
+[NavTestBot] Episode ep_1003_1790502233161 finished -> COLLISION
+[NavTestBot] Episode ep_1004_1790502233725 finished -> COLLISION
+[NavTestBot] Episode ep_1005_1790502233732 finished -> COLLISION
+[NavTestBot] Episode ep_1006_1790502233874 finished -> COLLISION
+[NavTestBot] Episode ep_1007_1790502234597 finished -> COLLISION
+[NavTestBot] Episode ep_1008_1790502234767 finished -> COLLISION
+[NavTestBot] Episode ep_1009_1790502234774 finished -> COLLISION
+[NavTestBot] Episode ep_1010_1790502235046 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5370
+[NavTestBot] Episode ep_1011_1790502235458 finished -> COLLISION
+[NavTestBot] Episode ep_1012_1790502235899 finished -> COLLISION
+[NavTestBot] Episode ep_1013_1790502235906 finished -> COLLISION
+[NavTestBot] Episode ep_1014_1790502236524 finished -> COLLISION
+[NavTestBot] Episode ep_1015_1790502236745 finished -> COLLISION
+[NavTestBot] Episode ep_1016_1790502237368 finished -> COLLISION
+[NavTestBot] Episode ep_1017_1790502237377 finished -> COLLISION
+[NavTestBot] Episode ep_1018_1790502237819 finished -> COLLISION
+[NavTestBot] Episode ep_1019_1790502237949 finished -> COLLISION
+[NavTestBot] Episode ep_1020_1790502238113 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5392
+[NavTestBot] Episode ep_1021_1790502238968 finished -> COLLISION
+[NavTestBot] Episode ep_1022_1790502239138 finished -> COLLISION
+[NavTestBot] Episode ep_1023_1790502239151 finished -> COLLISION
+[NavTestBot] Episode ep_1024_1790502239484 finished -> COLLISION
+[NavTestBot] Status changed -> DISABLED
+[NavTestBot] Episode ep_1025_1790502239493 finished -> MANUAL_STOP
+[NavTestBot] Manifest updated. Total episodes: 5398
+
+[90mstderr[2m | tests/scenario_mode_coverage.test.js[2m > [22m[2mNavTestBot — Scenario & Route Mode Coverage Audit[2m > [22m[2m2. Indefinite Run (Target = null): round-robin scenario class and mode progression
+[22m[39m[DatasetExporter] Episode ep_1025_1790502239493 rejected due to validation errors: [ [32m'Telemetry array is empty'[39m ]
+
+[90mstdout[2m | tests/phase6_autoreset_loop.test.js[2m > [22m[2mPhase 6 End-to-End Auto-Reset Loop & Toggle-Off Export[2m > [22m[2m2. Multi-Cycle Collision-Reset Test — 3 consecutive collisions reset cleanly without state leaks
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[NavTestBot] Status changed -> ENABLED
+[NavTestBot] Episode ep_1001_1790502237968 finished -> COLLISION
+[NavTestBot] Episode ep_1002_1790502238596 finished -> COLLISION
+[NavTestBot] Episode ep_1003_1790502238850 finished -> COLLISION
+
+[90mstdout[2m | tests/phase6_autoreset_loop.test.js[2m > [22m[2mPhase 6 End-to-End Auto-Reset Loop & Toggle-Off Export[2m > [22m[2m3. Manual Click-to-Place Iceberg Collision Test — manual iceberg collision triggers exact same auto-reset loop
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[NavTestBot] Status changed -> ENABLED
+[NavTestBot] Episode ep_1001_1790502239858 finished -> COLLISION
+
+[90mstdout[2m | tests/phase6_autoreset_loop.test.js[2m > [22m[2mPhase 6 End-to-End Auto-Reset Loop & Toggle-Off Export[2m > [22m[2m4. Toggle-Off Finalization & Auto-Download Test — MANUAL_STOP finalized and export triggered with all buffered episodes
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[NavTestBot] Status changed -> ENABLED
+[NavTestBot] Episode ep_1001_1790502240188 finished -> DESTINATION_REACHED
+[NavTestBot] Status changed -> DISABLED
+[NavTestBot] Episode ep_1002_1790502240640 finished -> MANUAL_STOP
+[NavTestBot] Manifest updated. Total episodes: 5409
+
+ [32m✓[39m tests/phase6_autoreset_loop.test.js [2m([22m[2m4 tests[22m[2m)[22m[33m 3760[2mms[22m[39m
+   [32m✓[39m Phase 6 End-to-End Auto-Reset Loop & Toggle-Off Export [2m(4)[22m
+     [33m[2m✓[22m[39m 1. Collision Auto-Reset Test — collision finalizes episode and begins new episode at exact start position[33m 1052[2mms[22m[39m
+     [33m[2m✓[22m[39m 2. Multi-Cycle Collision-Reset Test — 3 consecutive collisions reset cleanly without state leaks[33m 1795[2mms[22m[39m
+     [33m[2m✓[22m[39m 3. Manual Click-to-Place Iceberg Collision Test — manual iceberg collision triggers exact same auto-reset loop[33m 424[2mms[22m[39m
+     [33m[2m✓[22m[39m 4. Toggle-Off Finalization & Auto-Download Test — MANUAL_STOP finalized and export triggered with all buffered episodes[33m 484[2mms[22m[39m
+[90mstdout[2m | tests/scenario_mode_coverage.test.js[2m > [22m[2mNavTestBot — Scenario & Route Mode Coverage Audit[2m > [22m[2m3. Route Mode Behavioral Differentiation: confirms 4 modes yield distinct route outputs for identical layout
+[22m[39m
+=== ROUTE MODE BEHAVIOR COMPARISON (CLASS_B_STATIC_OBSTACLE, Seed = 12345) ===
+┌────────────────┬────────────────┬───────────┬──────────┬───────────────┬────────────────────┐
+│ (index)        │ waypointsCount │ shipSpeed │ etaHours │ estimatedFuel │ maxRisk            │
+├────────────────┼────────────────┼───────────┼──────────┼───────────────┼────────────────────┤
+│ FASTEST        │ [33m71[39m             │ [33m28.5[39m      │ [33m0.03[39m     │ [33m5.3[39m           │ [33m0.5503805922287441[39m │
+│ BALANCED       │ [33m71[39m             │ [33m22.5[39m      │ [33m0.04[39m     │ [33m4.5[39m           │ [33m0.5503805922287441[39m │
+│ SAFEST         │ [33m71[39m             │ [33m19.5[39m      │ [33m0.04[39m     │ [33m4.1[39m           │ [33m0.5503805922287441[39m │
+│ FUEL_EFFICIENT │ [33m71[39m             │ [33m16.5[39m      │ [33m0.05[39m     │ [33m3.7[39m           │ [33m0.5503805922287441[39m │
+└────────────────┴────────────────┴───────────┴──────────┴───────────────┴────────────────────┘
+
+ [31m❯[39m tests/scenario_mode_coverage.test.js [2m([22m[2m3 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 14982[2mms[22m[39m
+   [31m❯[39m NavTestBot — Scenario & Route Mode Coverage Audit [2m(3)[22m
+[31m     [31m×[31m 1. Round-Robin Coverage Grid (Target = 48): exact 4 episodes per class, 1 per mode per class[39m[33m 6873[2mms[22m[39m
+     [33m[2m✓[22m[39m 2. Indefinite Run (Target = null): round-robin scenario class and mode progression[33m 6762[2mms[22m[39m
+     [33m[2m✓[22m[39m 3. Route Mode Behavioral Differentiation: confirms 4 modes yield distinct route outputs for identical layout[33m 1343[2mms[22m[39m
+[90mstdout[2m | tests/fixed_round_auto_stop.test.js[2m > [22m[2mNavTestBot — Fixed-Round Auto-Stop Mode[2m > [22m[2m2. Export Batch Arithmetic Check (Target = 30): exports sum to exactly 30 episodes across 3 batch files
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[NavTestBot] Status changed -> ENABLED
+[NavTestBot] Episode ep_1001_1790502234481 finished -> COLLISION
+[NavTestBot] Episode ep_1002_1790502234869 finished -> COLLISION
+[NavTestBot] Episode ep_1003_1790502234878 finished -> COLLISION
+[NavTestBot] Episode ep_1004_1790502235604 finished -> COLLISION
+[NavTestBot] Episode ep_1005_1790502235612 finished -> COLLISION
+[NavTestBot] Episode ep_1006_1790502236017 finished -> COLLISION
+[NavTestBot] Episode ep_1007_1790502236220 finished -> COLLISION
+[NavTestBot] Episode ep_1008_1790502236952 finished -> COLLISION
+[NavTestBot] Episode ep_1009_1790502236959 finished -> COLLISION
+[NavTestBot] Episode ep_1010_1790502237233 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5382
+[NavTestBot] Episode ep_1011_1790502237252 finished -> COLLISION
+[NavTestBot] Episode ep_1012_1790502237800 finished -> COLLISION
+[NavTestBot] Episode ep_1013_1790502237807 finished -> COLLISION
+[NavTestBot] Episode ep_1014_1790502238297 finished -> COLLISION
+[NavTestBot] Episode ep_1015_1790502238375 finished -> COLLISION
+[NavTestBot] Episode ep_1016_1790502239255 finished -> COLLISION
+[NavTestBot] Episode ep_1017_1790502239264 finished -> COLLISION
+[NavTestBot] Episode ep_1018_1790502239529 finished -> COLLISION
+[NavTestBot] Episode ep_1019_1790502239538 finished -> COLLISION
+[NavTestBot] Episode ep_1020_1790502239821 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5401
+[NavTestBot] Episode ep_1021_1790502239842 finished -> COLLISION
+[NavTestBot] Episode ep_1022_1790502240065 finished -> COLLISION
+[NavTestBot] Episode ep_1023_1790502240073 finished -> COLLISION
+[NavTestBot] Episode ep_1024_1790502240315 finished -> COLLISION
+[NavTestBot] Episode ep_1025_1790502240324 finished -> COLLISION
+[NavTestBot] Episode ep_1026_1790502240775 finished -> COLLISION
+[NavTestBot] Episode ep_1027_1790502240782 finished -> COLLISION
+[NavTestBot] Episode ep_1028_1790502240803 finished -> COLLISION
+[NavTestBot] Episode ep_1029_1790502240948 finished -> COLLISION
+[NavTestBot] Episode ep_1030_1790502241119 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5414
+[NavTestBot] Target episode count reached (30/30). Auto-stop complete.
+
+[90mstdout[2m | tests/full_reaudit_and_fixes.test.js[2m > [22m[2mPOLARIS Comprehensive Re-Audit & Fixes Verification Suite[2m > [22m[2mTEST 17 — Canvas renderer fallback produces valid 2-point polyline starting at ship position
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstderr[2m | scratch/verify_phase4_dataset.test.js[2m > [22m[2mHeadless Runtime Verification[2m > [22m[2mExecutes headless runtime scenario and exports JSON dataset
+[22m[39m[DatasetExporter] Episode ep_40004_1790502239031 rejected due to validation errors: [ [32m'Invalid or missing termination_reason: SUCCESS'[39m ]
+
+[90mstdout[2m | scratch/verify_phase4_dataset.test.js[2m > [22m[2mHeadless Runtime Verification[2m > [22m[2mExecutes headless runtime scenario and exports JSON dataset
+[22m[39m[NavTestBot] Episode ep_40004_1790502239031 finished -> SUCCESS
+
+ [32m✓[39m scratch/verify_phase4_dataset.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 4517[2mms[22m[39m
+   [32m✓[39m Headless Runtime Verification [2m(1)[22m
+     [33m[2m✓[22m[39m Executes headless runtime scenario and exports JSON dataset[33m 4513[2mms[22m[39m
+[90mstderr[2m | tests/phase5_physics_and_scenarios.test.js[2m > [22m[2mPOLARIS Phase 5 — Physics Consistency, Dynamic Prediction & Autonomous Scenarios[2m > [22m[2m7. Control authority logs emergency_enter and emergency_exit transitions
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice_danger at dist 20.7
+
+[90mstdout[2m | tests/phase5_physics_and_scenarios.test.js[2m > [22m[2mPOLARIS Phase 5 — Physics Consistency, Dynamic Prediction & Autonomous Scenarios[2m > [22m[2m7. Control authority logs emergency_enter and emergency_exit transitions
+[22m[39m[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+
+[90mstdout[2m | tests/phase5_physics_and_scenarios.test.js[2m > [22m[2mPOLARIS Phase 5 — Physics Consistency, Dynamic Prediction & Autonomous Scenarios[2m > [22m[2m8. NavTestBot tags final telemetry sample with terminal_sample = true
+[22m[39m[NavTestBot] Episode ep_1001_1790502243489 finished -> SUCCESS
+
+[90mstderr[2m | tests/phase5_physics_and_scenarios.test.js[2m > [22m[2mPOLARIS Phase 5 — Physics Consistency, Dynamic Prediction & Autonomous Scenarios[2m > [22m[2m8. NavTestBot tags final telemetry sample with terminal_sample = true
+[22m[39m[DatasetExporter] Episode ep_1001_1790502243489 rejected due to validation errors: [ [32m'Invalid or missing termination_reason: SUCCESS'[39m ]
+
+[90mstdout[2m | scratch/verify_shift_f6_workflow.test.js[2m > [22m[2mShift+F6 Autonomous Workflow Verification[2m > [22m[2mexecutes full Shift+F6 cycle: start -> auto episode reset -> complete -> export
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[NavTestBot] Status changed -> ENABLED
+
+[90mstderr[2m | tests/phase4_dataset_and_stability.test.js[2m > [22m[2mPhase 4 — Navigation Dataset & Stability Comprehensive Tests[2m > [22m[2m3. Emergency collision overrides commitment window
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice_danger at dist 38.1
+
+ [32m✓[39m tests/phase5_physics_and_scenarios.test.js [2m([22m[2m12 tests[22m[2m)[22m[33m 2635[2mms[22m[39m
+   [32m✓[39m POLARIS Phase 5 — Physics Consistency, Dynamic Prediction & Autonomous Scenarios [2m(12)[22m
+     [33m[2m✓[22m[39m 1. Canonical activeRoute contract contains all required fields and remains immutable[33m 638[2mms[22m[39m
+     [33m[2m✓[22m[39m 2. Planner call count remains low and logs structured entries[33m 633[2mms[22m[39m
+     [33m[2m✓[22m[39m 5. Route planner rejects unsafe smoothed routes and falls back safely[33m 614[2mms[22m[39m
+     [33m[2m✓[22m[39m 9b. Scenario 2: Iceberg Directly Ahead triggers safe replan without 180° turn[33m 593[2mms[22m[39m
+[90mstdout[2m | tests/full_reaudit_and_fixes.test.js[2m > [22m[2mPOLARIS Comprehensive Re-Audit & Fixes Verification Suite[2m > [22m[2mTEST 18 — Dodge & Continue Forward: Ship avoids iceberg ahead without looping and continues to destination
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/nav_test_bot_phase3.test.js[2m > [22m[2mNavTestBot Phase 3 — Lifecycle, Scenarios, Sampling & Export[2m > [22m[2m3. End-to-End Episode Run: Reset -> Scenario -> Route -> Navigation -> Result -> Auto-Reset
+[22m[39m[NavTestBot] Episode ep_1001_1790502244129 finished -> DESTINATION_REACHED
+
+[90mstdout[2m | tests/nav_test_bot_phase3.test.js[2m > [22m[2mNavTestBot Phase 3 — Lifecycle, Scenarios, Sampling & Export[2m > [22m[2m4. Collision Episode: Forced collision populates full failure forensics
+[22m[39m[NavTestBot] Episode ep_1001_1790502244138 finished -> COLLISION
+
+[90mstdout[2m | scratch/verify_shift_f6_workflow.test.js[2m > [22m[2mShift+F6 Autonomous Workflow Verification[2m > [22m[2mexecutes full Shift+F6 cycle: start -> auto episode reset -> complete -> export
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[NavTestBot] Manifest updated. Total episodes: 35
+
+ [32m✓[39m scratch/verify_shift_f6_workflow.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 928[2mms[22m[39m
+   [32m✓[39m Shift+F6 Autonomous Workflow Verification [2m(1)[22m
+     [33m[2m✓[22m[39m executes full Shift+F6 cycle: start -> auto episode reset -> complete -> export[33m 925[2mms[22m[39m
+[90mstdout[2m | tests/phase4_dataset_and_stability.test.js[2m > [22m[2mPhase 4 — Navigation Dataset & Stability Comprehensive Tests[2m > [22m[2m6. Route Flapping Score & Dataset Data Quality validation
+[22m[39m[NavTestBot] Episode ep_9999_1790502244198 finished -> SUCCESS
+
+[90mstderr[2m | tests/phase4_dataset_and_stability.test.js[2m > [22m[2mPhase 4 — Navigation Dataset & Stability Comprehensive Tests[2m > [22m[2m6. Route Flapping Score & Dataset Data Quality validation
+[22m[39m[DatasetExporter] Episode ep_9999_1790502244198 rejected due to validation errors: [ [32m'Invalid or missing termination_reason: SUCCESS'[39m ]
+
+ [32m✓[39m tests/phase4_dataset_and_stability.test.js [2m([22m[2m7 tests[22m[2m)[22m[33m 1406[2mms[22m[39m
+   [32m✓[39m Phase 4 — Navigation Dataset & Stability Comprehensive Tests [2m(7)[22m
+     [33m[2m✓[22m[39m 6. Route Flapping Score & Dataset Data Quality validation[33m 1169[2mms[22m[39m
+[90mstdout[2m | tests/nav_test_bot_phase3.test.js[2m > [22m[2mNavTestBot Phase 3 — Lifecycle, Scenarios, Sampling & Export[2m > [22m[2m6. Bounded Memory Buffer: 15+ episodes auto-exports batch and keeps memory <= 10
+[22m[39m[NavTestBot] Episode ep_1001_1790502244291 finished -> DESTINATION_REACHED
+[NavTestBot] Episode ep_1003_1790502244459 finished -> DESTINATION_REACHED
+[NavTestBot] Episode ep_1005_1790502244477 finished -> DESTINATION_REACHED
+[NavTestBot] Episode ep_1007_1790502244494 finished -> DESTINATION_REACHED
+[NavTestBot] Episode ep_1009_1790502244507 finished -> DESTINATION_REACHED
+[NavTestBot] Episode ep_1011_1790502244522 finished -> DESTINATION_REACHED
+[NavTestBot] Episode ep_1013_1790502244666 finished -> DESTINATION_REACHED
+[NavTestBot] Episode ep_1015_1790502245025 finished -> DESTINATION_REACHED
+[NavTestBot] Episode ep_1017_1790502245028 finished -> DESTINATION_REACHED
+[NavTestBot] Episode ep_1019_1790502245043 finished -> DESTINATION_REACHED
+[NavTestBot] Manifest updated. Total episodes: 46
+
+[90mstderr[2m | tests/nav_test_bot_phase3.test.js[2m > [22m[2mNavTestBot Phase 3 — Lifecycle, Scenarios, Sampling & Export[2m > [22m[2m6. Bounded Memory Buffer: 15+ episodes auto-exports batch and keeps memory <= 10
+[22m[39m[DatasetExporter] Failed to parse manifest.json, reinitializing. SyntaxError: Unexpected non-whitespace character after JSON at position 535 (line 30 column 2)
+    at JSON.parse (<anonymous>)
+    at DatasetExporter.updateManifest (C:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS/src/js/dataset/datasetExporter.js:246:27)
+    at DatasetExporter.exportEpisodeJSONL (C:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS/src/js/dataset/datasetExporter.js:120:12)
+    at NavTestBot.endEpisode (C:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS/src/js/debug/navTestBot.js:574:40)
+    at NavTestBot.evaluateFrame (C:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS/src/js/debug/navTestBot.js:432:12)
+    at C:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS/tests/nav_test_bot_phase3.test.js:191:14
+    at file:///C:/Users/Saptarshi/AppData/Local/npm-cache/_npx/69c381f8ad94b576/node_modules/[4mvitest[24m/dist/chunks/run.C5UmxDPh.js:1628:35
+    at file:///C:/Users/Saptarshi/AppData/Local/npm-cache/_npx/69c381f8ad94b576/node_modules/[4mvitest[24m/dist/chunks/run.C5UmxDPh.js:2783:26
+    at file:///C:/Users/Saptarshi/AppData/Local/npm-cache/_npx/69c381f8ad94b576/node_modules/[4mvitest[24m/dist/chunks/run.C5UmxDPh.js:3319:20
+    at new Promise (<anonymous>)
+
+ [32m✓[39m tests/full_reaudit_and_fixes.test.js [2m([22m[2m25 tests[22m[2m)[22m[33m 19160[2mms[22m[39m
+   [32m✓[39m POLARIS Comprehensive Re-Audit & Fixes Verification Suite [2m(25)[22m
+     [33m[2m✓[22m[39m TEST 10 — Reset restores ship state while preserving destination and regenerating route[33m 4795[2mms[22m[39m
+     [33m[2m✓[22m[39m TEST 13 — Risk scores are evaluated on individual segments of the single active route[33m 3549[2mms[22m[39m
+     [33m[2m✓[22m[39m TEST 15 — Active route remains valid and visible during background replanning[33m 3842[2mms[22m[39m
+     [33m[2m✓[22m[39m TEST 17 — Canvas renderer fallback produces valid 2-point polyline starting at ship position[33m 4291[2mms[22m[39m
+     [33m[2m✓[22m[39m TEST 18 — Dodge & Continue Forward: Ship avoids iceberg ahead without looping and continues to destination[33m 1409[2mms[22m[39m
+     [33m[2m✓[22m[39m TEST 25 — Cluster scenario: route planner rejects direct path through moving cluster and generates safe detour[33m 786[2mms[22m[39m
+ [32m✓[39m tests/nav_test_bot_phase3.test.js [2m([22m[2m8 tests[22m[2m)[22m[33m 1102[2mms[22m[39m
+   [32m✓[39m NavTestBot Phase 3 — Lifecycle, Scenarios, Sampling & Export [2m(8)[22m
+     [33m[2m✓[22m[39m 6. Bounded Memory Buffer: 15+ episodes auto-exports batch and keeps memory <= 10[33m 786[2mms[22m[39m
+[90mstderr[2m | tests/navigation.test.js[2m > [22m[2mNavigation Guidance & Control Chain Audit[2m > [22m[2m26. Dynamic Iceberg Avoidance Trajectory Test: Physical vessel trajectory maintains positive clearance from obstacle
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg undefined at dist 69.4
+
+[90mstdout[2m | tests/navigation.test.js[2m > [22m[2mNavigation Guidance & Control Chain Audit[2m > [22m[2m69. Physical ship dynamic iceberg clearance verification
+[22m[39mMeasured minimum actual clearance to iceberg: 229.82 SU (Safe bound: 25 SU)
+
+[90mstdout[2m | tests/fixed_round_auto_stop.test.js[2m > [22m[2mNavTestBot — Fixed-Round Auto-Stop Mode[2m > [22m[2m3. Non-Multiple Target Arithmetic Check (Target = 25): exports sum to 25 (10 + 10 + 5)
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[NavTestBot] Status changed -> ENABLED
+[NavTestBot] Episode ep_1001_1790502241356 finished -> COLLISION
+[NavTestBot] Episode ep_1002_1790502241610 finished -> COLLISION
+[NavTestBot] Episode ep_1003_1790502241616 finished -> COLLISION
+[NavTestBot] Episode ep_1004_1790502242369 finished -> COLLISION
+[NavTestBot] Episode ep_1005_1790502242377 finished -> COLLISION
+[NavTestBot] Episode ep_1006_1790502242751 finished -> COLLISION
+[NavTestBot] Episode ep_1007_1790502242885 finished -> COLLISION
+[NavTestBot] Episode ep_1008_1790502243090 finished -> COLLISION
+[NavTestBot] Episode ep_1009_1790502243284 finished -> COLLISION
+[NavTestBot] Episode ep_1010_1790502243473 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5424
+[NavTestBot] Episode ep_1011_1790502243506 finished -> COLLISION
+[NavTestBot] Episode ep_1012_1790502243955 finished -> COLLISION
+[NavTestBot] Episode ep_1013_1790502243964 finished -> COLLISION
+[NavTestBot] Episode ep_1014_1790502244435 finished -> COLLISION
+[NavTestBot] Episode ep_1015_1790502244547 finished -> COLLISION
+[NavTestBot] Episode ep_1016_1790502245408 finished -> COLLISION
+[NavTestBot] Episode ep_1017_1790502245417 finished -> COLLISION
+[NavTestBot] Episode ep_1018_1790502245693 finished -> COLLISION
+[NavTestBot] Episode ep_1019_1790502245821 finished -> COLLISION
+[NavTestBot] Episode ep_1020_1790502246006 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5434
+[NavTestBot] Episode ep_1021_1790502246033 finished -> COLLISION
+[NavTestBot] Episode ep_1022_1790502246187 finished -> COLLISION
+[NavTestBot] Episode ep_1023_1790502246198 finished -> COLLISION
+[NavTestBot] Episode ep_1024_1790502246436 finished -> COLLISION
+[NavTestBot] Episode ep_1025_1790502246549 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5439
+[NavTestBot] Target episode count reached (25/25). Auto-stop complete.
+
+ [32m✓[39m tests/navigation.test.js [2m([22m[2m75 tests[22m[2m)[22m[33m 545[2mms[22m[39m
+[90mstdout[2m | tests/iceberg_safety_envelope_clipping.test.js[2m > [22m[2mIceberg Safety Envelope Geometry & Collision-Check Audit[2m > [22m[2m1. Reconstructs failing cluster scenario: zero safety envelope violations
+[22m[39m[TEST 1 PASS] Violations: 0, Min safety clearance: 80.32 SU
+
+[90mstdout[2m | tests/iceberg_safety_envelope_clipping.test.js[2m > [22m[2mIceberg Safety Envelope Geometry & Collision-Check Audit[2m > [22m[2m2. Directness check: avoids excessive detour (ratio < 1.30)
+[22m[39m[TEST 2 PASS] Straight: 1000.0, Route: 1202.0, Ratio: 1.202
+
+[90mstdout[2m | tests/iceberg_safety_envelope_clipping.test.js[2m > [22m[2mIceberg Safety Envelope Geometry & Collision-Check Audit[2m > [22m[2m3. Generalization: 5-iceberg dense staggered cluster scenario
+[22m[39m[GENERALIZATION PASS - BALANCED] Violations: 0, Distance: 1155.7
+[GENERALIZATION PASS - SAFEST] Violations: 0, Distance: 1155.7
+[GENERALIZATION PASS - FASTEST] Violations: 0, Distance: 1155.7
+[GENERALIZATION PASS - FUEL_EFFICIENT] Violations: 0, Distance: 1155.7
+
+ [32m✓[39m tests/iceberg_safety_envelope_clipping.test.js [2m([22m[2m3 tests[22m[2m)[22m[33m 748[2mms[22m[39m
+   [32m✓[39m Iceberg Safety Envelope Geometry & Collision-Check Audit [2m(3)[22m
+     [33m[2m✓[22m[39m 3. Generalization: 5-iceberg dense staggered cluster scenario[33m 428[2mms[22m[39m
+ [32m✓[39m tests/decision_engine.test.js [2m([22m[2m6 tests[22m[2m)[22m[33m 813[2mms[22m[39m
+   [32m✓[39m Phase 3b — Fuel Efficiency & Decision Engine Verification [2m(6)[22m
+     [33m[2m✓[22m[39m 1. Computes estimatedFuelConsumption differing meaningfully across route modes[33m 675[2mms[22m[39m
+[90mstdout[2m | scratch/generate_collision_export.test.js[2m > [22m[2mGenerate Collision Export File[2m > [22m[2mruns collision episode, exports JSONL, and reads literal file content
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+================ EXPORTED JSONL FILE CONTENT BEGIN ================
+{"record_type":"METADATA_HEADER","schema_version":"2.0","episode_id":"ep_1002_1790502248136","seed":1002,"scenario_class":"CLASS_B_STATIC_OBSTACLE","event_label":"COLLISION","started_at":"2026-09-27T09:44:08.149Z","simulation_duration_hours":0,"simulation_duration_seconds":0.1,"start_state":{"x":500,"y":500,"heading":0,"speed":12},"destination":{"x":500,"y":1500,"tolerance":50},"environment_config":{"current_x":-0.3228390197697185,"current_y":1.198423836919636,"wind_x":0,"wind_y":0},"ship_config":{"collisionRadius":15,"maxSpeed":20},"iceberg_config":{"count":1},"termination_reason":"COLLISION","metrics":{"plannerCalls":2,"routeChanges":1,"minPhysicalClearance":15,"destinationReached":false,"collision":true},"collision_events":[{"sim_time":0,"ship_position":{"x":500.2426143086298,"y":485.1777155831369},"iceberg_id":"ice_block_1","physical_clearance":15.000000000000028}],"near_miss_events":[{"sim_time":0,"iceberg_id":"ice_block_1","physical_clearance":15}],"events":[{"step":0,"sim_time":0,"type":"EMERGENCY_ENTRY"},{"step":0,"sim_time":0,"type":"COLLISION","ship_position":{"x":500.2426143086298,"y":485.1777155831369},"iceberg_id":"ice_block_1","physical_clearance":15.000000000000028}],"pre_collision_window":[{"t_offset_seconds":0,"sim_time":0,"ship_position":{"x":500.24,"y":485.18,"heading":0.05,"speed":12,"surge_velocity":1.17,"sway_velocity":0.01,"angular_velocity":0.5,"rudder":35,"throttle":42.25},"nearest_iceberg":{"id":"ice_block_1","x":499.9046357684281,"y":525.1762876889804,"vx":-0.953642315719129,"vy":1.7628768898045555,"center_distance":40,"physical_clearance":15,"safety_margin":0,"collision_risk":false}}],"telemetry_count":1}
+{"record_type":"TELEMETRY_SAMPLE","simulation_time":0,"sim_time_hours":0,"ship":{"x":500.24,"y":485.18,"heading":0.05,"speed":12,"surge_velocity":1.17,"sway_velocity":0.01,"angular_velocity":0.5,"rudder":35,"throttle":42.25},"navigation":{"active_route_id":"route_0_1","waypoint_index":0,"desired_heading":0,"XTE":0,"planner_called":2,"route_version":1,"emergency_state":true},"environment":{"current_x":-0.3222574977746544,"current_y":1.1953898707462554,"wind_x":0,"wind_y":0},"nearest_iceberg":{"id":"ice_block_1","x":499.9046357684281,"y":525.1762876889804,"vx":-0.953642315719129,"vy":1.7628768898045555,"center_distance":40,"physical_clearance":15,"safety_margin":0,"collision_risk":false},"events":{"collision":true,"emergency_entry":true,"emergency_exit":false,"route_change":false},"terminal_sample":true}
+================ EXPORTED JSONL FILE CONTENT END ==================
+
+
+[90mstderr[2m | scratch/generate_collision_export.test.js[2m > [22m[2mGenerate Collision Export File[2m > [22m[2mruns collision episode, exports JSONL, and reads literal file content
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice_block_1 at dist 27.4
+
+ [32m✓[39m scratch/generate_collision_export.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 334[2mms[22m[39m
+   [32m✓[39m Generate Collision Export File [2m(1)[22m
+     [33m[2m✓[22m[39m runs collision episode, exports JSONL, and reads literal file content[33m 331[2mms[22m[39m
+[90mstdout[2m | tests/bottom_playback_bar.test.js[2m > [22m[2mPhase 3e — Bottom Playback Bar Verification[2m > [22m[2m3. Weighted random size distribution matches probabilities (Small 50%, Medium 30%, Large 15%, Massive 5%)
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[Sensors] F1: Toggle GNSS | F2: Toggle Gyro | F3: Toggle Radar
+[Data] R: Record toggle | E: Export JSON | Shift+E: Export CSV | G: Generate synthetic dataset
+[Pathfinding] Global A* + Local D* Lite Hierarchical Planner active
+[Watchdog] Automatic Navigation Watchdog active in ANALYZE mode | F6: Overlay | Shift+F6: Nav Test Bot | F7: Record | F8: Export JSON | F10: Download Audit
+
+[90mstderr[2m | tests/bottom_playback_bar.test.js[2m > [22m[2mPhase 3e — Bottom Playback Bar Verification[2m > [22m[2m3. Weighted random size distribution matches probabilities (Small 50%, Medium 30%, Large 15%, Massive 5%)
+[22m[39m[API] Attempt 1 failed for /api/health: Failed to parse URL from /api/health
+
+[90mstdout[2m | tests/bottom_playback_bar.test.js[2m > [22m[2mPhase 3e — Bottom Playback Bar Verification[2m > [22m[2m4. Placing mode toggle behavior and click-to-place integration
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[Sensors] F1: Toggle GNSS | F2: Toggle Gyro | F3: Toggle Radar
+[Data] R: Record toggle | E: Export JSON | Shift+E: Export CSV | G: Generate synthetic dataset
+[Pathfinding] Global A* + Local D* Lite Hierarchical Planner active
+[Watchdog] Automatic Navigation Watchdog active in ANALYZE mode | F6: Overlay | Shift+F6: Nav Test Bot | F7: Record | F8: Export JSON | F10: Download Audit
+
+[90mstderr[2m | tests/bottom_playback_bar.test.js[2m > [22m[2mPhase 3e — Bottom Playback Bar Verification[2m > [22m[2m4. Placing mode toggle behavior and click-to-place integration
+[22m[39m[API] Attempt 1 failed for /api/health: Failed to parse URL from /api/health
+
+[90mstdout[2m | scratch/verify_browser_runtime.test.js[2m > [22m[2mCanonical Browser Runtime Smoke Verification[2m > [22m[2minitializes runtime, activates autonomous mode, navigates autonomously around hazards, and resets
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/bottom_playback_bar.test.js[2m > [22m[2mPhase 3e — Bottom Playback Bar Verification[2m > [22m[2m5. Reset button restores ship state simultaneously, preserves active route, and resumes navigation from start
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[Sensors] F1: Toggle GNSS | F2: Toggle Gyro | F3: Toggle Radar
+[Data] R: Record toggle | E: Export JSON | Shift+E: Export CSV | G: Generate synthetic dataset
+[Pathfinding] Global A* + Local D* Lite Hierarchical Planner active
+[Watchdog] Automatic Navigation Watchdog active in ANALYZE mode | F6: Overlay | Shift+F6: Nav Test Bot | F7: Record | F8: Export JSON | F10: Download Audit
+
+ [32m✓[39m scratch/verify_browser_runtime.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 1217[2mms[22m[39m
+   [32m✓[39m Canonical Browser Runtime Smoke Verification [2m(1)[22m
+     [33m[2m✓[22m[39m initializes runtime, activates autonomous mode, navigates autonomously around hazards, and resets[33m 1214[2mms[22m[39m
+[90mstderr[2m | tests/bottom_playback_bar.test.js[2m > [22m[2mPhase 3e — Bottom Playback Bar Verification[2m > [22m[2m5. Reset button restores ship state simultaneously, preserves active route, and resumes navigation from start
+[22m[39m[API] Attempt 1 failed for /api/health: Failed to parse URL from /api/health
+
+[90mstdout[2m | tests/bottom_playback_bar.test.js
+[22m[39m[LLM Copilot] Ollama unavailable, rule-based fallback active
+
+ [32m✓[39m tests/bottom_playback_bar.test.js [2m([22m[2m5 tests[22m[2m)[22m[33m 901[2mms[22m[39m
+   [32m✓[39m Phase 3e — Bottom Playback Bar Verification [2m(5)[22m
+     [33m[2m✓[22m[39m 3. Weighted random size distribution matches probabilities (Small 50%, Medium 30%, Large 15%, Massive 5%)[33m 765[2mms[22m[39m
+ [32m✓[39m tests/dataset_analyzer.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 30[2mms[22m[39m
+[90mstderr[2m | tests/compound_fixes_audit.test.js[2m > [22m[2mPOLARIS Compound Fixes Audit (Parts A - E)[2m > [22m[2mPart A — Route line starts smoothly at live ship position without backward kink
+[22m[39mdrawVectorFieldCurrents failed TypeError: vectorField.particles is not iterable
+    at CanvasRenderer.drawVectorFieldCurrents (C:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS/src/js/render/canvasRenderer.js:466:31)
+    at CanvasRenderer.render (C:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS/src/js/render/canvasRenderer.js:176:18)
+    at C:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS/tests/compound_fixes_audit.test.js:35:14
+    at file:///C:/Users/Saptarshi/AppData/Local/npm-cache/_npx/69c381f8ad94b576/node_modules/[4mvitest[24m/dist/chunks/run.C5UmxDPh.js:1628:35
+    at file:///C:/Users/Saptarshi/AppData/Local/npm-cache/_npx/69c381f8ad94b576/node_modules/[4mvitest[24m/dist/chunks/run.C5UmxDPh.js:2783:26
+    at file:///C:/Users/Saptarshi/AppData/Local/npm-cache/_npx/69c381f8ad94b576/node_modules/[4mvitest[24m/dist/chunks/run.C5UmxDPh.js:3319:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///C:/Users/Saptarshi/AppData/Local/npm-cache/_npx/69c381f8ad94b576/node_modules/[4mvitest[24m/dist/chunks/run.C5UmxDPh.js:3314:10)
+    at file:///C:/Users/Saptarshi/AppData/Local/npm-cache/_npx/69c381f8ad94b576/node_modules/[4mvitest[24m/dist/chunks/run.C5UmxDPh.js:3299:20
+    at new Promise (<anonymous>)
+
+[90mstdout[2m | tests/compound_fixes_audit.test.js[2m > [22m[2mPOLARIS Compound Fixes Audit (Parts A - E)[2m > [22m[2mPart D — Route stability: zero route flapping over 100 consecutive frames with hysteresis
+[22m[39m[STABILITY TEST] Reroute count across 100 frames with noise: 0
+
+[90mstderr[2m | tests/compound_fixes_audit.test.js[2m > [22m[2mPOLARIS Compound Fixes Audit (Parts A - E)[2m > [22m[2mPart E — Forward progress under high hazard and strong opposing current
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice1 at dist 68.0
+
+ [32m✓[39m tests/compound_fixes_audit.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 128[2mms[22m[39m
+ [32m✓[39m tests/route_stability_regression.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 509[2mms[22m[39m
+   [32m✓[39m Phase 4 — Route Stability & Dynamic Avoidance Regression Test [2m(1)[22m
+     [33m[2m✓[22m[39m Executes dynamic iceberg spawn ahead without circular turns, route flapping, or collision[33m 505[2mms[22m[39m
+[90mstdout[2m | tests/multi_hazard_stress.test.js[2m > [22m[2mPart 3 — Combined Multi-Hazard Stress Scenario Audit[2m > [22m[2mevaluates decision engine under multi-hazard stress and maintains zero collisions
+[22m[39m[MULTI-HAZARD STRESS TEST] Decision Engine Output: {
+  status: [32m'REROUTE RECOMMENDED'[39m,
+  explanation: [32m'[Polar Code Cat.A] Safest route selected: achieves lowest risk score (0.00) amidst active iceberg forecast vectors and sea-ice trend.'[39m,
+  recommendedMode: [32m'SAFEST'[39m,
+  confidence: [33m0.78[39m,
+  scores: {
+    FASTEST: [33m10.34[39m,
+    BALANCED: [33m7.94[39m,
+    SAFEST: [33m4.58[39m,
+    FUEL_EFFICIENT: [33m6.16[39m
+  },
+  ruleCitation: [32m'[Polar Code Cat.A]'[39m,
+  comparisons: {
+    shortest: {
+      mode: [32m'FASTEST'[39m,
+      route: [36m[Array][39m,
+      waypoints: [36m[Array][39m,
+      totalDistance: [33m3130.495168499706[39m,
+      distance: [33m313[39m,
+      eta: [33m0.03[39m,
+      estimatedDuration: [33m0.03[39m,
+      fuel: [33m5[39m,
+      estimatedFuelConsumption: [33m5[39m,
+      maxRisk: [33m0[39m,
+      riskScore: [33m0[39m,
+      weatherExposure: [33m0.9[39m,
+      shipSpeed: [33m28.5[39m,
+      overallSafety: [33m1[39m
+    },
+    balanced: {
+      mode: [32m'BALANCED'[39m,
+      route: [36m[Array][39m,
+      waypoints: [36m[Array][39m,
+      totalDistance: [33m3130.495168499706[39m,
+      distance: [33m313[39m,
+      eta: [33m0.04[39m,
+      estimatedDuration: [33m0.04[39m,
+      fuel: [33m4.2[39m,
+      estimatedFuelConsumption: [33m4.2[39m,
+      maxRisk: [33m0[39m,
+      riskScore: [33m0[39m,
+      weatherExposure: [33m0.6[39m,
+      shipSpeed: [33m22.5[39m,
+      overallSafety: [33m1[39m
+    },
+    safest: {
+      mode: [32m'SAFEST'[39m,
+      route: [36m[Array][39m,
+      waypoints: [36m[Array][39m,
+      totalDistance: [33m3130.495168499706[39m,
+      distance: [33m313[39m,
+      eta: [33m0.04[39m,
+      estimatedDuration: [33m0.04[39m,
+      fuel: [33m3.9[39m,
+      estimatedFuelConsumption: [33m3.9[39m,
+      maxRisk: [33m0[39m,
+      riskScore: [33m0[39m,
+      weatherExposure: [33m0.25[39m,
+      shipSpeed: [33m19.5[39m,
+      overallSafety: [33m1[39m
+    },
+    fuelEfficient: {
+      mode: [32m'FUEL_EFFICIENT'[39m,
+      route: [36m[Array][39m,
+      waypoints: [36m[Array][39m,
+      totalDistance: [33m3130.495168499706[39m,
+      distance: [33m313[39m,
+      eta: [33m0.05[39m,
+      estimatedDuration: [33m0.05[39m,
+      fuel: [33m3.5[39m,
+      estimatedFuelConsumption: [33m3.5[39m,
+      maxRisk: [33m0[39m,
+      riskScore: [33m0[39m,
+      weatherExposure: [33m0.35[39m,
+      shipSpeed: [33m16.5[39m,
+      overallSafety: [33m1[39m
+    }
+  }
+}
+[MULTI-HAZARD STRESS TEST] Minimum Clearance: 1128.9 SU
+
+ [32m✓[39m tests/multi_hazard_stress.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 194[2mms[22m[39m
+[90mstdout[2m | tests/differentiation_engine.test.js[2m > [22m[2mPOLARIS Differentiation Engine & 30-Capability Audit Suite[2m > [22m[2m3. Closed-loop audit returns 14 sequential operational steps
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+ [32m✓[39m tests/differentiation_engine.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 63[2mms[22m[39m
+[90mstdout[2m | tests/reset_and_canonical_route.test.js[2m > [22m[2mCanonical Route Line Structural Guard & Route-Preserving Reset[2m > [22m[2m1. Structurally enforces max 1 route-line draw per frame under debug-overlay ON and OFF
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstderr[2m | tests/reset_and_canonical_route.test.js[2m > [22m[2mCanonical Route Line Structural Guard & Route-Preserving Reset[2m > [22m[2m1. Structurally enforces max 1 route-line draw per frame under debug-overlay ON and OFF
+[22m[39m[CRITICAL RENDER GUARD FAILURE] Duplicate navigation route line draw call detected in frame! Count: 2
+
+[90mstdout[2m | tests/reset_and_canonical_route.test.js[2m > [22m[2mCanonical Route Line Structural Guard & Route-Preserving Reset[2m > [22m[2m2. Resets ship state while preserving activeRoute and restarting from beginning of route
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+ [32m✓[39m tests/reset_and_canonical_route.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 178[2mms[22m[39m
+[90mstderr[2m | tests/worker_timeout_fallback.test.js[2m > [22m[2mWeb Worker Timeout & Late Response Guard[2m > [22m[2m2. Worker timeout (2500ms) triggers synchronous fallback and adopts route
+[22m[39m[AINavigator] Web Worker route calculation timed out (2500ms) for request #1. Falling back to synchronous A* generation.
+
+[90mstderr[2m | tests/worker_timeout_fallback.test.js[2m > [22m[2mWeb Worker Timeout & Late Response Guard[2m > [22m[2m3. Late Worker response after timeout is safely discarded (no duplicate/overwriting route)
+[22m[39m[AINavigator] Web Worker route calculation timed out (2500ms) for request #1. Falling back to synchronous A* generation.
+
+ [32m✓[39m tests/worker_timeout_fallback.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 134[2mms[22m[39m
+[90mstdout[2m | tests/flapping_isolation.test.js[2m > [22m[2mRoute Adoption Flapping Isolation Audit[2m > [22m[2mverifies zero route oscillating/flapping across 100 consecutive frames
+[22m[39m[FLAPPING ISOLATION TEST] Total Frames Evaluated: 100
+[FLAPPING ISOLATION TEST] Route Change Count: 0
+
+ [32m✓[39m tests/flapping_isolation.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 160[2mms[22m[39m
+[90mstdout[2m | tests/fixed_round_auto_stop.test.js[2m > [22m[2mNavTestBot — Fixed-Round Auto-Stop Mode[2m > [22m[2m4. Indefinite-Run Regression Check (Target = null): runs past 30 episodes without auto-stop
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[NavTestBot] Status changed -> ENABLED
+[NavTestBot] Episode ep_1001_1790502246868 finished -> COLLISION
+[NavTestBot] Episode ep_1002_1790502247175 finished -> COLLISION
+[NavTestBot] Episode ep_1003_1790502247313 finished -> COLLISION
+[NavTestBot] Episode ep_1004_1790502247817 finished -> COLLISION
+[NavTestBot] Episode ep_1005_1790502247823 finished -> COLLISION
+[NavTestBot] Episode ep_1006_1790502248052 finished -> COLLISION
+[NavTestBot] Episode ep_1007_1790502248062 finished -> COLLISION
+[NavTestBot] Episode ep_1008_1790502248387 finished -> COLLISION
+[NavTestBot] Episode ep_1009_1790502248397 finished -> COLLISION
+[NavTestBot] Episode ep_1010_1790502248650 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5449
+[NavTestBot] Episode ep_1011_1790502248872 finished -> COLLISION
+[NavTestBot] Episode ep_1012_1790502249139 finished -> COLLISION
+[NavTestBot] Episode ep_1013_1790502249157 finished -> COLLISION
+[NavTestBot] Episode ep_1014_1790502249212 finished -> COLLISION
+[NavTestBot] Episode ep_1015_1790502249220 finished -> COLLISION
+[NavTestBot] Episode ep_1016_1790502249768 finished -> COLLISION
+[NavTestBot] Episode ep_1017_1790502249778 finished -> COLLISION
+[NavTestBot] Episode ep_1018_1790502249950 finished -> COLLISION
+[NavTestBot] Episode ep_1019_1790502250183 finished -> COLLISION
+[NavTestBot] Episode ep_1020_1790502250553 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5459
+[NavTestBot] Episode ep_1021_1790502250649 finished -> COLLISION
+[NavTestBot] Episode ep_1022_1790502250803 finished -> COLLISION
+[NavTestBot] Episode ep_1023_1790502250814 finished -> COLLISION
+[NavTestBot] Episode ep_1024_1790502251255 finished -> COLLISION
+[NavTestBot] Episode ep_1025_1790502251265 finished -> COLLISION
+[NavTestBot] Episode ep_1026_1790502251615 finished -> COLLISION
+[NavTestBot] Episode ep_1027_1790502251779 finished -> COLLISION
+[NavTestBot] Episode ep_1028_1790502251797 finished -> COLLISION
+[NavTestBot] Episode ep_1029_1790502251807 finished -> COLLISION
+[NavTestBot] Episode ep_1030_1790502252089 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5469
+[NavTestBot] Episode ep_1031_1790502252112 finished -> COLLISION
+[NavTestBot] Episode ep_1032_1790502252388 finished -> COLLISION
+[NavTestBot] Episode ep_1033_1790502252400 finished -> COLLISION
+[NavTestBot] Episode ep_1034_1790502252596 finished -> COLLISION
+[NavTestBot] Episode ep_1035_1790502252603 finished -> COLLISION
+[NavTestBot] Status changed -> DISABLED
+[NavTestBot] Episode ep_1036_1790502253078 finished -> MANUAL_STOP
+[NavTestBot] Manifest updated. Total episodes: 5474
+
+[90mstderr[2m | tests/fixed_round_auto_stop.test.js[2m > [22m[2mNavTestBot — Fixed-Round Auto-Stop Mode[2m > [22m[2m4. Indefinite-Run Regression Check (Target = null): runs past 30 episodes without auto-stop
+[22m[39m[DatasetExporter] Episode ep_1036_1790502253078 rejected due to validation errors: [ [32m'Telemetry array is empty'[39m ]
+
+[90mstdout[2m | tests/dnv_maritime_schema.test.js[2m > [22m[2mDNV Maritime Schema Export Adapter[2m > [22m[2m1. Exports valid DNV Traffic Situation JSON schema structure
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/dnv_maritime_schema.test.js[2m > [22m[2mDNV Maritime Schema Export Adapter[2m > [22m[2m2. Exports valid DNV Situation Output evaluation result JSON
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+ [32m✓[39m tests/dnv_maritime_schema.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 58[2mms[22m[39m
+[90mstdout[2m | tests/fixed_round_auto_stop.test.js[2m > [22m[2mNavTestBot — Fixed-Round Auto-Stop Mode[2m > [22m[2m5. HUD Completion State Display Test
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[NavTestBot] Status changed -> ENABLED
+[NavTestBot] Episode ep_1001_1790502253087 finished -> COLLISION
+[NavTestBot] Episode ep_1002_1790502253388 finished -> COLLISION
+[NavTestBot] Episode ep_1003_1790502253406 finished -> COLLISION
+[NavTestBot] Episode ep_1004_1790502253866 finished -> COLLISION
+[NavTestBot] Episode ep_1005_1790502253875 finished -> COLLISION
+[NavTestBot] Manifest updated. Total episodes: 5479
+[NavTestBot] Target episode count reached (5/5). Auto-stop complete.
+
+ [31m❯[39m tests/fixed_round_auto_stop.test.js [2m([22m[2m5 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 27986[2mms[22m[39m
+   [31m❯[39m NavTestBot — Fixed-Round Auto-Stop Mode [2m(5)[22m
+     [33m[2m✓[22m[39m 1. Fixed-Round Auto-Stop (Target = 30): stops after exactly 30 episodes without starting 31st[33m 8534[2mms[22m[39m
+     [33m[2m✓[22m[39m 2. Export Batch Arithmetic Check (Target = 30): exports sum to exactly 30 episodes across 3 batch files[33m 6883[2mms[22m[39m
+[31m     [31m×[31m 3. Non-Multiple Target Arithmetic Check (Target = 25): exports sum to 25 (10 + 10 + 5)[39m[33m 5512[2mms[22m[39m
+[31m     [31m×[31m 4. Indefinite-Run Regression Check (Target = null): runs past 30 episodes without auto-stop[39m[33m 6220[2mms[22m[39m
+     [33m[2m✓[22m[39m 5. HUD Completion State Display Test[33m 832[2mms[22m[39m
+ [32m✓[39m tests/storm_detection.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 104[2mms[22m[39m
+ [32m✓[39m tests/worker_request_storm.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 126[2mms[22m[39m
+[90mstdout[2m | tests/condition_comparison.test.js[2m > [22m[2mPart 4 — Condition-Comparison Preset Runner Audit[2m > [22m[2mruns decision engine across four presets and produces four distinct outputs
+[22m[39m
+=== CONDITION-COMPARISON PRESET TABLE ===
+┌─────────┬─────────────┬──────────────────┬──────────┬───────────┬─────────┬────────────┐
+│ (index) │ preset      │ recommendedMode  │ etaHours │ fuelBurnL │ maxRisk │ confidence │
+├─────────┼─────────────┼──────────────────┼──────────┼───────────┼─────────┼────────────┤
+│ 0       │ [32m'NORMAL'[39m    │ [32m'SAFEST'[39m         │ [32m'2 m'[39m    │ [32m'3.9 u'[39m   │ [32m'0.00'[39m  │ [32m'92%'[39m      │
+│ 1       │ [32m'STORM'[39m     │ [32m'SAFEST'[39m         │ [32m'2 m'[39m    │ [32m'3.9 u'[39m   │ [32m'0.00'[39m  │ [32m'78%'[39m      │
+│ 2       │ [32m'HEAVY_ICE'[39m │ [32m'SAFEST'[39m         │ [32m'2 m'[39m    │ [32m'3.9 u'[39m   │ [32m'0.09'[39m  │ [32m'92%'[39m      │
+│ 3       │ [32m'LOW_FUEL'[39m  │ [32m'FUEL_EFFICIENT'[39m │ [32m'3 m'[39m    │ [32m'3.5 u'[39m   │ [32m'0.00'[39m  │ [32m'92%'[39m      │
+└─────────┴─────────────┴──────────────────┴──────────┴───────────┴─────────┴────────────┘
+=========================================
+
+
+ [32m✓[39m tests/condition_comparison.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 110[2mms[22m[39m
+[90mstderr[2m | tests/current_aware_throttle.test.js[2m > [22m[2mCurrent-Aware Minimum Throttle Floor & Steerage Way[2m > [22m[2m1. Prevents negative ground-track progress (backward motion) under strong opposing current during HIGH hazard speed reduction
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg 1 at dist 77.5
+
+[90mstdout[2m | tests/current_aware_throttle.test.js[2m > [22m[2mCurrent-Aware Minimum Throttle Floor & Steerage Way[2m > [22m[2m1. Prevents negative ground-track progress (backward motion) under strong opposing current during HIGH hazard speed reduction
+[22m[39m[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+
+[90mstderr[2m | tests/current_aware_throttle.test.js[2m > [22m[2mCurrent-Aware Minimum Throttle Floor & Steerage Way[2m > [22m[2m2. Preserves CRITICAL hazard emergency stop hard cap (0 throttle) even under strong opposing current
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg 2 at dist 21.5
+
+ [32m✓[39m tests/current_aware_throttle.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+[90mstderr[2m | tests/worker_checks.test.js[2m > [22m[2mFinal Web Worker Verification Suite (3 Checks)[2m > [22m[2mCHECK 3 — Verify interim multi-iceberg vector nudge when icebergs are on both sides
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice_A at dist 57.3
+
+[90mstdout[2m | tests/worker_checks.test.js[2m > [22m[2mFinal Web Worker Verification Suite (3 Checks)[2m > [22m[2mCHECK 3 — Verify interim multi-iceberg vector nudge when icebergs are on both sides
+[22m[39m[CHECK 3 TELEMETRY] Ship Heading: 0.0012800000000083855 | Target Heading: 0.0°
+[CHECK 3 TELEMETRY] Clearance Iceberg A (Left): 83.2 SU
+[CHECK 3 TELEMETRY] Clearance Iceberg B (Right): 83.2 SU
+
+ [32m✓[39m tests/worker_checks.test.js [2m([22m[2m3 tests[22m[2m)[22m[33m 318[2mms[22m[39m
+   [32m✓[39m Final Web Worker Verification Suite (3 Checks) [2m(3)[22m
+     [33m[2m✓[22m[39m CHECK 3 — Verify interim multi-iceberg vector nudge when icebergs are on both sides[33m 301[2mms[22m[39m
+[90mstdout[2m | tests/nav_test_bot_phase2.test.js[2m > [22m[2mNavTestBot Phase 2 — Activation & Telemetry Observer[2m > [22m[2m1. Shift+F6 toggles NavTestBot and plain F6 toggles NavigationDebugOverlay independently
+[22m[39m[NavTestBot] Status changed -> ENABLED
+[NavTestBot] Status changed -> DISABLED
+[NavTestBot] Episode ep_1001_1790502256441 finished -> MANUAL_STOP
+[NavTestBot] Manifest updated. Total episodes: 59
+
+[90mstderr[2m | tests/nav_test_bot_phase2.test.js[2m > [22m[2mNavTestBot Phase 2 — Activation & Telemetry Observer[2m > [22m[2m1. Shift+F6 toggles NavTestBot and plain F6 toggles NavigationDebugOverlay independently
+[22m[39m[DatasetExporter] Episode ep_1001_1790502256441 rejected due to validation errors: [ [32m'Telemetry array is empty'[39m ]
+
+ [32m✓[39m tests/nav_test_bot_phase2.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 113[2mms[22m[39m
+ [32m✓[39m tests/sea_ice_forecast.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/replanning_performance_baseline.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/fast_replanning_suite.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32m✓[39m tests/radar_view_rendering.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/route_comparison_ui.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 140[2mms[22m[39m
+ [32m✓[39m tests/capabilities_2_4_7_21_28.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/entrypoint_canonical.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/pipeline.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/continuous_collision_safety.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/prediction_accuracy.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 6[2mms[22m[39m
+[90mstdout[2m | scratch/test_replan_storm.test.js[2m > [22m[2mIssue 2 Replan Count Benchmark (Full 300s Run)[2m > [22m[2mbenchmarks planner calls across all 12 scenario classes over 3000 steps
+[22m[39m
+=== PLANNER CALL COUNT BENCHMARK ACROSS 12 CLASSES (3000 steps / 300s) ===
+
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+┌─────────┬──────────────────────────────────────────┬───────────────────────┬─────────────────┬──────────────┬──────────────┬──────────────┐
+│ (index) │ scenarioClass                            │ terminationReason     │ durationSeconds │ plannerCalls │ routeChanges │ minClearance │
+├─────────┼──────────────────────────────────────────┼───────────────────────┼─────────────────┼──────────────┼──────────────┼──────────────┤
+│ 0       │ [32m'CLASS_A_CLEAR_SEAS'[39m                     │ [32m'DESTINATION_REACHED'[39m │ [33m132.2[39m           │ [33m1[39m            │ [33m1[39m            │ [33mInfinity[39m     │
+│ 1       │ [32m'CLASS_B_STATIC_OBSTACLE'[39m                │ [32m'DESTINATION_REACHED'[39m │ [33m146[39m             │ [33m1[39m            │ [33m1[39m            │ [33m556.92[39m       │
+│ 2       │ [32m'CLASS_C_MOVING_CROSSING'[39m                │ [32m'DESTINATION_REACHED'[39m │ [33m132.5[39m           │ [33m1[39m            │ [33m1[39m            │ [33m375.72[39m       │
+│ 3       │ [32m'CLASS_D_MULTI_ICEBERG_FIELD'[39m            │ [32m'DESTINATION_REACHED'[39m │ [33m158.6[39m           │ [33m2[39m            │ [33m2[39m            │ [33m74.04[39m        │
+│ 4       │ [32m'CLASS_E_SIDE_APPROACH'[39m                  │ [32m'DESTINATION_REACHED'[39m │ [33m145.2[39m           │ [33m2[39m            │ [33m2[39m            │ [33m171.91[39m       │
+│ 5       │ [32m'CLASS_F_HEAD_ON_APPROACH'[39m               │ [32m'DESTINATION_REACHED'[39m │ [33m189.8[39m           │ [33m1[39m            │ [33m1[39m            │ [33m118.37[39m       │
+│ 6       │ [32m'CLASS_G_ESCAPE_CORRIDORS'[39m               │ [32m'DESTINATION_REACHED'[39m │ [33m146[39m             │ [33m1[39m            │ [33m1[39m            │ [33m144.24[39m       │
+│ 7       │ [32m'CLASS_H_CLOSE_CONFLICT_EARLY_AVOIDANCE'[39m │ [32m'DESTINATION_REACHED'[39m │ [33m146.9[39m           │ [33m350[39m          │ [33m4[39m            │ [33m31.69[39m        │
+│ 8       │ [32m'CLASS_I_SLOW_DOWN_BETTER'[39m               │ [32m'DESTINATION_REACHED'[39m │ [33m156.5[39m           │ [33m2[39m            │ [33m2[39m            │ [33m103.03[39m       │
+│ 9       │ [32m'CLASS_J_TURN_BETTER'[39m                    │ [32m'DESTINATION_REACHED'[39m │ [33m150.7[39m           │ [33m319[39m          │ [33m8[39m            │ [33m32.69[39m        │
+│ 10      │ [32m'CLASS_K_WORLD_WRAP_CROSSING'[39m            │ [32m'DESTINATION_REACHED'[39m │ [33m204.4[39m           │ [33m4[39m            │ [33m2[39m            │ [33m85.67[39m        │
+│ 11      │ [32m'CLASS_L_SAFE_VS_RISKY_CHOICE'[39m           │ [32m'DESTINATION_REACHED'[39m │ [33m146[39m             │ [33m1[39m            │ [33m1[39m            │ [33m529.91[39m       │
+└─────────┴──────────────────────────────────────────┴───────────────────────┴─────────────────┴──────────────┴──────────────┴──────────────┘
+
+[90mstderr[2m | scratch/test_replan_storm.test.js[2m > [22m[2mIssue 2 Replan Count Benchmark (Full 300s Run)[2m > [22m[2mbenchmarks planner calls across all 12 scenario classes over 3000 steps
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice_j_turn at dist 40.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_k_wrap at dist 34.5
+
+ [31m❯[39m scratch/test_replan_storm.test.js [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 139349[2mms[22m[39m
+   [31m❯[39m Issue 2 Replan Count Benchmark (Full 300s Run) [2m(1)[22m
+[31m     [31m×[31m benchmarks planner calls across all 12 scenario classes over 3000 steps[39m[33m 139347[2mms[22m[39m
+[90mstdout[2m | tests/route_stability_churn.test.js[2m > [22m[2mPOLARIS — Route Stability & Replan Churn Audit Suite[2m > [22m[2m1. Audit Scenario 5 Multi-Iceberg Navigation for Churn & Oscillation Metrics
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+=================================================
+  POLARIS ROUTE STABILITY AUDIT RESULTS  
+=================================================
+Accepted:                     74
+Rejected:                     434
+Errors/Cancelled:             0
+Avg Route Lifetime (sim sec): 0.0s
+Min Route Lifetime (sim sec): 0.0s
+LEFT Selections:              0
+RIGHT Selections:             0
+LEFT <-> RIGHT Switches:      0
+Oscillation Events:           0
+
+[90mstdout[2m | tests/phase5_headless_runner.test.js[2m > [22m[2mPhase 5 Headless Verification Runner & Artifact Exporter[2m > [22m[2mExecutes 8 critical autonomous navigation scenarios and exports verification artifact
+[22m[39m=================================================
+  POLARIS PHASE 5 HEADLESS AUTONOMOUS VERIFICATION  
+=================================================
+
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[
+  {
+    scenario: [32m'SCENARIO 1 — BASIC NAVIGATION'[39m,
+    result: [32m'SUCCESS'[39m,
+    destinationReached: [33mtrue[39m,
+    plannerCalls: [33m1[39m,
+    routeChanges: [33m1[39m
+  },
+  {
+    scenario: [32m'SCENARIO 2 — ICEBERG DIRECTLY AHEAD'[39m,
+    result: [32m'SUCCESS'[39m,
+    destinationReached: [33mtrue[39m,
+    plannerCalls: [33m1[39m,
+    routeChanges: [33m1[39m
+  },
+  {
+    scenario: [32m'SCENARIO 3 — ICEBERG MOVING ACROSS ROUTE'[39m,
+    result: [32m'SUCCESS'[39m,
+    destinationReached: [33mtrue[39m,
+    plannerCalls: [33m1[39m,
+    routeChanges: [33m1[39m
+  },
+  {
+    scenario: [32m'SCENARIO 4 — CROSS CURRENT'[39m,
+    result: [32m'SUCCESS'[39m,
+    destinationReached: [33mtrue[39m,
+    plannerCalls: [33m1[39m,
+    routeChanges: [33m1[39m
+  },
+  {
+    scenario: [32m'SCENARIO 5 — MULTIPLE ICEBERGS'[39m,
+    result: [32m'SUCCESS'[39m,
+    destinationReached: [33mtrue[39m,
+    plannerCalls: [33m442[39m,
+    routeChanges: [33m73[39m
+  },
+  {
+    scenario: [32m'SCENARIO 6 — EMERGENCY AVOIDANCE'[39m,
+    result: [32m'SUCCESS'[39m,
+    destinationReached: [33mtrue[39m,
+    plannerCalls: [33m79[39m,
+    routeChanges: [33m7[39m
+  },
+  {
+    scenario: [32m'SCENARIO 7 — NO HAZARDS LONG RUN'[39m,
+    result: [32m'SUCCESS'[39m,
+    destinationReached: [33mtrue[39m,
+    plannerCalls: [33m1[39m,
+    routeChanges: [33m1[39m
+  },
+  {
+    scenario: [32m'SCENARIO 8 — LARGE FRAME DELAY'[39m,
+    result: [32m'SUCCESS'[39m,
+    destinationReached: [33mtrue[39m,
+    plannerCalls: [33m1[39m,
+    routeChanges: [33m1[39m
+  }
+]
+
+[90mstderr[2m | tests/phase5_headless_runner.test.js[2m > [22m[2mPhase 5 Headless Verification Runner & Artifact Exporter[2m > [22m[2mExecutes 8 critical autonomous navigation scenarios and exports verification artifact
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice_emg at dist 38.4
+
+ [31m❯[39m tests/phase5_headless_runner.test.js [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 219113[2mms[22m[39m
+   [31m❯[39m Phase 5 Headless Verification Runner & Artifact Exporter [2m(1)[22m
+[31m     [31m×[31m Executes 8 critical autonomous navigation scenarios and exports verification artifact[39m[33m 219110[2mms[22m[39m
+[90mstderr[2m | tests/navigation_safety_monte_carlo.test.js[2m > [22m[2mPHASE 36-40: 1000-Scenario Monte Carlo Safety & Collision Avoidance Harness[2m > [22m[2m1. 500 DEMO Deterministic Scenarios — Zero Collisions Assertion
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-12 at dist 51.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-12 at dist 53.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-13 at dist 46.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-8 at dist 64.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-8 at dist 58.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-11 at dist 64.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-11 at dist 44.4
+[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-11 at dist 44.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-13 at dist 51.7
+[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-3 at dist 47.7
+[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-7 at dist 71.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-7 at dist 71.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-7 at dist 70.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg DEMO-ICE-10 at dist 42.0
+
+[90mstdout[2m | tests/navigation_safety_monte_carlo.test.js[2m > [22m[2mPHASE 36-40: 1000-Scenario Monte Carlo Safety & Collision Avoidance Harness[2m > [22m[2m1. 500 DEMO Deterministic Scenarios — Zero Collisions Assertion
+[22m[39m[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[Monte Carlo DEMO] 500/500 Passed | Min Clearance: 25.1 SU
+
+[90mstdout[2m | tests/navigation_safety_monte_carlo.test.js[2m > [22m[2mPHASE 36-40: 1000-Scenario Monte Carlo Safety & Collision Avoidance Harness[2m > [22m[2m2. 500 REAL Deterministic Scenarios — Zero Collisions Assertion
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+[90mstdout[2m | tests/route_stability_churn.test.js[2m > [22m[2mPOLARIS — Route Stability & Replan Churn Audit Suite[2m > [22m[2m2. Verify Multi-Iceberg Determinism Across Identical Seeds
+[22m[39m[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+
+ [31m❯[39m tests/route_stability_churn.test.js [2m([22m[2m2 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 451013[2mms[22m[39m
+   [31m❯[39m POLARIS — Route Stability & Replan Churn Audit Suite [2m(2)[22m
+[31m     [31m×[31m 1. Audit Scenario 5 Multi-Iceberg Navigation for Churn & Oscillation Metrics[39m[33m 217589[2mms[22m[39m
+[31m     [31m×[31m 2. Verify Multi-Iceberg Determinism Across Identical Seeds[39m[33m 233421[2mms[22m[39m
+[90mstdout[2m | tests/soak_verification.test.js[2m > [22m[2mPhase 3.5 Soak Run & Raw Data Verification[2m > [22m[2mRuns 36-episode scenario matrix, timeWarp changes, lag spikes, long episode, and exports raw JSON to disk
+[22m[39m[NavTestBot] Episode ep_1001_1790502225885 finished -> TIMEOUT
+[NavTestBot] Episode ep_1002_1790502226409 finished -> TIMEOUT
+[NavTestBot] Episode ep_1003_1790502227610 finished -> TIMEOUT
+[NavTestBot] Episode ep_1001_1790502228277 finished -> TIMEOUT
+[NavTestBot] Episode ep_1002_1790502228741 finished -> TIMEOUT
+[NavTestBot] Episode ep_1003_1790502229198 finished -> TIMEOUT
+[NavTestBot] Episode ep_1001_1790502229669 finished -> TIMEOUT
+[NavTestBot] Episode ep_1002_1790502230125 finished -> TIMEOUT
+[NavTestBot] Episode ep_1003_1790502230576 finished -> TIMEOUT
+[NavTestBot] Episode ep_1001_1790502231318 finished -> TIMEOUT
+[NavTestBot] Manifest updated. Total episodes: 13
+[NavTestBot] Episode ep_1002_1790502234506 finished -> TIMEOUT
+[NavTestBot] Episode ep_1003_1790502236440 finished -> TIMEOUT
+[NavTestBot] Episode ep_1001_1790502237988 finished -> TIMEOUT
+[NavTestBot] Episode ep_1002_1790502238287 finished -> TIMEOUT
+[NavTestBot] Episode ep_1003_1790502238710 finished -> TIMEOUT
+[NavTestBot] Episode ep_1001_1790502239276 finished -> TIMEOUT
+[NavTestBot] Episode ep_1002_1790502239617 finished -> TIMEOUT
+[NavTestBot] Episode ep_1003_1790502239917 finished -> TIMEOUT
+[NavTestBot] Episode ep_1001_1790502240143 finished -> TIMEOUT
+[NavTestBot] Episode ep_1002_1790502240874 finished -> TIMEOUT
+[NavTestBot] Manifest updated. Total episodes: 25
+[NavTestBot] Episode ep_1003_1790502242040 finished -> TIMEOUT
+[NavTestBot] Episode ep_1001_1790502242476 finished -> COLLISION
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[NavTestBot] Episode ep_1022_1790502242824 finished -> TIMEOUT
+[NavTestBot] Episode ep_1002_1790502242994 finished -> TIMEOUT
+[NavTestBot] Episode ep_1003_1790502243200 finished -> TIMEOUT
+[NavTestBot] Episode ep_1001_1790502243517 finished -> TIMEOUT
+[NavTestBot] Episode ep_1002_1790502243990 finished -> TIMEOUT
+[NavTestBot] Episode ep_1003_1790502244520 finished -> TIMEOUT
+[NavTestBot] Episode ep_1001_1790502244954 finished -> TIMEOUT
+[NavTestBot] Episode ep_1002_1790502245387 finished -> TIMEOUT
+[NavTestBot] Manifest updated. Total episodes: 48
+[NavTestBot] Episode ep_1003_1790502246169 finished -> TIMEOUT
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[NavTestBot] Episode ep_1001_1790502246780 finished -> TIMEOUT
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[NavTestBot] Episode ep_1002_1790502247017 finished -> TIMEOUT
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[NavTestBot] Episode ep_1003_1790502247632 finished -> TIMEOUT
+[NavTestBot] Episode ep_1001_1790502248047 finished -> TIMEOUT
+[NavTestBot] Episode ep_1002_1790502248781 finished -> TIMEOUT
+[NavTestBot] Episode ep_1003_1790502249296 finished -> TIMEOUT
+[NavTestBot] Manifest updated. Total episodes: 57
+[NavTestBot] Episode ep_5555_1790502250461 finished -> TIMEOUT
+[NavTestBot] Episode ep_1038_1790502447600 finished -> TIMEOUT
+[NavTestBot] Episode ep_7777_1790502447607 finished -> SUCCESS
+[NavTestBot] Episode ep_8888_1790502447663 finished -> SUCCESS
+[NavTestBot] Episode ep_998877_1790502447669 finished -> SUCCESS
+[NavTestBot] Episode ep_998877_1790502447684 finished -> SUCCESS
+
+[90mstderr[2m | tests/soak_verification.test.js[2m > [22m[2mPhase 3.5 Soak Run & Raw Data Verification[2m > [22m[2mRuns 36-episode scenario matrix, timeWarp changes, lag spikes, long episode, and exports raw JSON to disk
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice_h_close at dist 40.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_k_wrap at dist 37.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_k_wrap at dist 37.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_k_wrap at dist 37.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_k_wrap at dist 37.6
+[NavTestBot] Failed to export episode JSONL: RangeError: Invalid string length
+    at Array.join (<anonymous>)
+    at DatasetExporter.exportEpisodeJSONL (C:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS/src/js/dataset/datasetExporter.js:115:33)
+    at NavTestBot.endEpisode (C:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS/src/js/debug/navTestBot.js:574:40)
+    at NavTestBot.evaluateFrame (C:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS/src/js/debug/navTestBot.js:455:12)
+    at stepEngineFrame (C:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS/tests/soak_verification.test.js:145:25)
+    at C:/Users/Saptarshi/Desktop/MainFolder/Hackathon/shipnav/v3/POLARIS/tests/soak_verification.test.js:197:7
+    at file:///C:/Users/Saptarshi/AppData/Local/npm-cache/_npx/69c381f8ad94b576/node_modules/[4mvitest[24m/dist/chunks/run.C5UmxDPh.js:1628:35
+    at file:///C:/Users/Saptarshi/AppData/Local/npm-cache/_npx/69c381f8ad94b576/node_modules/[4mvitest[24m/dist/chunks/run.C5UmxDPh.js:2783:26
+    at file:///C:/Users/Saptarshi/AppData/Local/npm-cache/_npx/69c381f8ad94b576/node_modules/[4mvitest[24m/dist/chunks/run.C5UmxDPh.js:3319:20
+    at new Promise (<anonymous>)
+[DatasetExporter] Episode ep_1038_1790502447600 rejected due to validation errors: [ [32m'Telemetry array is empty'[39m ]
+[DatasetExporter] Episode ep_7777_1790502447607 rejected due to validation errors: [ [32m'Invalid or missing termination_reason: SUCCESS'[39m ]
+[DatasetExporter] Episode ep_8888_1790502447663 rejected due to validation errors: [ [32m'Invalid or missing termination_reason: SUCCESS'[39m ]
+[DatasetExporter] Episode ep_998877_1790502447669 rejected due to validation errors: [ [32m'Invalid or missing termination_reason: SUCCESS'[39m ]
+[DatasetExporter] Episode ep_998877_1790502447684 rejected due to validation errors: [ [32m'Invalid or missing termination_reason: SUCCESS'[39m ]
+
+ [31m❯[39m tests/soak_verification.test.js [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 455862[2mms[22m[39m
+   [31m❯[39m Phase 3.5 Soak Run & Raw Data Verification [2m(1)[22m
+[31m     [31m×[31m Runs 36-episode scenario matrix, timeWarp changes, lag spikes, long episode, and exports raw JSON to disk[39m[33m 455859[2mms[22m[39m
+[90mstderr[2m | tests/navigation_safety_monte_carlo.test.js[2m > [22m[2mPHASE 36-40: 1000-Scenario Monte Carlo Safety & Collision Avoidance Harness[2m > [22m[2m2. 500 REAL Deterministic Scenarios — Zero Collisions Assertion
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 75.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 82.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 83.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 80.7
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 84.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 42.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 83.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 83.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 82.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 28.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 61.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 84.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 83.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.4
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 85.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 82.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 79.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 18.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 84.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 32.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 80.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 43.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.4
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 82.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 82.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 82.7
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 82.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 83.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 77.7
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 41.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 39.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 82.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 80.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 80.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 84.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 63.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 77.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 84.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 85.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 80.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 39.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 83.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 84.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 81.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 32.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 50.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 83.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 82.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 84.7
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 84.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 84.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 76.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 23.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 55.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 82.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 24.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 10.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 84.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 84.7
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 81.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.0
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.4
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 47.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 84.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 1 at dist 78.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 81.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 39.1
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 80.7
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 76.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 82.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg 4 at dist 46.7
+[ControlAuthority] EMERGENCY ENTER: Iceberg 8 at dist 84.6
+
+[90mstdout[2m | tests/navigation_safety_monte_carlo.test.js[2m > [22m[2mPHASE 36-40: 1000-Scenario Monte Carlo Safety & Collision Avoidance Harness[2m > [22m[2m2. 500 REAL Deterministic Scenarios — Zero Collisions Assertion
+[22m[39m[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[Monte Carlo REAL] 500/500 Passed | Min Clearance: 16.0 SU
+
+[90mstdout[2m | tests/navigation_safety_monte_carlo.test.js
+[22m[39m[OpenMeteoWindProvider] Live wind fetch offline/fallback: This operation was aborted
+
+[90mstdout[2m | tests/navigation_safety_monte_carlo.test.js
+[22m[39m[UsnicIcebergProvider] Live ERDDAP fetch unavailable/offline. Using bundled USNIC dataset: This operation was aborted
+
+ [31m❯[39m tests/navigation_safety_monte_carlo.test.js [2m([22m[2m2 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 618626[2mms[22m[39m
+   [31m❯[39m PHASE 36-40: 1000-Scenario Monte Carlo Safety & Collision Avoidance Harness [2m(2)[22m
+[31m     [31m×[31m 1. 500 DEMO Deterministic Scenarios — Zero Collisions Assertion[39m[33m 343255[2mms[22m[39m
+[31m     [31m×[31m 2. 500 REAL Deterministic Scenarios — Zero Collisions Assertion[39m[33m 275362[2mms[22m[39m
+[90mstdout[2m | scratch/generate_real_dataset.test.js[2m > [22m[2mReal Dataset Generation & Safety Analysis[2m > [22m[2mgenerates 48 real simulation episodes and exports clean datasets/v2
+[22m[39mCleared datasets/v2 directory.
+Generating 48 real simulation episodes...
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+Successfully generated and exported 48 real episodes to datasets/v2.
+
+======================================================================
+  REAL 48-EPISODE DATASET AGGREGATION & SAFETY ANALYSIS REPORT
+======================================================================
+
+Total Episodes Loaded: 241
+Overall Success Rate: 84.2%
+Overall Collision Rate: 0.8%
+Total Collisions: 2
+Avg Clearance at Collision: 25.99 SU
+
+--- Scenario Class Breakdown ---
+┌────────────────────────────────────────┬──────────────────────────────────────────┬───────────────┬────────────────┬──────────────┬──────────────┬─────────────────┬──────────────────────┬────────────────────┬─────────────────────────┬─────────────────┬─────────────────┬──────────────────┬──────────────────────────┐
+│ (index)                                │ scenarioClass                            │ totalEpisodes │ collisionCount │ successCount │ timeoutCount │ manualStopCount │ collisionRatePercent │ successRatePercent │ avgMinPhysicalClearance │ avgPlannerCalls │ avgRouteChanges │ lowSampleWarning │ suspiciousUniformOutcome │
+├────────────────────────────────────────┼──────────────────────────────────────────┼───────────────┼────────────────┼──────────────┼──────────────┼─────────────────┼──────────────────────┼────────────────────┼─────────────────────────┼─────────────────┼─────────────────┼──────────────────┼──────────────────────────┤
+│ CLASS_A_CLEAR_SEAS                     │ [32m'CLASS_A_CLEAR_SEAS'[39m                     │ [33m22[39m            │ [33m1[39m              │ [33m18[39m           │ [33m3[39m            │ [33m0[39m               │ [33m4.5[39m                  │ [33m81.8[39m               │ [33m403.5[39m                   │ [33m1.3[39m             │ [33m1.5[39m             │ [33mfalse[39m            │ [33mfalse[39m                    │
+│ CLASS_B_STATIC_OBSTACLE                │ [32m'CLASS_B_STATIC_OBSTACLE'[39m                │ [33m20[39m            │ [33m0[39m              │ [33m17[39m           │ [33m3[39m            │ [33m0[39m               │ [33m0[39m                    │ [33m85[39m                 │ [33m556.92[39m                  │ [33m0.8[39m             │ [33m0.9[39m             │ [33mfalse[39m            │ [33mfalse[39m                    │
+│ CLASS_C_MOVING_CROSSING                │ [32m'CLASS_C_MOVING_CROSSING'[39m                │ [33m20[39m            │ [33m0[39m              │ [33m17[39m           │ [33m3[39m            │ [33m0[39m               │ [33m0[39m                    │ [33m85[39m                 │ [33m375.72[39m                  │ [33m0.8[39m             │ [33m0.9[39m             │ [33mfalse[39m            │ [33mfalse[39m                    │
+│ CLASS_D_MULTI_ICEBERG_FIELD            │ [32m'CLASS_D_MULTI_ICEBERG_FIELD'[39m            │ [33m20[39m            │ [33m0[39m              │ [33m17[39m           │ [33m3[39m            │ [33m0[39m               │ [33m0[39m                    │ [33m85[39m                 │ [33m75.74[39m                   │ [33m239.1[39m           │ [33m23.1[39m            │ [33mfalse[39m            │ [33mfalse[39m                    │
+│ CLASS_E_SIDE_APPROACH                  │ [32m'CLASS_E_SIDE_APPROACH'[39m                  │ [33m20[39m            │ [33m0[39m              │ [33m17[39m           │ [33m3[39m            │ [33m0[39m               │ [33m0[39m                    │ [33m85[39m                 │ [33m171.91[39m                  │ [33m1.6[39m             │ [33m1.8[39m             │ [33mfalse[39m            │ [33mfalse[39m                    │
+│ CLASS_F_HEAD_ON_APPROACH               │ [32m'CLASS_F_HEAD_ON_APPROACH'[39m               │ [33m20[39m            │ [33m0[39m              │ [33m17[39m           │ [33m3[39m            │ [33m0[39m               │ [33m0[39m                    │ [33m85[39m                 │ [33m118.37[39m                  │ [33m0.8[39m             │ [33m0.9[39m             │ [33mfalse[39m            │ [33mfalse[39m                    │
+│ CLASS_G_ESCAPE_CORRIDORS               │ [32m'CLASS_G_ESCAPE_CORRIDORS'[39m               │ [33m20[39m            │ [33m0[39m              │ [33m17[39m           │ [33m3[39m            │ [33m0[39m               │ [33m0[39m                    │ [33m85[39m                 │ [33m144.24[39m                  │ [33m0.8[39m             │ [33m0.9[39m             │ [33mfalse[39m            │ [33mfalse[39m                    │
+│ CLASS_H_CLOSE_CONFLICT_EARLY_AVOIDANCE │ [32m'CLASS_H_CLOSE_CONFLICT_EARLY_AVOIDANCE'[39m │ [33m20[39m            │ [33m1[39m              │ [33m17[39m           │ [33m2[39m            │ [33m0[39m               │ [33m5[39m                    │ [33m85[39m                 │ [33m41.22[39m                   │ [33m191.4[39m           │ [33m2.9[39m             │ [33mfalse[39m            │ [33mfalse[39m                    │
+│ CLASS_I_SLOW_DOWN_BETTER               │ [32m'CLASS_I_SLOW_DOWN_BETTER'[39m               │ [33m20[39m            │ [33m0[39m              │ [33m17[39m           │ [33m3[39m            │ [33m0[39m               │ [33m0[39m                    │ [33m85[39m                 │ [33m103.03[39m                  │ [33m1.6[39m             │ [33m1.8[39m             │ [33mfalse[39m            │ [33mfalse[39m                    │
+│ CLASS_J_TURN_BETTER                    │ [32m'CLASS_J_TURN_BETTER'[39m                    │ [33m20[39m            │ [33m0[39m              │ [33m17[39m           │ [33m3[39m            │ [33m0[39m               │ [33m0[39m                    │ [33m85[39m                 │ [33m32.69[39m                   │ [33m249.6[39m           │ [33m4.9[39m             │ [33mfalse[39m            │ [33mfalse[39m                    │
+│ CLASS_K_WORLD_WRAP_CROSSING            │ [32m'CLASS_K_WORLD_WRAP_CROSSING'[39m            │ [33m20[39m            │ [33m0[39m              │ [33m16[39m           │ [33m4[39m            │ [33m0[39m               │ [33m0[39m                    │ [33m80[39m                 │ [33m85.67[39m                   │ [33m3.2[39m             │ [33m1.8[39m             │ [33mfalse[39m            │ [33mfalse[39m                    │
+│ CLASS_L_SAFE_VS_RISKY_CHOICE           │ [32m'CLASS_L_SAFE_VS_RISKY_CHOICE'[39m           │ [33m19[39m            │ [33m0[39m              │ [33m16[39m           │ [33m3[39m            │ [33m0[39m               │ [33m0[39m                    │ [33m84.2[39m               │ [33m529.91[39m                  │ [33m0.8[39m             │ [33m1[39m               │ [33mfalse[39m            │ [33mfalse[39m                    │
+└────────────────────────────────────────┴──────────────────────────────────────────┴───────────────┴────────────────┴──────────────┴──────────────┴─────────────────┴──────────────────────┴────────────────────┴─────────────────────────┴─────────────────┴─────────────────┴──────────────────┴──────────────────────────┘
+
+[90mstderr[2m | scratch/generate_real_dataset.test.js[2m > [22m[2mReal Dataset Generation & Safety Analysis[2m > [22m[2mgenerates 48 real simulation episodes and exports clean datasets/v2
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice_j_turn at dist 40.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_k_wrap at dist 34.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_2 at dist 40.7
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_0 at dist 41.2
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_j_turn at dist 40.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_k_wrap at dist 34.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_2 at dist 40.4
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_j_turn at dist 40.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_k_wrap at dist 34.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_j_turn at dist 40.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_k_wrap at dist 34.5
+
+ [31m❯[39m scratch/generate_real_dataset.test.js [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 642851[2mms[22m[39m
+   [31m❯[39m Real Dataset Generation & Safety Analysis [2m(1)[22m
+[31m     [31m×[31m generates 48 real simulation episodes and exports clean datasets/v2[39m[33m 642844[2mms[22m[39m
+[90mstdout[2m | scratch/investigate_real_episodes.test.js[2m > [22m[2mReal Autonomous Episode Simulation Benchmark[2m > [22m[2mruns 48 un-mocked simulation episodes step-by-step
+[22m[39m
+======================================================================
+  RUNNING REAL 48-EPISODE BENCHMARK (STEP-BY-STEP SIMULATION)
+======================================================================
+
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+┌─────────┬──────────────────────────────────────────┬───────┬─────────┬───────────┬─────────┬───────────────┬────────────────┬───────────────────┐
+│ (index) │ scenarioClass                            │ total │ success │ collision │ timeout │ collisionRate │ avgDurationSec │ avgMinClearanceSU │
+├─────────┼──────────────────────────────────────────┼───────┼─────────┼───────────┼─────────┼───────────────┼────────────────┼───────────────────┤
+│ 0       │ [32m'CLASS_A_CLEAR_SEAS'[39m                     │ [33m4[39m     │ [33m4[39m       │ [33m0[39m         │ [33m0[39m       │ [32m'0.0%'[39m        │ [32m'132.0'[39m        │ [32m'Infinity'[39m        │
+│ 1       │ [32m'CLASS_B_STATIC_OBSTACLE'[39m                │ [33m4[39m     │ [33m4[39m       │ [33m0[39m         │ [33m0[39m       │ [32m'0.0%'[39m        │ [32m'146.0'[39m        │ [32m'556.9'[39m           │
+│ 2       │ [32m'CLASS_C_MOVING_CROSSING'[39m                │ [33m4[39m     │ [33m4[39m       │ [33m0[39m         │ [33m0[39m       │ [32m'0.0%'[39m        │ [32m'132.5'[39m        │ [32m'375.7'[39m           │
+│ 3       │ [32m'CLASS_D_MULTI_ICEBERG_FIELD'[39m            │ [33m4[39m     │ [33m1[39m       │ [33m0[39m         │ [33m3[39m       │ [32m'0.0%'[39m        │ [32m'148.2'[39m        │ [32m'149.5'[39m           │
+│ 4       │ [32m'CLASS_E_SIDE_APPROACH'[39m                  │ [33m4[39m     │ [33m4[39m       │ [33m0[39m         │ [33m0[39m       │ [32m'0.0%'[39m        │ [32m'145.2'[39m        │ [32m'171.9'[39m           │
+│ 5       │ [32m'CLASS_F_HEAD_ON_APPROACH'[39m               │ [33m4[39m     │ [33m0[39m       │ [33m0[39m         │ [33m4[39m       │ [32m'0.0%'[39m        │ [32m'150.0'[39m        │ [32m'118.4'[39m           │
+│ 6       │ [32m'CLASS_G_ESCAPE_CORRIDORS'[39m               │ [33m4[39m     │ [33m4[39m       │ [33m0[39m         │ [33m0[39m       │ [32m'0.0%'[39m        │ [32m'146.0'[39m        │ [32m'144.2'[39m           │
+│ 7       │ [32m'CLASS_H_CLOSE_CONFLICT_EARLY_AVOIDANCE'[39m │ [33m4[39m     │ [33m1[39m       │ [33m0[39m         │ [33m3[39m       │ [32m'0.0%'[39m        │ [32m'148.4'[39m        │ [32m'44.3'[39m            │
+│ 8       │ [32m'CLASS_I_SLOW_DOWN_BETTER'[39m               │ [33m4[39m     │ [33m0[39m       │ [33m0[39m         │ [33m4[39m       │ [32m'0.0%'[39m        │ [32m'150.0'[39m        │ [32m'103.0'[39m           │
+│ 9       │ [32m'CLASS_J_TURN_BETTER'[39m                    │ [33m4[39m     │ [33m1[39m       │ [33m0[39m         │ [33m3[39m       │ [32m'0.0%'[39m        │ [32m'149.9'[39m        │ [32m'32.7'[39m            │
+│ 10      │ [32m'CLASS_K_WORLD_WRAP_CROSSING'[39m            │ [33m4[39m     │ [33m0[39m       │ [33m0[39m         │ [33m4[39m       │ [32m'0.0%'[39m        │ [32m'150.0'[39m        │ [32m'85.7'[39m            │
+│ 11      │ [32m'CLASS_L_SAFE_VS_RISKY_CHOICE'[39m           │ [33m4[39m     │ [33m4[39m       │ [33m0[39m         │ [33m0[39m       │ [32m'0.0%'[39m        │ [32m'146.0'[39m        │ [32m'529.9'[39m           │
+└─────────┴──────────────────────────────────────────┴───────┴─────────┴───────────┴─────────┴───────────────┴────────────────┴───────────────────┘
+
+[90mstderr[2m | scratch/investigate_real_episodes.test.js[2m > [22m[2mReal Autonomous Episode Simulation Benchmark[2m > [22m[2mruns 48 un-mocked simulation episodes step-by-step
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice_j_turn at dist 40.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_k_wrap at dist 34.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_3 at dist 40.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_j_turn at dist 40.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_k_wrap at dist 34.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_1 at dist 41.4
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_1 at dist 40.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_3 at dist 40.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_j_turn at dist 40.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_k_wrap at dist 34.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_j_turn at dist 40.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_k_wrap at dist 34.5
+
+ [31m❯[39m scratch/investigate_real_episodes.test.js [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 711552[2mms[22m[39m
+   [31m❯[39m Real Autonomous Episode Simulation Benchmark [2m(1)[22m
+[31m     [31m×[31m runs 48 un-mocked simulation episodes step-by-step[39m[33m 711544[2mms[22m[39m
+[90mstdout[2m | tests/phase6_dataset_engine.test.js[2m > [22m[2mPhase 6 Autonomous Episode Generation & Dataset Engine[2m > [22m[2m8. 100-Episode Headless Batch Execution & Artifact Exporter Test
+[22m[39m
+=================================================
+  PHASE 6: 100-EPISODE AUTONOMOUS DATASET BATCH  
+=================================================
+
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[SensorFusion] Initialized with GNSS, Gyro, Radar
+[ControlAuthority] EMERGENCY EXIT: Hazard cleared, returning control to Route Guidance
+[Phase 6 Verification] Batch Complete: 0 Successes, 3 Collisions, 1 Near Misses, 97 Timeouts.
+[Phase 6 Verification] Artifact exported to C:\Users\Saptarshi\Desktop\MainFolder\Hackathon\shipnav\v3\POLARIS\scratch\phase6_dataset_verification.json
+
+[90mstderr[2m | tests/phase6_dataset_engine.test.js[2m > [22m[2mPhase 6 Autonomous Episode Generation & Dataset Engine[2m > [22m[2m8. 100-Episode Headless Batch Execution & Artifact Exporter Test
+[22m[39m[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_1 at dist 40.8
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_1 at dist 40.7
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_0 at dist 40.9
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_1 at dist 40.5
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_5 at dist 40.3
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_2 at dist 40.6
+[ControlAuthority] EMERGENCY ENTER: Iceberg ice_d_2 at dist 41.4
+
+ [31m❯[39m tests/phase6_dataset_engine.test.js [2m([22m[2m8 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 6380757[2mms[22m[39m
+   [31m❯[39m Phase 6 Autonomous Episode Generation & Dataset Engine [2m(8)[22m
+     [32m✓[39m 1. Deterministic Reset Test — verifies state is restored to canonical initial state[32m 61[2mms[22m[39m
+     [33m[2m✓[22m[39m 2. Collision Termination & Automatic Reset Test — verifies collision halts episode and preserves state[33m 759[2mms[22m[39m
+     [33m[2m✓[22m[39m 3. Destination Termination Test — verifies clean arrival and SUCCESS label[33m 410[2mms[22m[39m
+     [33m[2m✓[22m[39m 4. Deterministic Replay Test — running same seed twice produces bit-exact telemetry[33m 1579[2mms[22m[39m
+     [32m✓[39m 5. Schema v2 & Data Quality Validation Test — rejects corrupt or non-monotonic data[32m 1[2mms[22m[39m
+     [33m[2m✓[22m[39m 6. JSONL Exporter & Manifest Engine Test — verifies episode storage and manifest stats[33m 935[2mms[22m[39m
+     [33m[2m✓[22m[39m 7. Collision Geometry Clarity Test — verifies explicit clearance metrics[33m 1819[2mms[22m[39m
+[31m     [31m×[31m 8. 100-Episode Headless Batch Execution & Artifact Exporter Test[39m[33m 6375188[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 14 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m scratch/generate_real_dataset.test.js[2m > [22mReal Dataset Generation & Safety Analysis[2m > [22mgenerates 48 real simulation episodes and exports clean datasets/v2
+[31m[1mError[22m: Test timed out in 120000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m scratch/generate_real_dataset.test.js:[2m17:3[22m[39m
+    [90m 15|[39m
+    [90m 16|[39m describe('Real Dataset Generation & Safety Analysis', () => {
+    [90m 17|[39m   it('generates 48 real simulation episodes and exports clean datasets…
+    [90m   |[39m   [31m^[39m
+    [90m 18|[39m     const baseDir = 'datasets/v2';
+    [90m 19|[39m     const episodesDir = path.join(baseDir, 'episodes');
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m scratch/investigate_real_episodes.test.js[2m > [22mReal Autonomous Episode Simulation Benchmark[2m > [22mruns 48 un-mocked simulation episodes step-by-step
+[31m[1mError[22m: Test timed out in 60000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m scratch/investigate_real_episodes.test.js:[2m6:3[22m[39m
+    [90m  4|[39m
+    [90m  5|[39m describe('Real Autonomous Episode Simulation Benchmark', () => {
+    [90m  6|[39m   it('runs 48 un-mocked simulation episodes step-by-step', { timeout: …
+    [90m   |[39m   [31m^[39m
+    [90m  7|[39m     const runner = new EpisodeRunner();
+    [90m  8|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m scratch/test_replan_storm.test.js[2m > [22mIssue 2 Replan Count Benchmark (Full 300s Run)[2m > [22mbenchmarks planner calls across all 12 scenario classes over 3000 steps
+[31m[1mError[22m: Test timed out in 60000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m scratch/test_replan_storm.test.js:[2m9:3[22m[39m
+    [90m  7|[39m
+    [90m  8|[39m describe('Issue 2 Replan Count Benchmark (Full 300s Run)', () => {
+    [90m  9|[39m   it('benchmarks planner calls across all 12 scenario classes over 300…
+    [90m   |[39m   [31m^[39m
+    [90m 10|[39m     const runner = new EpisodeRunner();
+    [90m 11|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/fixed_round_auto_stop.test.js[2m > [22mNavTestBot — Fixed-Round Auto-Stop Mode[2m > [22m3. Non-Multiple Target Arithmetic Check (Target = 25): exports sum to 25 (10 + 10 + 5)
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/fixed_round_auto_stop.test.js:[2m95:3[22m[39m
+    [90m 93|[39m   }, 30000);
+    [90m 94|[39m
+    [90m 95|[39m   it('3. Non-Multiple Target Arithmetic Check (Target = 25): exports s…
+    [90m   |[39m   [31m^[39m
+    [90m 96|[39m     const engine = new SimulationEngine();
+    [90m 97|[39m     const bot = new NavTestBot(engine, null, null, null, null, { baseD…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/fixed_round_auto_stop.test.js[2m > [22mNavTestBot — Fixed-Round Auto-Stop Mode[2m > [22m4. Indefinite-Run Regression Check (Target = null): runs past 30 episodes without auto-stop
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/fixed_round_auto_stop.test.js:[2m135:3[22m[39m
+    [90m133|[39m   });
+    [90m134|[39m
+    [90m135|[39m   it('4. Indefinite-Run Regression Check (Target = null): runs past 30…
+    [90m   |[39m   [31m^[39m
+    [90m136|[39m     const engine = new SimulationEngine();
+    [90m137|[39m     const bot = new NavTestBot(engine, null, null, null, null, { baseD…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/hard_scenario.test.js[2m > [22mHard Scenario A* Iteration Cap Audit[2m > [22mtests search behavior when destination is completely blocked by an wall of icebergs
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/hard_scenario.test.js:[2m7:3[22m[39m
+    [90m  5|[39m
+    [90m  6|[39m describe('Hard Scenario A* Iteration Cap Audit', () => {
+    [90m  7|[39m   it('tests search behavior when destination is completely blocked by …
+    [90m   |[39m   [31m^[39m
+    [90m  8|[39m     const ship = new Ship({ x: 400, y: 1200, heading: 0, speed: 20 });
+    [90m  9|[39m     const dest = { x: 3200, y: 1200 };
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/navigation_safety_monte_carlo.test.js[2m > [22mPHASE 36-40: 1000-Scenario Monte Carlo Safety & Collision Avoidance Harness[2m > [22m1. 500 DEMO Deterministic Scenarios — Zero Collisions Assertion
+[31m[1mError[22m: Test timed out in 300000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/navigation_safety_monte_carlo.test.js:[2m29:3[22m[39m
+    [90m 27|[39m   }
+    [90m 28|[39m
+    [90m 29|[39m   it('1. 500 DEMO Deterministic Scenarios — Zero Collisions Assertion'…
+    [90m   |[39m   [31m^[39m
+    [90m 30|[39m     let totalScenarios = 500;
+    [90m 31|[39m     let passedScenarios = 0;
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/14]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/navigation_safety_monte_carlo.test.js[2m > [22mPHASE 36-40: 1000-Scenario Monte Carlo Safety & Collision Avoidance Harness[2m > [22m2. 500 REAL Deterministic Scenarios — Zero Collisions Assertion
+[31m[1mError[22m: Test timed out in 120000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/navigation_safety_monte_carlo.test.js:[2m114:3[22m[39m
+    [90m112|[39m   });
+    [90m113|[39m
+    [90m114|[39m   it('2. 500 REAL Deterministic Scenarios — Zero Collisions Assertion'…
+    [90m   |[39m   [31m^[39m
+    [90m115|[39m     let totalScenarios = 500;
+    [90m116|[39m     let passedScenarios = 0;
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/14]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/phase5_headless_runner.test.js[2m > [22mPhase 5 Headless Verification Runner & Artifact Exporter[2m > [22mExecutes 8 critical autonomous navigation scenarios and exports verification artifact
+[31m[1mError[22m: Test timed out in 120000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/phase5_headless_runner.test.js:[2m10:3[22m[39m
+    [90m  8|[39m
+    [90m  9|[39m describe('Phase 5 Headless Verification Runner & Artifact Exporter', (…
+    [90m 10|[39m   it('Executes 8 critical autonomous navigation scenarios and exports …
+    [90m   |[39m   [31m^[39m
+    [90m 11|[39m     console.log("=================================================");
+    [90m 12|[39m     console.log("  POLARIS PHASE 5 HEADLESS AUTONOMOUS VERIFICATION  "…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/14]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/phase6_dataset_engine.test.js[2m > [22mPhase 6 Autonomous Episode Generation & Dataset Engine[2m > [22m8. 100-Episode Headless Batch Execution & Artifact Exporter Test
+[31m[1mAssertionError[22m: expected 490 to be 100 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 100[39m
+[31m+ 490[39m
+
+[36m [2m❯[22m tests/phase6_dataset_engine.test.js:[2m274:36[22m[39m
+    [90m272|[39m
+    [90m273|[39m     expect(totalEpisodes).toBe(100);
+    [90m274|[39m     expect(manifest.episode_count).toBe(100);
+    [90m   |[39m                                    [31m^[39m
+    [90m275|[39m     expect(fs.existsSync(scratchPath)).toBe(true);
+    [90m276|[39m   }, 240000);
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/14]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/route_stability_churn.test.js[2m > [22mPOLARIS — Route Stability & Replan Churn Audit Suite[2m > [22m1. Audit Scenario 5 Multi-Iceberg Navigation for Churn & Oscillation Metrics
+[31m[1mError[22m: Test timed out in 120000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/route_stability_churn.test.js:[2m8:3[22m[39m
+    [90m  6|[39m describe('POLARIS — Route Stability & Replan Churn Audit Suite', () =>…
+    [90m  7|[39m
+    [90m  8|[39m   it('1. Audit Scenario 5 Multi-Iceberg Navigation for Churn & Oscilla…
+    [90m   |[39m   [31m^[39m
+    [90m  9|[39m     const engine = new SimulationEngine();
+    [90m 10|[39m     const generator = new ScenarioGenerator();
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/14]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/route_stability_churn.test.js[2m > [22mPOLARIS — Route Stability & Replan Churn Audit Suite[2m > [22m2. Verify Multi-Iceberg Determinism Across Identical Seeds
+[31m[1mAssertionError[22m: expected 442 to be 441 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 441[39m
+[31m+ 442[39m
+
+[36m [2m❯[22m tests/route_stability_churn.test.js:[2m114:31[22m[39m
+    [90m112|[39m     expect(run1.shipY).toBe(run2.shipY);
+    [90m113|[39m     expect(run1.heading).toBe(run2.heading);
+    [90m114|[39m     expect(run1.plannerCalls).toBe(run2.plannerCalls);
+    [90m   |[39m                               [31m^[39m
+    [90m115|[39m     expect(run1.routeAdoptions).toBe(run2.routeAdoptions);
+    [90m116|[39m   }, 120000);
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/14]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/scenario_mode_coverage.test.js[2m > [22mNavTestBot — Scenario & Route Mode Coverage Audit[2m > [22m1. Round-Robin Coverage Grid (Target = 48): exact 4 episodes per class, 1 per mode per class
+[31m[1mError[22m: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/scenario_mode_coverage.test.js:[2m8:3[22m[39m
+    [90m  6|[39m
+    [90m  7|[39m describe('NavTestBot — Scenario & Route Mode Coverage Audit', () => {
+    [90m  8|[39m   it('1. Round-Robin Coverage Grid (Target = 48): exact 4 episodes per…
+    [90m   |[39m   [31m^[39m
+    [90m  9|[39m     const engine = new SimulationEngine();
+    [90m 10|[39m     const bot = new NavTestBot(engine, null, null, null, null, { baseD…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/14]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/soak_verification.test.js[2m > [22mPhase 3.5 Soak Run & Raw Data Verification[2m > [22mRuns 36-episode scenario matrix, timeWarp changes, lag spikes, long episode, and exports raw JSON to disk
+[31m[1mError[22m: Test timed out in 300000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".[39m
+[36m [2m❯[22m tests/soak_verification.test.js:[2m152:3[22m[39m
+    [90m150|[39m describe('Phase 3.5 Soak Run & Raw Data Verification', () => {
+    [90m151|[39m
+    [90m152|[39m   it('Runs 36-episode scenario matrix, timeWarp changes, lag spikes, l…
+    [90m   |[39m   [31m^[39m
+    [90m153|[39m     const engine = createMockEngine();
+    [90m154|[39m     const bot = engine.navTestBot;
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/14]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m11 failed[39m[22m[2m | [22m[1m[32m43 passed[39m[22m[90m (54)[39m
+[2m      Tests [22m [1m[31m14 failed[39m[22m[2m | [22m[1m[32m273 passed[39m[22m[90m (287)[39m
+[2m   Start at [22m 15:13:40
+[2m   Duration [22m 6386.57s[2m (tests 99%)[22m
+

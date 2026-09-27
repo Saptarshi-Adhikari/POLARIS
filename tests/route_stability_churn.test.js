@@ -85,6 +85,9 @@ describe('POLARIS — Route Stability & Replan Churn Audit Suite', () => {
       engine.state.navigation.destinationPoint = scenario.destination;
       engine.icebergs = scenario.icebergs;
 
+      // Fix worldTime timestamp to static seed time to avoid Date.now() drift across runs
+      engine.state.worldTime = 1700000000000;
+
       engine.calculateRoute();
 
       for (let step = 0; step < 2000; step++) {

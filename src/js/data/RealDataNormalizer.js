@@ -103,6 +103,10 @@ export class RealDataNormalizer {
 
       // Attach additional normalized metadata
       hazard.name = officialName || normalizedId;
+      hazard.worldX = worldPos.x;
+      hazard.worldY = worldPos.y;
+      hazard.x = worldPos.x;
+      hazard.y = worldPos.y;
       hazard.history = history;
       hazard.fetchTimestamp = fetchTime;
       hazard.originalIdentifier = raw.id || officialName;

@@ -64,6 +64,13 @@ export function distanceBetween(a, b) {
   return Math.hypot(dx, dy);
 }
 
+export function distance(a, b, x2, y2) {
+  if (typeof a === 'number' && typeof b === 'number' && typeof x2 === 'number' && typeof y2 === 'number') {
+    return Math.hypot(x2 - a, y2 - b);
+  }
+  return distanceBetween(a, b);
+}
+
 export function wrappedDistance(a, b, w = 3600, h = 2400) {
   if (!a || !b) return 0;
   let dx = Math.abs((b.x || 0) - (a.x || 0));

@@ -11,6 +11,7 @@
 import { continuousCollisionValidator } from './continuousCollisionValidator.js';
 import { curvatureSmoother } from '../pathfinding/CurvatureConstrainedSmoother.js';
 import { wrappedDistanceCoords } from '../utils.js';
+import { bathymetryProvider } from '../providers/bathymetryProvider.js';
 
 export class FastFirstSafePlanner {
   constructor(options = {}) {
@@ -91,8 +92,25 @@ export class FastFirstSafePlanner {
       totalDist += wrappedDistanceCoords(finalWaypoints[i].x, finalWaypoints[i].y, finalWaypoints[i+1].x, finalWaypoints[i+1].y);
     }
 
+    // Bathymetry continuous route segment depth validation & penalty
+    let depthValRes = null;
+    let depthCostPenalty = 1.0;
+    try {
+      depthValRes = bathymetryProvider.validateRouteDepth(finalWaypoints, vessel);
+      if (!depthValRes.safe) {
+        valRes.isValid = false;
+        valRes.reason = `DEPTH_GROUNDING_RISK: Min depth ${depthValRes.minimumDepth}m violates required ${depthValRes.effectiveSafeDepth}m`;
+      } else if (depthValRes.classification === 'SHALLOW') {
+        depthCostPenalty = 2.5;
+      } else if (depthValRes.classification === 'CAUTION') {
+        depthCostPenalty = 1.25;
+      }
+    } catch (e) {
+      // Fallback if bathymetry provider load fails
+    }
+
     const etaHours = totalDist / Math.max(1.0, cruiseSpeed) / 3600.0;
-    const estimatedFuel = parseFloat((totalDist * 0.0015).toFixed(1));
+    const estimatedFuel = parseFloat((totalDist * 0.0015 * depthCostPenalty).toFixed(1));
 
     // Calculate heading turn effort relative to ship heading
     const secondPt = finalWaypoints[1] || seedWaypoint;
@@ -104,11 +122,13 @@ export class FastFirstSafePlanner {
       side: sideName,
       safe: valRes.isValid,
       waypoints: finalWaypoints,
-      distance: totalDist,
+      distance: totalDist * depthCostPenalty,
+      rawDistance: totalDist,
       eta: etaHours,
       fuel: estimatedFuel,
       minClearance: valRes.minPredictedClearance,
       minPhysicalClearance: valRes.minPhysicalClearance,
+      depthValidation: depthValRes,
       turnEffortDeg,
       rejectionReasons: valRes.isValid ? [] : [valRes.reason]
     };

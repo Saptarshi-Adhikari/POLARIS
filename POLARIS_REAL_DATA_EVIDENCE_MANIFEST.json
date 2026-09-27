@@ -1,0 +1,100 @@
+{
+  "sessionId": "REAL_SESSION_1790531649708_668",
+  "timestamp": "2026-09-27T17:54:09.708Z",
+  "sessionMode": "REAL_DATA_MIXED",
+  "syntheticFallbackCount": 2,
+  "overallHealth": "HEALTHY",
+  "providers": [
+    {
+      "provider": "USNIC_ICEBERG",
+      "mode": "REAL_CACHED",
+      "status": "OK",
+      "source": "Public Maritime Endpoint",
+      "datasetOrProductIdentifier": "Open-Meteo Antarctic Grid",
+      "sourceTimestamp": "2026-09-27T17:54:13.777Z",
+      "retrievalTimestamp": "2026-09-27T17:54:09.708Z",
+      "coverage": "Antarctic Peninsula / Bellingshausen Sea (-65S, -68.5W)",
+      "recordCount": 1,
+      "fallbackUsed": false,
+      "evidenceFileOrHash": "src/js/data/realMaritimeDataset.js"
+    },
+    {
+      "provider": "OPEN_METEO_WIND",
+      "mode": "REAL_LIVE",
+      "status": "OK",
+      "source": "Public Maritime Endpoint",
+      "datasetOrProductIdentifier": "Open-Meteo Antarctic Grid",
+      "sourceTimestamp": "2026-09-27T17:54:13.777Z",
+      "retrievalTimestamp": "2026-09-27T17:54:09.708Z",
+      "coverage": "Antarctic Peninsula / Bellingshausen Sea (-65S, -68.5W)",
+      "recordCount": 1,
+      "fallbackUsed": false,
+      "evidenceFileOrHash": "src/js/data/realMaritimeDataset.js"
+    },
+    {
+      "provider": "COPERNICUS_CURRENT",
+      "mode": "REAL_REPLAY",
+      "status": "OK",
+      "source": "Public Maritime Endpoint",
+      "datasetOrProductIdentifier": "Open-Meteo Antarctic Grid",
+      "sourceTimestamp": "2026-09-27T17:54:13.777Z",
+      "retrievalTimestamp": "2026-09-27T17:54:09.708Z",
+      "coverage": "Antarctic Peninsula / Bellingshausen Sea (-65S, -68.5W)",
+      "recordCount": 1,
+      "fallbackUsed": false,
+      "evidenceFileOrHash": "src/js/data/realMaritimeDataset.js"
+    },
+    {
+      "provider": "AIS_VESSELS",
+      "mode": "REAL_REPLAY",
+      "status": "OK",
+      "source": "Public Maritime Endpoint",
+      "datasetOrProductIdentifier": "Open-Meteo Antarctic Grid",
+      "sourceTimestamp": "2026-09-27T17:54:13.777Z",
+      "retrievalTimestamp": "2026-09-27T17:54:09.708Z",
+      "coverage": "Antarctic Peninsula / Bellingshausen Sea (-65S, -68.5W)",
+      "recordCount": 1,
+      "fallbackUsed": false,
+      "evidenceFileOrHash": "src/js/data/realMaritimeDataset.js"
+    },
+    {
+      "provider": "SENTINEL1_SAR",
+      "mode": "REAL_REPLAY",
+      "status": "OK",
+      "source": "Public Maritime Endpoint",
+      "datasetOrProductIdentifier": "Open-Meteo Antarctic Grid",
+      "sourceTimestamp": "2026-09-27T17:54:13.777Z",
+      "retrievalTimestamp": "2026-09-27T17:54:09.708Z",
+      "coverage": "Antarctic Peninsula / Bellingshausen Sea (-65S, -68.5W)",
+      "recordCount": 1,
+      "fallbackUsed": false,
+      "evidenceFileOrHash": "src/js/data/realMaritimeDataset.js"
+    },
+    {
+      "provider": "GEBCO_BATHYMETRY",
+      "mode": "SYNTHETIC",
+      "status": "OK",
+      "source": "Public Maritime Endpoint",
+      "datasetOrProductIdentifier": "Open-Meteo Antarctic Grid",
+      "sourceTimestamp": "2026-09-27T17:54:13.777Z",
+      "retrievalTimestamp": "2026-09-27T17:54:09.708Z",
+      "coverage": "Antarctic Peninsula / Bellingshausen Sea (-65S, -68.5W)",
+      "recordCount": 1,
+      "fallbackUsed": true,
+      "evidenceFileOrHash": "src/js/data/realMaritimeDataset.js"
+    },
+    {
+      "provider": "MARINE_RADAR",
+      "mode": "SYNTHETIC",
+      "status": "OK",
+      "source": "Public Maritime Endpoint",
+      "datasetOrProductIdentifier": "Open-Meteo Antarctic Grid",
+      "sourceTimestamp": "2026-09-27T17:54:13.777Z",
+      "retrievalTimestamp": "2026-09-27T17:54:09.708Z",
+      "coverage": "Antarctic Peninsula / Bellingshausen Sea (-65S, -68.5W)",
+      "recordCount": 1,
+      "fallbackUsed": true,
+      "evidenceFileOrHash": "src/js/data/realMaritimeDataset.js"
+    }
+  ]
+}

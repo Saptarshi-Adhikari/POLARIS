@@ -714,6 +714,7 @@ export class AINavigator {
    * Called by UI "CALCULATE ROUTE" — never triggered by pan/zoom.
    */
   calculateRoute(startPoint, destPoint, icebergs, vectorField, mode, state, ship) {
+    this.plannerCalls++;
     this.generateOptimalRouteAStar(
       { x: startPoint.x, y: startPoint.y },
       icebergs, vectorField, destPoint, mode, state, ship

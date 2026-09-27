@@ -2,14 +2,49 @@
 version: '3.8'
 
 services:
-  polaris-backend:
+  # Production Combined Edge Container (Frontend + ML Service + Offline Data)
+  polaris-edge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: polaris_edge_deployment
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "8001:8001"
+    environment:
+      - POLARIS_MODE=OFFLINE
+      - POLARIS_API_BASE_URL=http://localhost:8001
+      - POLARIS_CACHE_DIR=/app/data/cache
+      - POLARIS_DATA_DIR=/app/data
+      - POLARIS_LOG_LEVEL=INFO
+    volumes:
+      - ./data:/app/data
+      - ./datasets:/app/datasets
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2.00'
+          memory: 2048M
+        reservations:
+          cpus: '0.50'
+          memory: 512M
+
+  # Optional Independent ML Microservice
+  polaris-backend-api:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: polaris_backend_service
+    profiles: ["dev-backend"]
     restart: always
     ports:
-      - "8001:8001"
+      - "8002:8001"
     environment:
       - PORT=8001
       - HOST=0.0.0.0
@@ -23,12 +58,3 @@ services:
       timeout: 5s
       retries: 3
 
-  polaris-frontend-dev:
-    image: node:20-alpine
-    container_name: polaris_frontend_app
-    working_dir: /app
-    volumes:
-      - .:/app
-    ports:
-      - "5173:5173"
-    command: npm run dev -- --host

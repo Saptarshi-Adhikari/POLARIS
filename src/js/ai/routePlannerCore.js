@@ -139,9 +139,50 @@ export function validateRoute(waypoints, icebergs, shipSpeed = 20.0, width = 360
   return { valid: true, reason: fullVal.reason, minClearance: fullVal.minPredictedClearance };
 }
 
+import { spatiotemporalPlanner } from './SpatiotemporalPlanner.js';
+
 export function runRoutePlannerCore(payload) {
   const startTime = performance.now();
-  const { requestId, ship, icebergs, dest, mode, state, width = 3600, height = 2400, vectorFieldData = {} } = payload;
+  const { requestId, ship, icebergs, dest, mode, state, width = 3600, height = 2400, vectorFieldData = {}, plannerType, useSpatiotemporal, aisTargets } = payload;
+
+  // Option to delegate to True Spatiotemporal (x, y, t) Planner
+  if (plannerType === 'TIME_SPATIOTEMPORAL_ASTAR' || useSpatiotemporal) {
+    const stRes = spatiotemporalPlanner.planSpatiotemporalRoute(
+      { x: ship.x, y: ship.y },
+      { x: dest.x, y: dest.y },
+      state?.vessel || ship,
+      icebergs || [],
+      aisTargets || payload.vessels || [],
+      state?.environment || {},
+      { worldTime: payload.worldTime, cruiseSpeedSU: ship.speed || 15.0 }
+    );
+
+    let totalDist = 0;
+    const waypoints = stRes.waypoints || [{ x: ship.x, y: ship.y }, { x: dest.x, y: dest.y }];
+    for (let i = 0; i < waypoints.length - 1; i++) {
+      totalDist += wrappedDistanceCoords(waypoints[i].x, waypoints[i].y, waypoints[i + 1].x, waypoints[i + 1].y);
+    }
+    const durationSec = totalDist / Math.max(1.0, ship.speed || 15.0);
+
+    return {
+      requestId,
+      plannerType: 'TIME_SPATIOTEMPORAL_ASTAR',
+      waypoints,
+      rawPath: stRes.rawWaypoints || waypoints,
+      totalDistance: parseFloat(totalDist.toFixed(1)),
+      maxRisk: stRes.success ? 0.15 : 0.85,
+      estimatedDuration: parseFloat((durationSec / 3600).toFixed(2)),
+      eta: parseFloat((durationSec / 3600).toFixed(2)),
+      estimatedFuelConsumption: parseFloat((totalDist * 0.0015).toFixed(1)),
+      calcTimeMs: Math.round(performance.now() - startTime),
+      firstSafeLatencyMs: stRes.firstSafeLatencyMs,
+      finalRouteLatencyMs: stRes.finalRouteLatencyMs,
+      expandedStates: stRes.expandedStates,
+      generatedNodes: stRes.generatedNodes,
+      shipSpeed: ship.speed || 15.0,
+      dest
+    };
+  }
 
   const gridCols = 72;
   const gridRows = 48;

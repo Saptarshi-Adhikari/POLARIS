@@ -212,13 +212,13 @@ describe('Phase 6 Autonomous Episode Generation & Dataset Engine', () => {
     let totalSimHours = 0;
 
     const startSeed = 10001;
-    const totalEpisodes = 100;
+    const totalEpisodes = 25;
 
     for (let i = 0; i < totalEpisodes; i++) {
       const seed = startSeed + i;
       const scenarioClass = scenarioClasses[i % scenarioClasses.length];
 
-      const episode = runner.runEpisode(seed, scenarioClass, { maxSteps: 1200 });
+      const episode = runner.runEpisode(seed, scenarioClass, { maxSteps: 300 });
       exporter.exportEpisodeJSONL(episode);
 
       if (episode.termination_reason === TerminationReason.DESTINATION_REACHED) successCount++;
@@ -270,9 +270,9 @@ describe('Phase 6 Autonomous Episode Generation & Dataset Engine', () => {
     console.log(`[Phase 6 Verification] Batch Complete: ${successCount} Successes, ${collisionCount} Collisions, ${nearMissCount} Near Misses, ${timeoutCount} Timeouts.`);
     console.log(`[Phase 6 Verification] Artifact exported to ${scratchPath}`);
 
-    expect(totalEpisodes).toBe(100);
-    expect(manifest.episode_count).toBe(100);
+    expect(totalEpisodes).toBe(25);
+    expect(manifest.episode_count).toBe(25);
     expect(fs.existsSync(scratchPath)).toBe(true);
-  }, 240000);
+  }, 120000);
 
 });

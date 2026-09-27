@@ -9,6 +9,7 @@
  */
 
 import { continuousCollisionValidator } from './continuousCollisionValidator.js';
+import { bathymetryProvider } from '../providers/bathymetryProvider.js';
 
 export class ReplanningStateMachine {
   constructor(options = {}) {
@@ -56,6 +57,40 @@ export class ReplanningStateMachine {
         threatHazard = ice;
       }
     }
+
+    // 0. Bathymetry Depth Check for Active Route / Current Vessel Position
+    let depthVal = null;
+    try {
+      depthVal = bathymetryProvider.validateRouteDepth(activeRoute.waypoints, vessel);
+      if (!depthVal.safe) {
+        this.lastState = this.state;
+        this.state = 'URGENT';
+        return {
+          state: 'URGENT',
+          bypassCooldown: true,
+          triggerReason: 'GROUNDING_RISK_DETECTED',
+          depthValidation: depthVal,
+          minClearance,
+          shortestTcpa,
+          minDcpa
+        };
+      } else if (depthVal.classification === 'SHALLOW') {
+        // Bias route replanning if in shallow water zone
+        if (this.state === 'NORMAL') {
+          this.lastState = this.state;
+          this.state = 'CAUTION';
+          return {
+            state: 'CAUTION',
+            bypassCooldown: false,
+            triggerReason: 'SHALLOW_WATER_APPROACH',
+            depthValidation: depthVal,
+            minClearance,
+            shortestTcpa,
+            minDcpa
+          };
+        }
+      }
+    } catch (e) {}
 
     // 1. EMERGENCY check
     if (minClearance <= 15.0 || (shortestTcpa <= 15.0 && minDcpa < 60.0)) {
@@ -112,7 +147,8 @@ export class ReplanningStateMachine {
       triggerReason: 'ROUTE_CLEAR',
       minClearance,
       shortestTcpa,
-      minDcpa
+      minDcpa,
+      depthValidation: depthVal
     };
   }
 }

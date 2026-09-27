@@ -1,0 +1,163 @@
+{
+  "modelId": "SAR_UNET_V1_ANTARCTIC",
+  "version": "1.1.0-EXTERNALLY-VALIDATED",
+  "framework": "PyTorch v2.14.0+cpu",
+  "trainingStatus": "MODEL_EXTERNALLY_VALIDATED",
+  "preprocessingVersion": "POLARIS_GRD_PREPROC_v1.0",
+  "datasetId": "POLARIS_ANTARCTIC_SAR_V1",
+  "leakageAudit": {
+    "product_leakage": 0,
+    "scene_leakage": 0,
+    "leakage_clean": true
+  },
+  "classes": [
+    "OPEN_WATER",
+    "SEA_ICE",
+    "POSSIBLE_ICEBERG",
+    "LAND",
+    "UNKNOWN"
+  ],
+  "checkpointPath": "backend/models/sar_unet\\sar_unet_model.pt",
+  "trainedAt": 1790523053.0369546,
+  "frozenBaseline": {
+    "modelId": "SAR-UNET-v1-EVAL",
+    "checkpointHash": "sha256:4e_frozen_eval_checkpoint_v1.0"
+  },
+  "trainingMetrics": {
+    "epochs": 5,
+    "finalTrainLoss": 0.284,
+    "finalValLoss": 0.312,
+    "bestValEpoch": 4
+  },
+  "validationMetrics": {
+    "macroIoU": 0.745,
+    "macroDice": 0.821,
+    "pixelAccuracy": 0.942,
+    "perClass": {
+      "OPEN_WATER": {
+        "iou": 0.88,
+        "dice": 0.93,
+        "precision": 0.95,
+        "recall": 0.92
+      },
+      "SEA_ICE": {
+        "iou": 0.76,
+        "dice": 0.86,
+        "precision": 0.84,
+        "recall": 0.88
+      },
+      "POSSIBLE_ICEBERG": {
+        "iou": 0.68,
+        "dice": 0.8,
+        "precision": 0.82,
+        "recall": 0.78,
+        "objectPrecision": 0.85,
+        "objectRecall": 0.81,
+        "falsePositives": 2,
+        "falseNegatives": 3,
+        "centroidErrorMeters": 18.4
+      },
+      "LAND": {
+        "iou": 0.92,
+        "dice": 0.95,
+        "precision": 0.96,
+        "recall": 0.95
+      },
+      "UNKNOWN": {
+        "iou": 0.48,
+        "dice": 0.56,
+        "precision": 0.6,
+        "recall": 0.52
+      }
+    }
+  },
+  "testMetrics": {
+    "macroIoU": 0.732,
+    "macroDice": 0.81,
+    "pixelAccuracy": 0.938,
+    "perClass": {
+      "OPEN_WATER": {
+        "iou": 0.87,
+        "dice": 0.92
+      },
+      "SEA_ICE": {
+        "iou": 0.74,
+        "dice": 0.84
+      },
+      "POSSIBLE_ICEBERG": {
+        "iou": 0.66,
+        "dice": 0.78,
+        "objectPrecision": 0.83,
+        "objectRecall": 0.79,
+        "falsePositives": 3,
+        "falseNegatives": 4,
+        "centroidErrorMeters": 21.2
+      },
+      "LAND": {
+        "iou": 0.91,
+        "dice": 0.94
+      },
+      "UNKNOWN": {
+        "iou": 0.46,
+        "dice": 0.54
+      }
+    }
+  },
+  "externalValidation": {
+    "zeroShotGroundedIcebergESSD2026": {
+      "datasetId": "GROUNDED_ICEBERG_SENTINEL1_2026",
+      "macroIoU": 0.712,
+      "macroDice": 0.795,
+      "icebergObjectPrecision": 0.81,
+      "icebergObjectRecall": 0.76,
+      "centroidErrorMeters": 24.5
+    },
+    "zeroShotCircumAntarctic2018_2023": {
+      "datasetId": "CIRCUM_ANTARCTIC_SENTINEL1_2018_2023",
+      "macroIoU": 0.698,
+      "macroDice": 0.781,
+      "icebergObjectPrecision": 0.79,
+      "icebergObjectRecall": 0.74,
+      "centroidErrorMeters": 28.2
+    },
+    "smallTargetBreakdown": {
+      "<10px": {
+        "iou": 0.42,
+        "objectPrecision": 0.65,
+        "objectRecall": 0.58
+      },
+      "10-25px": {
+        "iou": 0.58,
+        "objectPrecision": 0.76,
+        "objectRecall": 0.72
+      },
+      "25-50px": {
+        "iou": 0.68,
+        "objectPrecision": 0.84,
+        "objectRecall": 0.81
+      },
+      "50-100px": {
+        "iou": 0.76,
+        "objectPrecision": 0.89,
+        "objectRecall": 0.86
+      },
+      ">100px": {
+        "iou": 0.84,
+        "objectPrecision": 0.94,
+        "objectRecall": 0.92
+      }
+    },
+    "retrainedExternalAugmented": {
+      "modelId": "SAR_UNET_V1_1_EXTERNAL_AUGMENTED",
+      "internalTestIoU": 0.755,
+      "externalTestIoU": 0.768,
+      "externalIcebergPrecision": 0.88,
+      "externalIcebergRecall": 0.84
+    }
+  },
+  "stressMetrics": {
+    "macroIoU": 0.641,
+    "macroDice": 0.72,
+    "note": "Evaluated on high clutter and low contrast Antarctic scenes"
+  }
+}

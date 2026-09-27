@@ -1,8 +1,12 @@
 /**
- * ASTRALIS Nav-OS — Explainable AI Copilot HUD (Phase 10)
+ * POLARIS Nav-OS — Real-Time Decision & Robustness HUD Panel (Phase 6B)
  *
- * Displays natural language decision explanations, risk levels,
- * confidence scores, and copilot status in real time.
+ * Displays decision evidence, COLREG rule basis, safety margins, decision robustness,
+ * counterfactual branch analysis, sensor freshness, and debounced bridge alerts.
+ *
+ * STEP 13 TERMINOLOGY ENFORCEMENT:
+ * - Data Modes: LIVE | REPLAY | CACHED | SYNTHETIC | STALE | DEGRADED | UNKNOWN (NEVER fake "REAL")
+ * - Confidence Types: HIGH_EVIDENCE | MODERATE_EVIDENCE | LIMITED_EVIDENCE | INSUFFICIENT_EVIDENCE | CONFLICTED_EVIDENCE
  */
 
 export class CopilotHUD {
@@ -12,6 +16,7 @@ export class CopilotHUD {
     this.explanations = [];
     this.maxExplanations = 5;
     this.autoHideDelay = 10000;
+    this.debugCounterfactualMode = false;
 
     this.initializeUI();
   }
@@ -30,10 +35,10 @@ export class CopilotHUD {
       position: fixed;
       bottom: 20px;
       left: 20px;
-      width: 380px;
-      max-height: 280px;
+      width: 420px;
+      max-height: 380px;
       overflow-y: auto;
-      background: rgba(10, 25, 47, 0.88);
+      background: rgba(10, 25, 47, 0.92);
       border: 1px solid #3b82f6;
       border-radius: 8px;
       padding: 12px;
@@ -59,19 +64,95 @@ export class CopilotHUD {
     header.innerHTML = `
       <span style="font-weight: 600; color: #60a5fa; display: flex; align-items: center; gap: 6px;">
         <span style="display:inline-block; width:8px; height:8px; background:#22c55e; border-radius:50%;"></span>
-        ASTRALIS Copilot
+        POLARIS Decision & Robustness HUD
       </span>
-      <span style="font-size: 11px; color: #94a3b8;">Llama 3.2 3B / Rule Engine</span>
+      <span style="font-size: 11px; color: #94a3b8;">COLREG / Counterfactual Engine</span>
     `;
 
     this.container.appendChild(header);
+
+    // STEP 12: Decision Summary Card
+    this.decisionCard = document.createElement('div');
+    this.decisionCard.id = 'hud-decision-card';
+    this.decisionCard.style.cssText = `
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      background: rgba(30, 58, 138, 0.35);
+      border-left: 4px solid #3b82f6;
+      border-radius: 4px;
+      font-size: 12px;
+    `;
+    this.decisionCard.innerHTML = `<span style="color:#94a3b8;">Awaiting decision telemetry...</span>`;
+    this.container.appendChild(this.decisionCard);
+
+    // Counterfactual Analysis Card (Debug mode toggle)
+    this.counterfactualCard = document.createElement('div');
+    this.counterfactualCard.id = 'hud-counterfactual-card';
+    this.counterfactualCard.style.cssText = `
+      display: none;
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px dashed #64748b;
+      border-radius: 4px;
+      font-size: 11px;
+    `;
+    this.container.appendChild(this.counterfactualCard);
 
     this.explanationsList = document.createElement('div');
     this.explanationsList.id = 'copilot-explanations';
     this.container.appendChild(this.explanationsList);
 
     document.body.appendChild(this.container);
-    console.info('[CopilotHUD] HUD interface initialized');
+    console.info('[CopilotHUD] Decision & Robustness HUD Panel initialized');
+  }
+
+  /**
+   * STEP 12 & 13: Update HUD with complete real-time decision & robustness state.
+   */
+  updateDecisionTelemetry(decisionRecord = {}, counterfactualResult = null, sensorHealth = {}) {
+    if (!this.decisionCard) return;
+
+    const action = decisionRecord.selectedAction ? decisionRecord.selectedAction.actionClass : 'MAINTAIN';
+    const encounter = decisionRecord.primaryEncounter ? decisionRecord.primaryEncounter.type : 'CLEAR';
+    const rule = (decisionRecord.applicableRuleCandidates && decisionRecord.applicableRuleCandidates[0]) ? decisionRecord.applicableRuleCandidates[0].title : 'Rule 5/6 Safe Speed';
+    const confType = decisionRecord.decisionConfidenceType || 'HIGH_EVIDENCE';
+    const dataMode = sensorHealth.dataMode || 'SYNTHETIC'; // STEP 13: Exact mode tag (LIVE|REPLAY|SYNTHETIC|STALE)
+
+    this.decisionCard.innerHTML = `
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-weight:600; color:#38bdf8;">
+        <span>${action}</span>
+        <span style="font-size:10px; padding:2px 6px; background:#1e293b; border-radius:3px; color:#94a3b8;">MODE: ${dataMode}</span>
+      </div>
+      <div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">
+        <strong>Encounter:</strong> ${encounter} | <strong>Rule:</strong> ${rule}
+      </div>
+      <div style="display:flex; gap:12px; font-size:10px; color:#94a3b8;">
+        <span>Evidence: <strong style="color:#60a5fa;">${confType}</strong></span>
+        <span>Target Hdg: <strong>${decisionRecord.controlProposal?.targetHeading || 0}°</strong></span>
+        <span>Target Spd: <strong>${decisionRecord.controlProposal?.targetSpeed || 15} SU/s</strong></span>
+      </div>
+    `;
+
+    // Update Counterfactual Card if active
+    if (counterfactualResult && this.debugCounterfactualMode) {
+      this.counterfactualCard.style.display = 'block';
+      const margin = counterfactualResult.margin ? counterfactualResult.margin.marginClass : 'ROBUST_DECISION';
+      const dominance = counterfactualResult.perturbation ? `${(counterfactualResult.perturbation.dominanceRatio * 100).toFixed(0)}%` : '100%';
+
+      this.counterfactualCard.innerHTML = `
+        <div style="color:#e2e8f0; font-weight:600; margin-bottom:2px;">COUNTERFACTUAL ROBUSTNESS</div>
+        <div>Margin: <strong style="color:#34d399;">${margin}</strong> | Dominance: <strong>${dominance}</strong></div>
+        <div>Top Alternative: ${counterfactualResult.margin?.secondClearance ? `${counterfactualResult.margin.secondClearance}m clearance` : 'None'}</div>
+      `;
+    }
+  }
+
+  setDebugCounterfactualMode(enabled = true) {
+    this.debugCounterfactualMode = enabled;
+    if (this.counterfactualCard && !enabled) {
+      this.counterfactualCard.style.display = 'none';
+    }
   }
 
   addExplanation(explanation) {
