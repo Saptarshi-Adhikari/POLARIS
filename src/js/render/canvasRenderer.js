@@ -4,6 +4,9 @@
  */
 
 import { Camera, WORLD_WIDTH, WORLD_HEIGHT } from './camera.js';
+import { maritimeTrafficService, CPA_ALARM_LEVEL } from '../data/MaritimeTrafficService.js';
+import { worldToGeo } from '../providers/geoTransform.js';
+import { AAD_EAST_ANTARCTIC_BBOX } from '../data/RealWorldDatasetLoader.js';
 
 
 
@@ -62,6 +65,11 @@ export class CanvasRenderer {
     // PPI Radar View state
     this.isRadarView = false;
     this.radarSweepAngle = 0;
+    this.vesselRadarAngle = 0;
+
+    // Maritime Traffic interaction
+    this.selectedAisVessel = null;
+    this.hoveredAisVessel  = null;
 
     this.initIceBlobTextures();
     this.resizeCanvas();
@@ -186,7 +194,8 @@ export class CanvasRenderer {
       try { this.drawCanonicalRouteLine(ctx, aiNavigator, ship); } catch(e) { console.warn("drawCanonicalRouteLine failed", e); }
       try { this.drawIcebergTrajectories(ctx, icebergs); } catch(e) { console.warn("drawIcebergTrajectories failed", e); }
       try { this.drawIcebergs(ctx, icebergs); } catch(e) { console.warn("drawIcebergs failed", e); }
-      try { this.drawShip(ctx, ship); } catch(e) { console.warn("drawShip failed", e); }
+      try { this.drawAisMaritimeTraffic(ctx, ship); } catch(e) { console.warn("drawAisMaritimeTraffic failed", e); }
+      try { this.drawShip(ctx, ship, dt); } catch(e) { console.warn("drawShip failed", e); }
       try { this.drawAIOverlay(ctx, ship, icebergs, aiNavigator, state); } catch(e) { console.warn("drawAIOverlay failed", e); }
       // try { this.drawValidationOverlays(ctx); } catch(e) {}
 
@@ -582,38 +591,206 @@ export class CanvasRenderer {
     const pts = ship ? [{ x: ship.x, y: ship.y }, ...finalWps] : finalWps;
     if (pts.length < 2) { ctx.restore(); return; }
 
-    ctx.lineWidth = Math.max(2.0, 3 / this.camera.zoom);
+    const isSafeAvoidance = activeRoute.hasAvoidance || 
+                            state?.navigation?.isSafeAvoidanceActive || 
+                            state?.navigation?.interferenceAlert?.detected ||
+                            activeRoute.isSafeRoute;
+
+    const interferenceHazard = state?.navigation?.interferenceAlert?.hazard || activeRoute.avoidedHazard;
+
+    // 1. Draw Safety Buffer Corridor Envelope (if safe avoidance active)
+    if (isSafeAvoidance && pts.length >= 2) {
+      const corridorWidth = Math.max(16.0, 24.0 / this.camera.zoom);
+      ctx.save();
+      for (let i = 0; i < pts.length - 1; i++) {
+        const p1 = pts[i];
+        const p2 = pts[i + 1];
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const len = Math.hypot(dx, dy);
+        if (len < 1) continue;
+        const nx = (-dy / len) * corridorWidth;
+        const ny = (dx / len) * corridorWidth;
+
+        // Corridor ribbon fill
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+        ctx.beginPath();
+        ctx.moveTo(p1.x + nx, p1.y + ny);
+        ctx.lineTo(p2.x + nx, p2.y + ny);
+        ctx.lineTo(p2.x - nx, p2.y - ny);
+        ctx.lineTo(p1.x - nx, p1.y - ny);
+        ctx.closePath();
+        ctx.fill();
+
+        // Subtle corridor boundary track lines
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.35)';
+        ctx.lineWidth = 1.0 / this.camera.zoom;
+        ctx.setLineDash([4 / this.camera.zoom, 4 / this.camera.zoom]);
+        ctx.beginPath();
+        ctx.moveTo(p1.x + nx, p1.y + ny);
+        ctx.lineTo(p2.x + nx, p2.y + ny);
+        ctx.moveTo(p1.x - nx, p1.y - ny);
+        ctx.lineTo(p2.x - nx, p2.y - ny);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // 2. Draw Main Safe Trajectory Segments
+    ctx.lineWidth = isSafeAvoidance ? Math.max(2.8, 3.8 / this.camera.zoom) : Math.max(2.0, 3.0 / this.camera.zoom);
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.setLineDash([8 / this.camera.zoom, 6 / this.camera.zoom]);
+    ctx.setLineDash(isSafeAvoidance ? [10 / this.camera.zoom, 5 / this.camera.zoom] : [8 / this.camera.zoom, 6 / this.camera.zoom]);
 
     for (let i = 0; i < pts.length - 1; i++) {
       const ptCurr = pts[i];
       const ptNext = pts[i + 1];
 
       const riskScore = ptCurr.riskScore || 0;
-      let strokeColor = '#22c55e';
+      let strokeColor = isSafeAvoidance ? '#00ffcc' : '#22c55e';
       if (riskScore > 0.75) strokeColor = '#ef4444';
       else if (riskScore > 0.50) strokeColor = '#f97316';
       else if (riskScore > 0.25) strokeColor = '#eab308';
 
+      ctx.save();
+      if (isSafeAvoidance) {
+        ctx.shadowColor = '#00ffcc';
+        ctx.shadowBlur = 6 / this.camera.zoom;
+      }
       ctx.strokeStyle = strokeColor;
       ctx.beginPath();
       ctx.moveTo(ptCurr.x, ptCurr.y);
       ctx.lineTo(ptNext.x, ptNext.y);
       ctx.stroke();
+      ctx.restore();
+
+      // Directional Flow Chevrons along safe route
+      const dx = ptNext.x - ptCurr.x;
+      const dy = ptNext.y - ptCurr.y;
+      const segDist = Math.hypot(dx, dy);
+      if (segDist > 60) {
+        const midX = (ptCurr.x + ptNext.x) / 2;
+        const midY = (ptCurr.y + ptNext.y) / 2;
+        const angle = Math.atan2(dy, dx);
+        ctx.save();
+        ctx.translate(midX, midY);
+        ctx.rotate(angle);
+        ctx.strokeStyle = isSafeAvoidance ? '#00ffcc' : 'rgba(34, 197, 94, 0.7)';
+        ctx.lineWidth = 1.8 / this.camera.zoom;
+        ctx.setLineDash([]);
+        const cSize = Math.max(4, 5 / this.camera.zoom);
+        ctx.beginPath();
+        ctx.moveTo(-cSize, -cSize);
+        ctx.lineTo(cSize, 0);
+        ctx.lineTo(-cSize, cSize);
+        ctx.stroke();
+        ctx.restore();
+      }
     }
 
     ctx.setLineDash([]);
 
+    // 3. Draw Waypoint Nodes
     const r = Math.max(4, 5 / this.camera.zoom);
     for (let i = 0; i < pts.length; i++) {
-      if (i === 0 || i === pts.length - 1) {
-        ctx.fillStyle = i === 0 ? (aiNavigator.riskScore > 0.75 ? '#ef4444' : (aiNavigator.riskScore > 0.35 ? '#f97316' : '#22c55e')) : '#22c55e';
+      const isStart = (i === 0);
+      const isEnd = (i === pts.length - 1);
+      
+      ctx.fillStyle = isStart
+        ? (aiNavigator.riskScore > 0.75 ? '#ef4444' : (aiNavigator.riskScore > 0.35 ? '#f97316' : '#00ffcc'))
+        : (isSafeAvoidance ? '#00ffcc' : '#22c55e');
+
+      ctx.beginPath();
+      ctx.arc(pts[i].x, pts[i].y, isEnd ? r * 1.2 : (isStart ? r : r * 0.7), 0, Math.PI * 2);
+      ctx.fill();
+
+      if (isSafeAvoidance && !isStart && !isEnd) {
+        ctx.strokeStyle = 'rgba(0, 255, 204, 0.5)';
+        ctx.lineWidth = 1.0 / this.camera.zoom;
         ctx.beginPath();
-        ctx.arc(pts[i].x, pts[i].y, i === pts.length - 1 ? r : r * 0.6, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.arc(pts[i].x, pts[i].y, r * 1.4, 0, Math.PI * 2);
+        ctx.stroke();
       }
+    }
+
+    // 4. Draw Obstacle Hazard Warning Tag & Evasion Badge
+    if (interferenceHazard) {
+      const hx = interferenceHazard.x;
+      const hy = interferenceHazard.y;
+      if (Number.isFinite(hx) && Number.isFinite(hy)) {
+        ctx.save();
+        // Pulsing hazard danger ring
+        const pulseR = (interferenceHazard.collisionRadius || 30) + Math.sin(Date.now() * 0.007) * 6;
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2.0 / this.camera.zoom;
+        ctx.setLineDash([6 / this.camera.zoom, 4 / this.camera.zoom]);
+        ctx.beginPath();
+        ctx.arc(hx, hy, pulseR, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Tactical Callout Tag at Obstacle
+        const tagText = `⚠ OBSTACLE INTERFERENCE: ${interferenceHazard.name || 'HAZARD'}`;
+        const subText = `CLEARANCE: ${Math.max(0, Math.round(Math.abs(interferenceHazard.clearance || 45)))}m [SAFE DETOUR]`;
+        ctx.font = `bold ${Math.max(10, 11 / this.camera.zoom)}px "JetBrains Mono", monospace`;
+        ctx.textBaseline = 'bottom';
+        const tw = Math.max(ctx.measureText(tagText).width, ctx.measureText(subText).width) + 16;
+        const th = 32 / this.camera.zoom;
+        const tagX = hx + 25 / this.camera.zoom;
+        const tagY = hy - 15 / this.camera.zoom;
+
+        // Leader line
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+        ctx.lineWidth = 1.2 / this.camera.zoom;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(hx, hy);
+        ctx.lineTo(tagX, tagY + th / 2);
+        ctx.stroke();
+
+        // Background card
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 1.2 / this.camera.zoom;
+        ctx.beginPath();
+        ctx.roundRect(tagX, tagY, tw, th, 4 / this.camera.zoom);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ef4444';
+        ctx.fillText(tagText, tagX + 8, tagY + 14 / this.camera.zoom);
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = `bold ${Math.max(8.5, 9.5 / this.camera.zoom)}px "JetBrains Mono", monospace`;
+        ctx.fillText(subText, tagX + 8, tagY + 28 / this.camera.zoom);
+
+        ctx.restore();
+      }
+    }
+
+    // 5. Tactical HUD Safe Route Badge
+    if (isSafeAvoidance && pts.length >= 2) {
+      const midIdx = Math.floor(pts.length / 2);
+      const bPt = pts[midIdx];
+      ctx.save();
+      const badgeText = `🛡 SAFE AVOIDANCE ROUTE ACTIVE`;
+      ctx.font = `bold ${Math.max(10, 11 / this.camera.zoom)}px "JetBrains Mono", monospace`;
+      const bw = ctx.measureText(badgeText).width + 20;
+      const bh = 22 / this.camera.zoom;
+      const bx = bPt.x - bw / 2;
+      const by = bPt.y - 28 / this.camera.zoom;
+
+      ctx.fillStyle = 'rgba(6, 78, 59, 0.95)';
+      ctx.strokeStyle = '#00ffcc';
+      ctx.lineWidth = 1.5 / this.camera.zoom;
+      ctx.beginPath();
+      ctx.roundRect(bx, by, bw, bh, 5 / this.camera.zoom);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(badgeText, bPt.x, by + bh / 2);
+      ctx.restore();
     }
     ctx.restore();
   }
@@ -960,14 +1137,41 @@ export class CanvasRenderer {
       }
 
       if (ice.isUSNIC || ice.name || (ice.id && typeof ice.id === 'string' && ice.id.includes('-'))) {
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 11px "JetBrains Mono"';
+        ctx.fillStyle = ice.rcsDb !== undefined ? '#38bdf8' : '#a1eff8';
+        ctx.font = 'bold 11px "JetBrains Mono", monospace';
         ctx.textAlign = 'center';
-        ctx.fillText(ice.name || ice.id, 0, -r - 12);
+        ctx.fillText(ice.name || ice.id, 0, -r - 14);
+
+        if (ice.rcsDb !== undefined || ice.sensor) {
+          // SAR Radar Backscatter Detection Box with Tactical Brackets
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+          ctx.lineWidth = 1.2;
+          const boxSize = r + 8;
+          const bracketLen = 6;
+          // Top-Left
+          ctx.beginPath();
+          ctx.moveTo(-boxSize, -boxSize + bracketLen); ctx.lineTo(-boxSize, -boxSize); ctx.lineTo(-boxSize + bracketLen, -boxSize);
+          // Top-Right
+          ctx.moveTo(boxSize - bracketLen, -boxSize); ctx.lineTo(boxSize, -boxSize); ctx.lineTo(boxSize, -boxSize + bracketLen);
+          // Bottom-Left
+          ctx.moveTo(-boxSize, boxSize - bracketLen); ctx.lineTo(-boxSize, boxSize); ctx.lineTo(-boxSize + bracketLen, boxSize);
+          // Bottom-Right
+          ctx.moveTo(boxSize - bracketLen, boxSize); ctx.lineTo(boxSize, boxSize); ctx.lineTo(boxSize, boxSize - bracketLen);
+          ctx.stroke();
+
+          // SAR Metadata Readout
+          ctx.fillStyle = '#a4d64c';
+          ctx.font = 'bold 9px "JetBrains Mono", monospace';
+          const sarText = `SAR ${ice.rcsDb ? ice.rcsDb + ' dB' : 'ECHO'} [${ice.sensor || 'ERS-2'}]`;
+          ctx.fillText(sarText, 0, -r - 26);
+        }
+
         if (ice.lat !== undefined && ice.lon !== undefined) {
-          ctx.fillStyle = 'rgba(218, 226, 253, 0.7)';
-          ctx.font = '9px "JetBrains Mono"';
-          ctx.fillText(`${Math.abs(ice.lat).toFixed(1)}°S ${Math.abs(ice.lon).toFixed(1)}°W`, 0, -r - 2);
+          ctx.fillStyle = 'rgba(218, 226, 253, 0.75)';
+          ctx.font = '9px "JetBrains Mono", monospace';
+          const latStr = `${Math.abs(ice.lat).toFixed(2)}°S`;
+          const lonStr = `${ice.lon >= 0 ? ice.lon.toFixed(2) + '°E' : Math.abs(ice.lon).toFixed(2) + '°W'}`;
+          ctx.fillText(`${latStr} ${lonStr}`, 0, -r - 3);
         }
       }
 
@@ -976,48 +1180,420 @@ export class CanvasRenderer {
     ctx.restore();
   }
 
-  drawShip(ctx, ship) {
+  drawShip(ctx, ship, dt = 0.016) {
+    if (!ship) return;
+    this.vesselRadarAngle = (this.vesselRadarAngle || 0) + (dt || 0.016) * 3.5;
+
     ctx.save();
     ctx.translate(ship.x, ship.y);
-    // Ship sprite asset natively points East (+X / 0 deg). Offset is 0 radians.
-    const SHIP_SPRITE_FORWARD_OFFSET = 0;
-    const visualRotation = ((ship.heading * Math.PI) / 180) + SHIP_SPRITE_FORWARD_OFFSET;
-    ctx.rotate(visualRotation);
-    if (ship.speedKnots > 2.0) {
-      const wakeLength = Math.min(60, ship.speedKnots * 2);
-      const wakeSpread = Math.min(20, ship.speedKnots * 0.8);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+
+    const radHdg = ((ship.heading * Math.PI) / 180);
+    const speed = ship.speedKnots || 0;
+
+    // ── 1. Hydrodynamic Kelvin Wake Waves & Frothing Prop Wash ──
+    if (speed > 1.0) {
+      ctx.save();
+      ctx.rotate(radHdg);
+
+      const wakeLen = Math.min(130, speed * 7.0);
+      const wakeWidth = Math.min(48, speed * 2.5);
+
+      // Expanding Turbulent Prop Wash from Twin Azipods
+      const washGrad = ctx.createLinearGradient(-15, 0, -15 - wakeLen, 0);
+      washGrad.addColorStop(0.0, 'rgba(255, 255, 255, 0.65)');
+      washGrad.addColorStop(0.25, 'rgba(186, 230, 253, 0.40)');
+      washGrad.addColorStop(0.65, 'rgba(125, 211, 252, 0.18)');
+      washGrad.addColorStop(1.0, 'rgba(56, 189, 248, 0.00)');
+
+      ctx.fillStyle = washGrad;
       ctx.beginPath();
-      ctx.moveTo(-10, 0); ctx.lineTo(-10 - wakeLength, -wakeSpread);
-      ctx.lineTo(-10 - wakeLength - 10, 0); ctx.lineTo(-10 - wakeLength, wakeSpread);
-      ctx.closePath(); ctx.fill();
+      ctx.moveTo(-16, -7);
+      ctx.lineTo(-16 - wakeLen, -wakeWidth * 0.7);
+      ctx.quadraticCurveTo(-20 - wakeLen * 1.15, 0, -16 - wakeLen, wakeWidth * 0.7);
+      ctx.lineTo(-16, 7);
+      ctx.closePath();
+      ctx.fill();
+
+      // Diverging V-shaped Kelvin Wake Wave Crests
+      ctx.strokeStyle = 'rgba(224, 242, 254, 0.4)';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      // Port wave
+      ctx.moveTo(-6, -8);
+      ctx.lineTo(-15 - wakeLen * 0.95, -wakeWidth * 1.35);
+      // Starboard wave
+      ctx.moveTo(-6, 8);
+      ctx.lineTo(-15 - wakeLen * 0.95, wakeWidth * 1.35);
+      ctx.stroke();
+
+      // Secondary Kelvin ripples
+      ctx.strokeStyle = 'rgba(186, 230, 253, 0.22)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(-16, -11);
+      ctx.lineTo(-28 - wakeLen * 0.65, -wakeWidth * 1.1);
+      ctx.moveTo(-16, 11);
+      ctx.lineTo(-28 - wakeLen * 0.65, wakeWidth * 1.1);
+      ctx.stroke();
+
+      ctx.restore();
     }
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+
+    // ── 2. Active Marine Radar Scanner Cone (Phosphorescent Persistence) ──
+    ctx.save();
+    const radarRadius = 85;
+    const sweepAngle = this.vesselRadarAngle || 0;
+    const sweepCone = Math.PI / 4; // 45 degree active illuminated sector
+
+    const coneGrad = ctx.createRadialGradient(0, 0, 5, 0, 0, radarRadius);
+    coneGrad.addColorStop(0.0, 'rgba(74, 222, 128, 0.25)');
+    coneGrad.addColorStop(0.8, 'rgba(34, 197, 94, 0.08)');
+    coneGrad.addColorStop(1.0, 'rgba(34, 197, 94, 0.00)');
+
+    ctx.fillStyle = coneGrad;
     ctx.beginPath();
-    ctx.moveTo(22, 2); ctx.lineTo(-12, -8); ctx.lineTo(-14, 10); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#d95a2b';
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, radarRadius, sweepAngle - sweepCone, sweepAngle);
+    ctx.closePath();
+    ctx.fill();
+
+    // Sharp rotating sweep line
+    ctx.strokeStyle = '#86efac';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(20, 0); ctx.lineTo(-12, -10); ctx.lineTo(-14, 10); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(-8, -4, 12, 8);
-    ctx.fillStyle = '#3f494a'; ctx.fillRect(-4, -5, 4, 10);
-    ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(20, 0); ctx.lineTo(60, 0); ctx.stroke();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(radarRadius * Math.cos(sweepAngle), radarRadius * Math.sin(sweepAngle));
+    ctx.stroke();
+
+    // Radar Range Ring (Faint dashed green)
+    ctx.strokeStyle = 'rgba(74, 222, 128, 0.22)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.arc(0, 0, radarRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
     ctx.restore();
+
+    // ── 3. High-Definition Polar Icebreaker Vessel Hull & Superstructure ──
+    ctx.save();
+    ctx.rotate(radHdg);
+
+    // Drop shadow under hull
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    ctx.beginPath();
+    ctx.moveTo(30, 3);
+    ctx.lineTo(8, 12);
+    ctx.lineTo(-20, 11);
+    ctx.lineTo(-23, 0);
+    ctx.lineTo(-20, -11);
+    ctx.lineTo(8, -12);
+    ctx.closePath();
+    ctx.fill();
+
+    // Lower Reinforced Ice-Belt (Waterline steel armour in dark navy/grey)
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.moveTo(28, 0);
+    ctx.lineTo(10, 11);
+    ctx.lineTo(-20, 10);
+    ctx.lineTo(-22, 0);
+    ctx.lineTo(-20, -10);
+    ctx.lineTo(10, -11);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Upper Polar Class Hull (Vibrant Arctic Red/Orange with gradient)
+    const hullGrad = ctx.createLinearGradient(0, -9, 0, 9);
+    hullGrad.addColorStop(0.0, '#ea580c'); // Bright polar orange
+    hullGrad.addColorStop(0.5, '#dc2626'); // High-vis marine red
+    hullGrad.addColorStop(1.0, '#991b1b'); // Deep hull shadow
+
+    ctx.fillStyle = hullGrad;
+    ctx.beginPath();
+    ctx.moveTo(26, 0);             // Bulbous ice-ramming bow
+    ctx.lineTo(12, 8.5);          // Flare shoulder
+    ctx.lineTo(-18, 8.0);         // Midships to stern
+    ctx.lineTo(-20, 0);           // Transom stern center
+    ctx.lineTo(-18, -8.0);
+    ctx.lineTo(12, -8.5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Forecastle deck & cargo hold hatches (Forward)
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(4, -5, 8, 10);
+    // Anchor windlass & forward crane boom
+    ctx.strokeStyle = '#f8fafc';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(12, 0); ctx.lineTo(18, 0);
+    ctx.stroke();
+
+    // Multi-Deck Navigation Bridge Superstructure (Crisp Polar White)
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(-8, -6, 14, 12, 2) : ctx.fillRect(-8, -6, 14, 12);
+    ctx.fill();
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // Navigation Bridge Forward Windows (Illuminated Command Deck)
+    ctx.fillStyle = '#38bdf8'; // Glowing blue glass
+    ctx.fillRect(2, -4.5, 3, 9);
+
+    // Twin Exhaust Funnels (Middens)
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(-6, -4, 4, 3);
+    ctx.fillRect(-6, 1, 4, 3);
+    ctx.fillStyle = '#ea580c'; // Funnel orange band
+    ctx.fillRect(-4.5, -4, 1.5, 3);
+    ctx.fillRect(-4.5, 1, 1.5, 3);
+
+    // Starboard and Port Enclosed Polar Lifeboats
+    ctx.fillStyle = '#f97316';
+    ctx.fillRect(-5, -7.8, 6, 2.2);
+    ctx.fillRect(-5, 5.6, 6, 2.2);
+
+    // Aft Flight Deck & Helipad Marking (Stern)
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(-14, 0, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // White 'H' Helipad marking
+    ctx.strokeStyle = '#f8fafc';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-16, -2.5); ctx.lineTo(-16, 2.5);
+    ctx.moveTo(-12, -2.5); ctx.lineTo(-12, 2.5);
+    ctx.moveTo(-16, 0);    ctx.lineTo(-12, 0);
+    ctx.stroke();
+
+    // Dynamic Stern Rudder Angle Deflection
+    const rudderDeg = ship.rudder || 0;
+    const rudderRad = (rudderDeg * Math.PI) / 180;
+    ctx.save();
+    ctx.translate(-21, 0);
+    ctx.rotate(rudderRad);
+    ctx.strokeStyle = '#f87171';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-8, 0);
+    ctx.stroke();
+    ctx.restore();
+
+    // Forward Heading Vector Leader Line (Projected path)
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(26, 0);
+    ctx.lineTo(65, 0);
+    ctx.stroke();
+    // Arrowhead
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.moveTo(65, 0);
+    ctx.lineTo(58, -3.5);
+    ctx.lineTo(58, 3.5);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore(); // Restore vessel rotation
+
+    // ── 4. Tactical Vessel Telemetry Callout Pill ──
+    const isReal = typeof window !== 'undefined' && window.simEngine && window.simEngine.dataMode === 'REAL';
+    const geo = worldToGeo(ship.x, ship.y, isReal ? AAD_EAST_ANTARCTIC_BBOX : DEFAULT_ANTARCTIC_BBOX);
+
+    const calloutX = 32;
+    const calloutY = -24;
+
+    ctx.fillStyle = 'rgba(6, 14, 32, 0.90)';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(calloutX, calloutY, 155, 38, 4) : ctx.fillRect(calloutX, calloutY, 155, 38);
+    ctx.fill();
+    ctx.stroke();
+
+    // Vessel Name & Polar Class
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 11px "Inter"';
-    ctx.fillText(ship.name, ship.x + 22, ship.y - 6);
+    ctx.font = 'bold 11px "JetBrains Mono", monospace';
+    ctx.fillText(`${ship.name || 'POLARIS'} [PC3 ICEBREAKER]`, calloutX + 6, calloutY + 13);
+
+    // Speed, Heading & Coordinates
+    ctx.fillStyle = '#a4d64c';
+    ctx.font = '9px "JetBrains Mono", monospace';
+    ctx.fillText(`SOG: ${speed.toFixed(1)} kts | HDG: ${Math.round(ship.heading)}°`, calloutX + 6, calloutY + 24);
+
+    ctx.fillStyle = 'rgba(218, 226, 253, 0.75)';
+    ctx.font = '8px "JetBrains Mono", monospace';
+    const latStr = `${Math.abs(geo.lat).toFixed(2)}°S`;
+    const lonStr = `${geo.lon >= 0 ? geo.lon.toFixed(2) + '°E' : Math.abs(geo.lon).toFixed(2) + '°W'}`;
+    ctx.fillText(`POS: ${latStr} ${lonStr}`, calloutX + 6, calloutY + 34);
 
     // Debug collision circle
     const dbgHud = typeof document !== 'undefined' ? document.getElementById('debug-hud') : null;
     if (dbgHud && !dbgHud.classList.contains('hidden')) {
-      ctx.save();
       ctx.strokeStyle = 'rgba(164, 214, 76, 0.8)';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(ship.x, ship.y, ship.collisionRadius, 0, Math.PI * 2);
+      ctx.arc(0, 0, ship.collisionRadius || 20, 0, Math.PI * 2);
       ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
+  drawAisMaritimeTraffic(ctx, ship) {
+    const vessels = maritimeTrafficService.getAllVessels();
+    if (!vessels || vessels.length === 0) return;
+
+    // Check CPA alerts relative to our ship
+    const cpaList = ship ? maritimeTrafficService.calculateCpaWithShip(ship) : [];
+    const cpaMap = new Map();
+    for (const c of cpaList) {
+      cpaMap.set(c.vessel.mmsi, c);
+    }
+
+    ctx.save();
+
+    for (const v of vessels) {
+      if (this.camera && !this.camera.isVisible(v.x, v.y, 250)) continue;
+
+      const isSelected = this.selectedAisVessel && this.selectedAisVessel.mmsi === v.mmsi;
+      const isHovered = this.hoveredAisVessel && this.hoveredAisVessel.mmsi === v.mmsi;
+      const cpaInfo = cpaMap.get(v.mmsi);
+      const isCriticalCpa = cpaInfo && cpaInfo.alarm === CPA_ALARM_LEVEL.CRITICAL;
+      const isCautionCpa = cpaInfo && cpaInfo.alarm === CPA_ALARM_LEVEL.CAUTION;
+
+      ctx.save();
+      ctx.translate(v.x, v.y);
+
+      // ── 1. Pulsing AIS Transponder Ping Ring ──
+      const pingR = 14 + (Math.sin(Date.now() * 0.004 + v.mmsi) + 1) * 3;
+      ctx.strokeStyle = isCriticalCpa ? 'rgba(239, 68, 68, 0.6)' : (isCautionCpa ? 'rgba(245, 158, 11, 0.6)' : 'rgba(56, 189, 248, 0.3)');
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(0, 0, pingR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // ── 2. Directed Vessel Glyph ──
+      const radCog = ((v.cog || v.heading) * Math.PI) / 180;
+      ctx.save();
+      ctx.rotate(radCog);
+
+      // Vessel Hull (Tactical pointed arrow/ship silhouette)
+      ctx.fillStyle = v.color || '#38bdf8';
+      ctx.beginPath();
+      ctx.moveTo(14, 0);     // Bow
+      ctx.lineTo(5, 5);      // Starboard shoulder
+      ctx.lineTo(-10, 4.5);  // Starboard stern
+      ctx.lineTo(-10, -4.5); // Port stern
+      ctx.lineTo(5, -5);     // Port shoulder
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Bridge house
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-4, -2.5, 5, 5);
+
+      // 15-Minute Course Leader Vector
+      const leaderLength = Math.min(50, v.sog * 2.8);
+      ctx.strokeStyle = isCriticalCpa ? '#ef4444' : (isCautionCpa ? '#f59e0b' : '#38bdf8');
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(14, 0);
+      ctx.lineTo(14 + leaderLength, 0);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.restore(); // Restore vessel rotation
+
+      // ── 3. Floating AIS Label Badge ──
+      ctx.fillStyle = isCriticalCpa ? '#ef4444' : (isCautionCpa ? '#f59e0b' : '#f8fafc');
+      ctx.font = 'bold 10px "JetBrains Mono", monospace';
+      ctx.fillText(`${v.flag ? v.flag.split(' ')[0] : '🚢'} ${v.name}`, 18, -8);
+
+      ctx.fillStyle = 'rgba(165, 243, 252, 0.85)';
+      ctx.font = '9px "JetBrains Mono", monospace';
+      ctx.fillText(`${v.vesselType} | ${v.sog.toFixed(1)} kts`, 18, 4);
+
+      // Destination badge
+      ctx.fillStyle = 'rgba(218, 226, 253, 0.65)';
+      ctx.font = '8px "JetBrains Mono", monospace';
+      ctx.fillText(`DEST: ${v.destination}`, 18, 14);
+
+      // ── 4. Tactical CPA Vector Warning Line to Own Ship ──
+      if (ship && (isCriticalCpa || isCautionCpa)) {
+        ctx.restore(); // back to world space
+        ctx.save();
+        ctx.strokeStyle = isCriticalCpa ? 'rgba(239, 68, 68, 0.8)' : 'rgba(245, 158, 11, 0.7)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.moveTo(ship.x, ship.y);
+        ctx.lineTo(v.x, v.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // CPA Label at midpoint
+        const midX = (ship.x + v.x) / 2;
+        const midY = (ship.y + v.y) / 2;
+        ctx.fillStyle = isCriticalCpa ? '#ef4444' : '#f59e0b';
+        ctx.font = 'bold 9px "JetBrains Mono", monospace';
+        ctx.fillText(`⚠ CPA: ${cpaInfo.cpaNm} NM (${cpaInfo.tcpaMinutes}m)`, midX + 8, midY - 6);
+        ctx.restore();
+        ctx.save();
+      }
+
+      // ── 5. Detailed Expanded Dossier (If Selected or Hovered) ──
+      if (isSelected || isHovered) {
+        const cardW = 195;
+        const cardH = 75;
+        const cardX = 18;
+        const cardY = 20;
+
+        ctx.fillStyle = 'rgba(4, 9, 20, 0.94)';
+        ctx.strokeStyle = v.color || '#38bdf8';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(cardX, cardY, cardW, cardH, 5) : ctx.fillRect(cardX, cardY, cardW, cardH);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px "JetBrains Mono", monospace';
+        ctx.fillText(`MMSI: ${v.mmsi} | IMO: ${v.imo || 'N/A'}`, cardX + 8, cardY + 14);
+
+        ctx.fillStyle = '#a4d64c';
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.fillText(`CALL: ${v.callsign || 'N/A'} | CLASS: ${v.polarClass || 'N/A'}`, cardX + 8, cardY + 28);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '8px "JetBrains Mono", monospace';
+        ctx.fillText(`STATUS: ${v.navStatus}`, cardX + 8, cardY + 42);
+        ctx.fillText(`DIM: ${v.lengthM}m × ${v.beamM}m | DRAFT: ${v.draftM}m`, cardX + 8, cardY + 54);
+        ctx.fillText(`OPERATOR: ${v.operator || 'Polar Fleet'}`, cardX + 8, cardY + 66);
+      }
+
       ctx.restore();
     }
+
+    ctx.restore();
   }
 
   drawStormOverlay(ctx) {
@@ -1101,6 +1677,20 @@ export class CanvasRenderer {
       return;
     }
 
+    // Check click on Maritime Traffic (AIS Vessel)
+    const aisVessels = maritimeTrafficService.getAllVessels();
+    let clickedAis = null;
+    for (const v of aisVessels) {
+      if (Math.hypot(worldPos.x - v.x, worldPos.y - v.y) < 30) {
+        clickedAis = v;
+        break;
+      }
+    }
+    if (clickedAis) {
+      this.selectedAisVessel = (this.selectedAisVessel && this.selectedAisVessel.mmsi === clickedAis.mmsi) ? null : clickedAis;
+      return;
+    }
+
     if (!this.getIcebergs) return;
     const icebergs = this.getIcebergs();
     let clickedIceberg = null;
@@ -1157,7 +1747,23 @@ export class CanvasRenderer {
         break;
       }
     }
-    if (!foundHover) {
+
+    // Check hover on AIS vessels
+    const aisVessels = maritimeTrafficService.getAllVessels();
+    let foundAisHover = false;
+    for (const v of aisVessels) {
+      if (Math.hypot(worldPos.x - v.x, worldPos.y - v.y) < 30) {
+        this.hoveredAisVessel = v;
+        this.canvas.style.cursor = 'pointer';
+        foundAisHover = true;
+        break;
+      }
+    }
+    if (!foundAisHover) {
+      this.hoveredAisVessel = null;
+    }
+
+    if (!foundHover && !foundAisHover) {
       this.hoveredEntity = null;
       if (this.planningMode !== PlanningMode.NONE) this.canvas.style.cursor = 'crosshair';
       else if (this.addIcebergMode) this.canvas.style.cursor = 'cell';

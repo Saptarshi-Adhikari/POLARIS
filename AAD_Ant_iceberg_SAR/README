@@ -1,0 +1,35 @@
+Title: Antarctic iceberg sizes and spatial distribution from SAR image analysis - Map
+
+Authors:
+  - NEAL YOUNG (INVESTIGATOR, TECHNICAL CONTACT, DIF AUTHOR)
+  - RAYMOND WILLIAMS (INVESTIGATOR)
+
+Owner: Commonwealth of Australia
+
+Citation: Young, N.W. and Williams, R. (2001) Antarctic iceberg sizes and spatial distribution from SAR image analysis - Map, Ver. 1,  <em>Australian Antarctic Data Centre</em> - <a href="https://data.aad.gov.au/metadata/records/AAD_Ant_iceberg_SAR">https://data.aad.gov.au/metadata/records/AAD_Ant_iceberg_SAR</a>, Accessed: 2020-07-02
+
+Revision Date: 2019-04-01
+
+Metadata URL: https://data.aad.gov.au/metadata/records/AAD_Ant_iceberg_SAR
+
+Dataset API URL: https://data.aad.gov.au/s3/api/bucket/datasets/documents/other/AAD_Ant_iceberg_SAR?export=json
+
+Abstract: This map shows the distribution of the iceberg data extracted from ERS SAR images.
+
+Icebergs are identified in Synthetic Aperture Radar [SAR] images by image analysis using the texture and intensity of the microwave backscatter observations.  The images are segmented using an edge detecting algorithm, and segments identified as iceberg or background, which may be sea ice, open water, or a mixture of both.  Dimensions of the icebergs are derived by spatial analysis of the corresponding image segments.  Location of the iceberg is derived from its position within the image and the navigation data that gives the location and orientation of the image.
+
+More than 20,000 individual observations have been extracted from SAR images acquired by the European Space Agency's ERS-1 and 2 satellites and the Canadian Space Agency's Radarsat satellite.  Because images can overlap, some proportion of the observations represent multiple observations of the same set of icebergs.
+
+Most observations relate to the sector between longitudes 70E and 135E.  The data set includes observations from several other discrete areas around the Antarctic coast.  In general observations are within 200 km of the coast but in limited areas extend to about 500 km from the coast.
+
+This metadata record has been derived from work performed under the auspices of ASAC project 2187 (ASAC_2187).
+
+The map in the pdf file shows the extent of the coverage of individual SAR scenes used in the analysis and the abundance and size characteristics (by a limited colour palette) of the identified icebergs.
+
+Use Constraints: This data set conforms to the CCBY Attribution License (http://creativecommons.org/licenses/by/4.0/).
+
+Please follow instructions listed in the citation reference provided at http://data.aad.gov.au/aadc/metadata/citation.cfm?entry_id=AAD_Ant_iceberg_SAR when using these data.
+
+ID: 1840
+Metadata ID: AAD_Ant_iceberg_SAR
+UUID: C80B0510-FA8B-40B0-BA23-26798F4AE615

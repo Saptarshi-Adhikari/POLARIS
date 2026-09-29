@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<DIF xmlns="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/" xmlns:dif="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/ http://gcmd.gsfc.nasa.gov/Aboutus/xml/dif/dif_v9.9.3.xsd">
+  <Entry_ID>AAD_Ant_iceberg_SAR</Entry_ID>
+  <Entry_Title>Antarctic iceberg sizes and spatial distribution from SAR image analysis - Map</Entry_Title>
+  <Data_Set_Citation>
+    <Dataset_Creator>Young, N.W. and Williams, R.</Dataset_Creator>
+    <Dataset_Title>Antarctic iceberg sizes and spatial distribution from SAR image analysis - Map</Dataset_Title>
+    <Dataset_Series_Name>CAASM Metadata</Dataset_Series_Name>
+    <Dataset_Release_Date>2001-05-29</Dataset_Release_Date>
+    <Dataset_Publisher>Australian Antarctic Data Centre</Dataset_Publisher>
+    <Version>1</Version>
+    <Online_Resource>https://data.aad.gov.au/metadata/records/AAD_Ant_iceberg_SAR</Online_Resource>
+  </Data_Set_Citation>
+  <Personnel>
+    <Role>INVESTIGATOR</Role>
+    <Role>TECHNICAL CONTACT</Role>
+    <Role>DIF AUTHOR</Role>
+    <First_Name>NEAL</First_Name>
+    <Middle_Name>W</Middle_Name>
+    <Last_Name>YOUNG</Last_Name>
+    <Contact_Address>
+      <Address>ACE CRC AND AUSTRALIAN ANTARCTIC DIVISION</Address>
+      <Address>Private Bag 80</Address>
+      <City>Hobart</City>
+      <Province_or_State>Tasmania</Province_or_State>
+      <Postal_Code>7001</Postal_Code>
+      <Country>Australia</Country>
+    </Contact_Address>
+  </Personnel>
+  <Personnel>
+    <Role>INVESTIGATOR</Role>
+    <First_Name>RAYMOND</First_Name>
+    <Last_Name>WILLIAMS</Last_Name>
+    <Email>R.Williams@utas.edu.au</Email>
+    <Phone>+61 3 6324 3480</Phone>
+    <Fax>+61 3 6324 3368</Fax>
+    <Contact_Address>
+      <Address>SCHOOL OF COMPUTING</Address>
+      <Address>PO BOX 1214</Address>
+      <Address>University of Tasmania</Address>
+      <City>Launceston</City>
+      <Province_or_State>Tasmania</Province_or_State>
+      <Postal_Code>7250</Postal_Code>
+      <Country>Australia</Country>
+    </Contact_Address>
+  </Personnel>
+  <Discipline>
+    <Discipline_Name>EARTH SCIENCE</Discipline_Name>
+  </Discipline>
+  <Parameters>
+    <Category>EARTH SCIENCE</Category>
+    <Topic>CRYOSPHERE</Topic>
+    <Term>SEA ICE</Term>
+    <Variable_Level_1>ICEBERGS</Variable_Level_1>
+  </Parameters>
+  <ISO_Topic_Category>GEOSCIENTIFIC INFORMATION</ISO_Topic_Category>
+  <ISO_Topic_Category>INLAND WATERS</ISO_Topic_Category>
+  <ISO_Topic_Category>OCEANS</ISO_Topic_Category>
+  <Keyword>IMAGE ANALYSIS</Keyword>
+  <Keyword>ICEBERG</Keyword>
+  <Keyword>MICROWAVE</Keyword>
+  <Keyword>SAR</Keyword>
+  <Keyword>SATELLITE</Keyword>
+  <Keyword>SYNTHETIC APERTURE RADAR</Keyword>
+  <Keyword>TEXTURE</Keyword>
+  <Sensor_Name>
+    <Short_Name>SAR</Short_Name>
+    <Long_Name>Synthetic Aperture Radar</Long_Name>
+  </Sensor_Name>
+  <Source_Name>
+    <Short_Name>ERS-1</Short_Name>
+    <Long_Name>European Remote Sensing Satellite-1</Long_Name>
+  </Source_Name>
+  <Source_Name>
+    <Short_Name>ERS-2</Short_Name>
+    <Long_Name>European Remote Sensing Satellite-2</Long_Name>
+  </Source_Name>
+  <Source_Name>
+    <Short_Name>RADARSAT-1</Short_Name>
+  </Source_Name>
+  <Temporal_Coverage>
+    <Start_Date>1991-09-01</Start_Date>
+    <Stop_Date>1991-09-01</Stop_Date>
+  </Temporal_Coverage>
+  <Data_Set_Progress>COMPLETE</Data_Set_Progress>
+  <Spatial_Coverage>
+    <Southernmost_Latitude>-80</Southernmost_Latitude>
+    <Northernmost_Latitude>-55</Northernmost_Latitude>
+    <Westernmost_Longitude>70</Westernmost_Longitude>
+    <Easternmost_Longitude>135</Easternmost_Longitude>
+  </Spatial_Coverage>
+  <Location>
+    <Location_Category>OCEAN</Location_Category>
+    <Location_Type>SOUTHERN OCEAN</Location_Type>
+  </Location>
+  <Location>
+    <Location_Category>CONTINENT</Location_Category>
+    <Location_Type>ANTARCTICA</Location_Type>
+  </Location>
+  <Location>
+    <Location_Category>GEOGRAPHIC REGION</Location_Category>
+    <Location_Type>POLAR</Location_Type>
+  </Location>
+  <Data_Resolution>
+    <Latitude_Resolution>30 Metre(s)</Latitude_Resolution>
+    <Longitude_Resolution>30 Metre(s)</Longitude_Resolution>
+  </Data_Resolution>
+  <Access_Constraints>A PDF version of the map is available for download from the provided URL.</Access_Constraints>
+  <Use_Constraints>This data set conforms to the CCBY Attribution License (http://creativecommons.org/licenses/by/4.0/).
+
+Please follow instructions listed in the citation reference provided at http://data.aad.gov.au/aadc/metadata/citation.cfm?entry_id=AAD_Ant_iceberg_SAR when using these data.</Use_Constraints>
+  <Data_Set_Language>English</Data_Set_Language>
+  <Originating_Center>Australian Antarctic Division</Originating_Center>
+  <Data_Center>
+    <Data_Center_Name>
+      <Short_Name>AU/AADC</Short_Name>
+      <Long_Name>Australian Antarctic Data Centre, Australia</Long_Name>
+    </Data_Center_Name>
+    <Data_Center_URL>http://data.aad.gov.au</Data_Center_URL>
+    <Personnel>
+      <Role>DATA CENTER CONTACT</Role>
+      <First_Name>DATA OFFICER</First_Name>
+      <Last_Name>AADC</Last_Name>
+      <Email>metadata@aad.gov.au</Email>
+      <Phone>+61 3 6232 3244</Phone>
+      <Fax>+61 3 6232 3351</Fax>
+      <Contact_Address>
+        <Address>Australian Antarctic Division</Address>
+        <Address>203 Channel Highway</Address>
+        <City>Kingston</City>
+        <Province_or_State>Tasmania</Province_or_State>
+        <Postal_Code>7050</Postal_Code>
+        <Country>Australia</Country>
+      </Contact_Address>
+    </Personnel>
+  </Data_Center>
+  <Distribution>
+    <Distribution_Media>HTTP</Distribution_Media>
+    <Distribution_Size>1,119 kb</Distribution_Size>
+    <Distribution_Format>pdf</Distribution_Format>
+    <Fees>free</Fees>
+  </Distribution>
+  <Reference>
+    <Author>Young, N.W., D. Turner, G. Hyland and R.N. Williams</Author>
+    <Publication_Date>1998</Publication_Date>
+    <Title>Near coastal iceberg distributions in East Antarctica 50E - 145E.</Title>
+    <Series>Annals of Glaciology</Series>
+    <Volume>27</Volume>
+    <Pages>68-74</Pages>
+  </Reference>
+  <Reference>
+    <Author>Williams, R.N., Rees, G. and Young, N.W.</Author>
+    <Publication_Date>1999</Publication_Date>
+    <Title>A technique for the identification and analysis of icebergs in synthetic aperture radar images of Antarctica.</Title>
+    <Series>International Journal of Remote Sensing</Series>
+    <Volume>20</Volume>
+    <Issue>15-16</Issue>
+    <Pages>3183-3199</Pages>
+    <DOI>doi:10.1080/014311699211697</DOI>
+  </Reference>
+  <Summary>
+    <Abstract>This map shows the distribution of the iceberg data extracted from ERS SAR images.
+
+Icebergs are identified in Synthetic Aperture Radar [SAR] images by image analysis using the texture and intensity of the microwave backscatter observations.  The images are segmented using an edge detecting algorithm, and segments identified as iceberg or background, which may be sea ice, open water, or a mixture of both.  Dimensions of the icebergs are derived by spatial analysis of the corresponding image segments.  Location of the iceberg is derived from its position within the image and the navigation data that gives the location and orientation of the image.
+
+More than 20,000 individual observations have been extracted from SAR images acquired by the European Space Agency's ERS-1 and 2 satellites and the Canadian Space Agency's Radarsat satellite.  Because images can overlap, some proportion of the observations represent multiple observations of the same set of icebergs.
+
+Most observations relate to the sector between longitudes 70E and 135E.  The data set includes observations from several other discrete areas around the Antarctic coast.  In general observations are within 200 km of the coast but in limited areas extend to about 500 km from the coast.
+
+This metadata record has been derived from work performed under the auspices of ASAC project 2187 (ASAC_2187).
+
+The map in the pdf file shows the extent of the coverage of individual SAR scenes used in the analysis and the abundance and size characteristics (by a limited colour palette) of the identified icebergs.</Abstract>
+  </Summary>
+  <Related_URL>
+    <URL_Content_Type>
+      <Type>GET DATA</Type>
+    </URL_Content_Type>
+    <URL>https://data.aad.gov.au/eds/1840/download</URL>
+    <Description>Download point for the data - map</Description>
+  </Related_URL>
+  <Related_URL>
+    <URL_Content_Type>
+      <Type>PROJECT HOME PAGE</Type>
+    </URL_Content_Type>
+    <URL>https://secure3.aad.gov.au/proms/public/projects/report_project_public.cfm?project_no=2187</URL>
+    <Description>Public information for ASAC project 2187</Description>
+  </Related_URL>
+  <Related_URL>
+    <URL_Content_Type>
+      <Type>VIEW RELATED INFORMATION</Type>
+    </URL_Content_Type>
+    <URL>http://data.aad.gov.au/aadc/metadata/citation.cfm?entry_id=AAD_Ant_iceberg_SAR</URL>
+    <Description>Citation reference for this metadata record and dataset</Description>
+  </Related_URL>
+  <IDN_Node>
+    <Short_Name>AMD/AU</Short_Name>
+  </IDN_Node>
+  <IDN_Node>
+    <Short_Name>CEOS</Short_Name>
+  </IDN_Node>
+  <IDN_Node>
+    <Short_Name>AMD</Short_Name>
+  </IDN_Node>
+  <IDN_Node>
+    <Short_Name>ACE/CRC</Short_Name>
+  </IDN_Node>
+  <Originating_Metadata_Node>AADC</Originating_Metadata_Node>
+  <Metadata_Name>CEOS IDN DIF</Metadata_Name>
+  <Metadata_Version>VERSION 9.9.3</Metadata_Version>
+  <DIF_Creation_Date>2001-05-29</DIF_Creation_Date>
+  <Last_DIF_Revision_Date>2019-04-01</Last_DIF_Revision_Date>
+  <DIF_Revision_History>2001-05-29 Minor amendments to summary.
+2014-09-11 - record updated by Dave Connell.
+2019-04-01 - record updated by Dave Connell for ISO compliance.</DIF_Revision_History>
+  <Extended_Metadata>
+    <Metadata>
+      <Group>gov.nasa.gsfc.gcmd</Group>
+      <Name>metadata.uuid</Name>
+      <Value>c8bbb233-1950-472f-8b79-115acb8acf66</Value>
+    </Metadata>
+    <Metadata>
+      <Group>gov.nasa.gsfc.gcmd</Group>
+      <Name>metadata.extraction_date</Name>
+      <Value>2019-04-01 14:49:44</Value>
+    </Metadata>
+    <Metadata>
+      <Group>gov.nasa.gsfc.gcmd</Group>
+      <Name>metadata.keyword_version</Name>
+      <Value>8.6</Value>
+    </Metadata>
+  </Extended_Metadata>
+</DIF>

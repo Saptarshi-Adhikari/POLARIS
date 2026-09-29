@@ -15,6 +15,10 @@
 
 import { PlanningMode } from '../render/canvasRenderer.js';
 import { renderRouteComparisonHTML } from './routeComparisonUI.js';
+import { Antarctica3DMap } from '../render/Antarctica3DMap.js';
+import { maritimeTrafficService } from '../data/MaritimeTrafficService.js';
+import { worldToGeo } from '../providers/geoTransform.js';
+import { AAD_EAST_ANTARCTIC_BBOX } from '../data/RealWorldDatasetLoader.js';
 
 export class FeaturePanel {
   constructor(engine) {
@@ -23,6 +27,7 @@ export class FeaturePanel {
     this._throttleMs = 400; // ~2.5 Hz
     this._cache = {};
     this._activeTab = 'route';
+    this.antarctica3dMap = null;
     if (typeof document === 'undefined') return;
     this._init();
   }
@@ -33,6 +38,7 @@ export class FeaturePanel {
     this._bindRouteTab();
     this._bindEnvPresets();
     this._bindScenarioButtons();
+    this._bindDataTab();
   }
 
   _bindPanelToggle() {
@@ -133,6 +139,13 @@ export class FeaturePanel {
         }
       }
     });
+
+    if (tab === 'data') {
+      this._initAntarctica3DMap();
+      if (this.antarctica3dMap) {
+        setTimeout(() => this.antarctica3dMap.handleResize(), 60);
+      }
+    }
   }
 
   _bindRouteTab() {
@@ -291,21 +304,149 @@ export class FeaturePanel {
     `).join('');
   }
 
+  _initAntarctica3DMap() {
+    if (this.antarctica3dMap) return;
+    const container = document.getElementById('antarctica-3d-container');
+    if (!container) return;
+
+    try {
+      this.antarctica3dMap = new Antarctica3DMap(container);
+      const loading = document.getElementById('antarctica-3d-loading');
+      if (loading) loading.classList.add('hidden');
+    } catch (err) {
+      console.warn('[FeaturePanel] Failed to initialize Antarctica3DMap:', err);
+    }
+  }
+
+  _bindDataTab() {
+    const btnReset = document.getElementById('btn-3d-reset');
+    if (btnReset) {
+      btnReset.addEventListener('click', () => {
+        this.antarctica3dMap?.resetView();
+      });
+    }
+
+    const btnShip = document.getElementById('btn-3d-focus-ship');
+    if (btnShip) {
+      btnShip.addEventListener('click', () => {
+        this.antarctica3dMap?.focusOnShip(this.engine.ship);
+      });
+    }
+
+    const btnPrydz = document.getElementById('btn-3d-focus-prydz');
+    if (btnPrydz) {
+      btnPrydz.addEventListener('click', () => {
+        this.antarctica3dMap?.focusOnPrydzBay();
+      });
+    }
+
+    const btnRotate = document.getElementById('btn-3d-autorotate');
+    if (btnRotate) {
+      btnRotate.addEventListener('click', () => {
+        if (this.antarctica3dMap) {
+          const isRotating = this.antarctica3dMap.toggleAutoRotate();
+          btnRotate.classList.toggle('text-secondary', isRotating);
+          btnRotate.classList.toggle('bg-secondary/20', isRotating);
+        }
+      });
+    }
+
+    const refreshAisBtn = document.getElementById('refresh-ais-web-btn');
+    if (refreshAisBtn) {
+      refreshAisBtn.addEventListener('click', async () => {
+        refreshAisBtn.disabled = true;
+        refreshAisBtn.innerHTML = '<span class="material-symbols-outlined text-xs animate-spin">sync</span> REFRESHING...';
+        try {
+          await maritimeTrafficService.fetchLiveTrafficFromWeb();
+          this._renderAisVesselCards();
+        } finally {
+          refreshAisBtn.disabled = false;
+          refreshAisBtn.innerHTML = '<span class="material-symbols-outlined text-xs">sync</span> REFRESH WEB';
+        }
+      });
+    }
+  }
+
   _updateDataTab() {
     const mode = this.engine.dataMode || 'DEMO';
-    this._set('fp-data-mode-label', mode, mode === 'REAL' ? 'font-bold text-emerald-400 text-sm' : 'font-bold text-secondary text-sm');
+    this._set('fp-data-mode-label', mode === 'REAL' ? 'REAL-WORLD INGESTION' : 'DEMO MODE', mode === 'REAL' ? 'font-bold text-emerald-400 text-sm' : 'font-bold text-secondary text-sm');
 
-    if (mode === 'REAL') {
-      this._set('fp-prov-meteo', 'OPEN-METEO (LIVE)');
-      this._set('fp-prov-iceberg', 'USNIC (CACHED / IMPORTED)');
-      this._set('fp-prov-current', 'COPERNICUS (REPLAY)');
-      this._set('fp-prov-sar', 'SENTINEL-1 (FIXTURE)');
-    } else {
-      this._set('fp-prov-meteo', 'SIMULATED');
-      this._set('fp-prov-iceberg', 'SIMULATED');
-      this._set('fp-prov-current', 'SIMULATED');
-      this._set('fp-prov-sar', 'SIMULATED');
+    // Update 3D Polar Earth & AIS targets when data tab is visible
+    if (this._activeTab === 'data') {
+      this._initAntarctica3DMap();
+      if (this.antarctica3dMap && this.engine.ship) {
+        this.antarctica3dMap.updateEntities(this.engine.ship, this.engine.icebergs || []);
+
+        const geo = worldToGeo(this.engine.ship.x, this.engine.ship.y, AAD_EAST_ANTARCTIC_BBOX);
+        this._set('telemetry-3d-lat', `${Math.abs(geo.lat).toFixed(2)}°S`);
+        this._set('telemetry-3d-lon', `${Math.abs(geo.lon).toFixed(2)}°E`);
+      }
+      this._renderAisVesselCards();
     }
+  }
+
+  _renderAisVesselCards() {
+    const container = document.getElementById('ais-vessel-cards-list');
+    if (!container) return;
+
+    const vessels = maritimeTrafficService.getAllVessels();
+    const ship = this.engine.ship;
+    const countEl = document.getElementById('ais-traffic-count');
+    if (countEl) countEl.textContent = `${vessels.length} Vessels Active`;
+
+    const key = vessels.map(v => `${v.mmsi}:${Math.round(v.x)}:${Math.round(v.y)}`).join('|');
+    if (this._cache['fp-ais-vessels-key'] === key) return;
+    this._cache['fp-ais-vessels-key'] = key;
+
+    if (vessels.length === 0) {
+      container.innerHTML = '<div class="text-on-surface-variant text-[10px] py-1">No maritime traffic targets active.</div>';
+      return;
+    }
+
+    container.innerHTML = vessels.map(v => {
+      const dist = ship ? Math.hypot(v.x - ship.x, v.y - ship.y) : 0;
+      const distNm = (dist / 10).toFixed(1);
+      const isClose = dist < 250;
+      const borderCls = isClose ? 'border-amber-400/60 bg-amber-950/20' : 'border-outline/30 bg-surface/60';
+      const badgeCls = isClose ? 'text-amber-400 font-bold' : 'text-sky-400 font-bold';
+
+      return `
+        <div class="p-2 rounded border ${borderCls} hover:border-secondary/60 transition-all cursor-pointer space-y-1" data-mmsi="${v.mmsi}">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-on-surface text-[10px] flex items-center gap-1">
+              <span>${v.flag?.split(' ')[0] || '🚢'}</span>
+              <span>${v.name}</span>
+            </span>
+            <span class="text-[9px] ${badgeCls}">DIST: ${distNm} NM</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1 text-[9px] text-on-surface-variant">
+            <div>SPD: <span class="text-on-surface font-bold">${v.speedKnots || 12} kn</span></div>
+            <div>COG: <span class="text-on-surface font-bold">${Math.round(v.heading || v.cog || 0)}°</span></div>
+            <div>CPA: <span class="text-emerald-400 font-bold">${v.cpa ? (v.cpa / 10).toFixed(1) + ' NM' : 'SAFE'}</span></div>
+          </div>
+          <div class="text-[8.5px] text-on-surface-variant truncate">DEST: <span class="text-secondary font-bold">${v.destination || 'ANTARCTIC WATERS'}</span></div>
+        </div>
+      `;
+    }).join('');
+
+    // Attach click listeners to focus vessels on click
+    container.querySelectorAll('[data-mmsi]').forEach(el => {
+      el.addEventListener('click', () => {
+        const mmsi = parseInt(el.getAttribute('data-mmsi'), 10);
+        const target = vessels.find(v => v.mmsi === mmsi);
+        if (target) {
+          if (this.antarctica3dMap) {
+            this.antarctica3dMap.targetRotation.x = (target.lat * Math.PI) / 180 + Math.PI / 2;
+            this.antarctica3dMap.targetRotation.y = -(target.lon * Math.PI) / 180;
+            this.antarctica3dMap.isAutoRotating = false;
+          }
+          if (this.engine.renderer && this.engine.renderer.camera) {
+            this.engine.renderer.camera.x = target.x;
+            this.engine.renderer.camera.y = target.y;
+          }
+        }
+      });
+    });
   }
 
   _updateAlertsTab() {
